@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 1: What Money Actually Is — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#0b1b33;
+  --navy-mid:#12233f;
+  --ivory:#f4efe0;
+  --paper:#faf7ee;
+  --gold:#b28e4c;
+  --gold-bright:#d6b568;
+  --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333;
+  --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{
+  font-family:'EB Garamond', Georgia, serif;
+  background:var(--paper);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.7;
+}
+a{color:inherit;}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+
+/* ---- Header ---- */
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+
+/* ---- Breadcrumb ---- */
+.breadcrumb{font-size:13px; color:var(--ink-soft); padding:20px 0 0;}
+.breadcrumb a{text-decoration:none; color:var(--gold);}
+
+/* ---- Lesson header ---- */
+.lesson-head{padding:20px 0 36px; border-bottom:1px solid var(--hair); margin-bottom:36px;}
+.tier-badge{
+  display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--navy-deep); background:var(--ivory);
+  border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;
+}
+.lesson-head h1{
+  font-family:'Cormorant Garamond', serif; font-weight:600;
+  font-size:clamp(28px,4.5vw,40px); color:var(--navy-deep); margin-bottom:12px; line-height:1.15;
+}
+.lesson-meta{font-size:14px; color:var(--ink-soft); display:flex; gap:16px; flex-wrap:wrap;}
+
+/* ---- Content ---- */
+.lesson-content h2{
+  font-family:'Cormorant Garamond', serif; font-weight:600; font-size:26px;
+  color:var(--navy-deep); margin:40px 0 14px;
+}
+.lesson-content h2:first-child{margin-top:0;}
+.lesson-content p{font-size:18px; margin-bottom:18px; color:var(--ink);}
+.lesson-content .lede{font-size:19px; color:var(--ink-soft); font-style:italic; margin-bottom:32px;}
+
+.example-box{
+  background:#fff; border:1px solid var(--hair); border-left:3px solid var(--gold);
+  padding:22px 24px; margin:24px 0; font-size:16.5px; color:var(--ink-soft);
+}
+.example-box strong{color:var(--navy-deep); font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; display:block; margin-bottom:10px;}
+
+/* ---- Recap ---- */
+.recap{
+  background:var(--navy-deep); color:var(--ivory); padding:36px 32px; margin:48px 0 32px;
+}
+.recap h3{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:18px;}
+.recap ul{list-style:none;}
+.recap li{font-size:16px; margin-bottom:12px; padding-left:22px; position:relative; color:rgba(244,239,224,0.85);}
+.recap li::before{content:"—"; position:absolute; left:0; color:var(--gold-bright);}
+
+/* ---- Next lesson ---- */
+.next-lesson{
+  border:1px solid var(--hair); padding:28px 26px; display:flex; align-items:center; justify-content:space-between;
+  gap:20px; margin-bottom:60px; flex-wrap:wrap;
+}
+.next-lesson p{font-size:13px; color:var(--ink-soft); font-family:'Cinzel', serif; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;}
+.next-lesson h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep);}
+.btn-primary{
+  font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+  text-decoration:none; background:var(--gold); color:var(--navy-deep); padding:14px 26px; border:1px solid var(--gold);
+  white-space:nowrap;
+}
+
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <a href="../../enroll.html" class="nav-cta">Enroll Now</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="breadcrumb"><a href="../../index.html">Home</a> / <a href="../../index.html#curriculum">Beginner Track</a> / Lesson 1</p>
+
+  <div class="lesson-head">
+    <span class="tier-badge">Beginner Track — Lesson 1</span>
+    <h1>What Money Actually Is</h1>
+    <div class="lesson-meta">
+      <span>Lesson 1 of 5</span>
+      <span>15 min read</span>
+    </div>
+  </div>
+
+  <div class="lesson-content">
+    <p class="lede">Before we talk about stocks, markets, or trading — we need to answer a much older question: why does money exist at all, and what actually gives it value?</p>
+
+    <h2>The problem money solves</h2>
+    <p>Imagine you're a farmer with extra eggs. You want shoes, but the shoemaker doesn't want eggs today — he wants bread. So now you need to find someone who has bread and wants eggs, trade for bread, then find the shoemaker. That's three trades just to get one pair of shoes.</p>
+    <p>This is the real problem people faced before money existed. Trading goods directly for other goods — called <strong>bartering</strong> — only works when two people each happen to want exactly what the other has, at the same time. That almost never lines up cleanly.</p>
+    <p>Money solves this. Instead of trading eggs for bread for shoes, you sell your eggs for money, then use that money to buy shoes directly. Money is simply a tool everyone agrees to accept, so trade doesn't depend on lucky matching anymore.</p>
+
+    <div class="example-box">
+      <strong>Think of it this way</strong>
+      Money is a "middleman" everyone trusts. It doesn't matter what you're selling or buying — money is the one thing both sides will always accept in between.
+    </div>
+
+    <h2>What actually gives money its value?</h2>
+    <p>A piece of paper with numbers on it isn't valuable by itself. Three things give money real value:</p>
+    <p><strong>Trust</strong> — everyone believes others will accept it in exchange for real goods and services. The moment people stop trusting a currency, it stops working, no matter what's printed on it.</p>
+    <p><strong>Scarcity</strong> — money has to be limited. If anyone could print unlimited amounts, it would quickly become worthless (this is part of why countries with runaway money-printing often see their currency collapse in value).</p>
+    <p><strong>Backing by an authority</strong> — most modern money is issued and regulated by a country's government or central bank, which manages its supply and gives people confidence in it.</p>
+
+    <h2>Saving vs. investing — why they're not the same thing</h2>
+    <p>Once you have money, there are two very different things you can do with the extra you don't need right now.</p>
+    <p><strong>Saving</strong> means keeping money safe and accessible — usually in a bank account — for emergencies or near-term goals. It's low risk, but your money typically grows very slowly, if at all.</p>
+    <p><strong>Investing</strong> means putting your money into something with the goal of growing it over time — like part-ownership of a company, or lending money to earn interest. It carries real risk (you could lose some of it), but historically offers far greater growth than simply saving.</p>
+
+    <div class="example-box">
+      <strong>A simple way to remember it</strong>
+      Saving protects what you have. Investing puts your money to work so it can grow — but growth always comes with some risk attached.
+    </div>
+
+    <p>This distinction matters because the rest of this course — and financial markets as a whole — exist almost entirely in that second category: investing. Understanding why people invest, and how, starts with everything we've covered here: money as a trust-based tool, and the choice to put it to work rather than just holding it still.</p>
+  </div>
+
+  <div class="recap">
+    <h3>Quick Recap</h3>
+    <ul>
+      <li>Money exists to solve the problem of bartering — matching up trades directly.</li>
+      <li>Money holds value through trust, scarcity, and backing by an authority.</li>
+      <li>Saving protects your money; investing puts it to work, with more risk and more potential growth.</li>
+    </ul>
+  </div>
+
+  <div class="next-lesson">
+    <div>
+      <p>Up Next — Lesson 2</p>
+      <h3>Markets 101</h3>
+    </div>
+    <span class="tier-badge">Continue in your WhatsApp class</span>
+  </div>
+</div>
+
+<footer>
+  &copy; 2026 Global Market School Ltd. — World's Best Financial Education
+</footer>
+
+</body>
+  </html>
+
