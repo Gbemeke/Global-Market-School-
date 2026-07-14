@@ -1,1 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Chart — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased; line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
 
+.page-head{padding:36px 0 24px;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:10px;}
+.eyebrow::before{content:"";width:24px;height:1px;background:var(--gold);}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(28px,4.5vw,38px); color:var(--navy-deep); margin-bottom:12px;}
+.page-head p{font-size:17px; color:var(--ink-soft); max-width:64ch; line-height:1.6;}
+
+.symbol-picker{display:flex; gap:10px; flex-wrap:wrap; margin:24px 0;}
+.symbol-btn{
+  font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  background:#fff; border:1px solid var(--hair); padding:10px 16px; cursor:pointer; color:var(--ink);
+}
+.symbol-btn.active{background:var(--navy-deep); color:var(--ivory); border-color:var(--navy-deep);}
+
+.chart-frame{border:1px solid var(--hair); margin-bottom:36px; background:var(--navy-deep);}
+
+.broker-note{
+  background:#fff; border:1px solid var(--hair); border-left:3px solid var(--gold);
+  padding:22px 24px; margin:24px 0 48px; font-size:15.5px; color:var(--ink-soft);
+}
+.broker-note strong{color:var(--navy-deep); font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; display:block; margin-bottom:10px;}
+.broker-note a{color:var(--gold); text-decoration:underline;}
+
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <a href="../enroll.html" class="nav-cta">Enroll Now</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <p class="eyebrow">Practice Chart</p>
+    <h1>Live market data — practice reading it here, no money required.</h1>
+    <p>This is a real, live chart (powered by TradingView) — the same kind of chart you'll see on a real broker platform. Practice spotting trend, support, resistance, and candlestick patterns from your lessons here before ever risking real money.</p>
+  </div>
+
+  <div class="symbol-picker">
+    <button class="symbol-btn active" data-symbol="OANDA:XAUUSD">Gold (XAUUSD)</button>
+    <button class="symbol-btn" data-symbol="OANDA:EURUSD">EUR/USD</button>
+    <button class="symbol-btn" data-symbol="OANDA:GBPUSD">GBP/USD</button>
+    <button class="symbol-btn" data-symbol="NASDAQ:AAPL">Apple (AAPL)</button>
+    <button class="symbol-btn" data-symbol="NYSE:JNJ">Johnson &amp; Johnson (JNJ)</button>
+  </div>
+
+  <div class="chart-frame">
+    <div class="tradingview-widget-container">
+      <div id="tv_chart"></div>
+    </div>
+  </div>
+
+  <div class="broker-note">
+    <strong>Ready to trade with real money?</strong>
+    Practicing here costs nothing, but eventually you'll want a real, regulated broker account. For stocks, use a licensed broker regulated in your country. For forex, established options like
+    <a href="https://www.interactivebrokers.com" target="_blank" rel="noopener">Interactive Brokers</a> are widely recognized and regulated. Global Market School does not currently receive any commission from these platforms — this is a neutral recommendation, not a paid placement.
+  </div>
+</div>
+
+<footer>
+  &copy; 2026 Global Market School Ltd. — World's Best Financial Education
+</footer>
+
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script type="text/javascript">
+  function loadChart(symbol) {
+    document.getElementById('tv_chart').innerHTML = '';
+    new TradingView.widget({
+      "width": "100%",
+      "height": 500,
+      "symbol": symbol,
+      "interval": "240",
+      "timezone": "Etc/UTC",
+      "theme": "dark",
+      "style": "1",
+      "locale": "en",
+      "toolbar_bg": "#12233f",
+      "enable_publishing": false,
+      "allow_symbol_change": true,
+      "container_id": "tv_chart"
+    });
+  }
+
+  loadChart("OANDA:XAUUSD");
+
+  document.querySelectorAll('.symbol-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadChart(btn.getAttribute('data-symbol'));
+    });
+  });
+</script>
+
+</body>
+</html>
