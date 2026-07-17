@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
+a{color:inherit;}
+.wrap{max-width:820px;margin:0 auto;padding:0 24px;}
+header{background:var(--navy-deep); color:var(--ivory);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.logout-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; background:none; border:1px solid var(--gold); color:var(--gold-bright); padding:9px 16px; cursor:pointer;}
+
+.page-head{padding:36px 0 8px;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,34px); color:var(--navy-deep);}
+.admin-link{display:inline-block; margin-top:14px; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); padding:9px 16px; text-decoration:none;}
+
+section{padding:28px 0;}
+.section-title{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+
+.course-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.course-card{background:#fff; border:1px solid var(--hair); padding:20px;}
+.course-card.locked{opacity:0.5;}
+.course-card h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; color:var(--navy-deep); margin-bottom:8px;}
+.course-links{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+.course-links a{font-size:13.5px; color:var(--gold); text-decoration:none;}
+.locked-tag{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; color:var(--ink-soft);}
+@media (max-width:560px){.course-grid{grid-template-columns:1fr;}}
+
+.referral-box{background:#fff; border:1px solid var(--hair); padding:24px;}
+.referral-link-row{display:flex; gap:8px; margin:14px 0;}
+.referral-link-row input{flex:1; padding:11px 12px; border:1px solid var(--hair); font-family:'EB Garamond', serif; font-size:14px; background:var(--paper); color:var(--ink);}
+.copy-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--gold); color:var(--navy-deep); border:none; padding:0 16px; cursor:pointer;}
+.earnings-stat{display:flex; gap:28px; margin-top:16px;}
+.earnings-stat div p:first-child{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; color:var(--ink-soft); text-transform:uppercase;}
+.earnings-stat div p:last-child{font-family:'Cormorant Garamond', serif; font-size:24px; color:var(--navy-deep);}
+
+.profile-box{background:#fff; border:1px solid var(--hair); padding:24px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:11px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+.field input{width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:var(--paper);}
+.save-btn{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); border:none; padding:12px 22px; cursor:pointer; margin-top:6px;}
+.msg{font-size:13.5px; padding:10px 12px; margin-top:12px; border-left:3px solid; display:none;}
+.msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
+.msg.error{background:#fbf0ee; border-color:var(--bad); color:var(--bad); display:block;}
+
+.loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Loading your dashboard...</div>
+
+<div id="dashboard" style="display:none;">
+  <header>
+    <div class="wrap brand-row">
+      <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+      <button class="logout-btn" id="logout-btn">Log Out</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="page-head">
+      <p class="eyebrow">Student Dashboard</p>
+      <h1 id="welcome-msg">Welcome back</h1>
+      <a href="../admin/index.html" class="admin-link" id="admin-link" style="display:none;">Go to Admin Panel</a>
+    </div>
+
+    <section>
+      <p class="section-title">Your Courses</p>
+      <div class="course-grid" id="course-grid"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Referral Program</p>
+      <div class="referral-box">
+        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment.</p>
+        <div class="referral-link-row">
+          <input type="text" id="referral-link" readonly>
+          <button class="copy-btn" id="copy-referral">Copy</button>
+        </div>
+        <div class="earnings-stat">
+          <div><p>Total Referrals</p><p id="referral-count">0</p></div>
+          <div><p>Earnings Owed</p><p id="referral-earnings">$0</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-title">Your Details</p>
+      <div class="profile-box">
+        <div class="field"><label>Full Name</label><input type="text" id="edit-name"></div>
+        <div class="field"><label>Phone Number</label><input type="tel" id="edit-phone"></div>
+        <div class="field"><label>Country</label><input type="text" id="edit-country"></div>
+        <button class="save-btn" id="save-profile">Save Changes</button>
+        <p class="msg" id="profile-msg"></p>
+      </div>
+    </section>
+  </div>
+
+  <footer>&copy; 2026 Global Market School Ltd.</footer>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://ovrfpapbgeasgjlyyqwl.supabase.co',
+    'sb_publishable_R8p44v0fCgbKKMv44xivqA_-n70nS2K'
+  );
+
+  const COURSE_LABELS = {
+    'beginner-stock': 'Beginner — Stocks',
+    'beginner-forex': 'Beginner — Forex',
+    'intermediate-stock': 'Intermediate — Stocks',
+    'intermediate-forex': 'Intermediate — Forex',
+    'advanced-stock': 'Advanced — Stocks',
+    'advanced-forex': 'Advanced — Forex',
+    'elite': 'Elite Group',
+    'trade-group': 'Trade Group'
+  };
+
+  const COURSE_LINKS = {
+    'beginner-stock': '../learn/beginner/lesson-1.html',
+    'beginner-forex': '../learn/beginner-forex/lesson-1.html',
+    'intermediate-stock': '../learn/intermediate/lesson-1.html',
+    'intermediate-forex': '../learn/intermediate-forex/lesson-1.html',
+    'advanced-stock': '../learn/advanced/lesson-1.html',
+    'advanced-forex': '../learn/advanced-forex/lesson-1.html'
+  };
+
+  async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const userId = session.user.id;
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (!profile) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    document.getElementById('welcome-msg').textContent = 'Welcome back, ' + (profile.full_name || 'Student');
+    document.getElementById('edit-name').value = profile.full_name || '';
+    document.getElementById('edit-phone').value = profile.phone || '';
+    document.getElementById('edit-country').value = profile.country || '';
+
+    if (profile.is_admin) {
+      document.getElementById('admin-link').style.display = 'inline-block';
+    }
+
+    const referralLink = 'https://www.globalmarketschool.com/enroll.html?ref=' + profile.referral_code;
+    document.getElementById('referral-link').value = referralLink;
+
+    const { data: access } = await supabaseClient
+      .from('course_access')
+      .select('course_key, has_access')
+      .eq('user_id', userId)
+      .eq('has_access', true);
+
+    const unlockedKeys = (access || []).map(a => a.course_key);
+    const grid = document.getElementById('course-grid');
+    grid.innerHTML = '';
+
+    Object.keys(COURSE_LABELS).forEach(function(key) {
+      const unlocked = unlockedKeys.includes(key);
+      const card = document.createElement('div');
+      card.className = 'course-card' + (unlocked ? '' : ' locked');
+      card.innerHTML = '<h3>' + COURSE_LABELS[key] + '</h3>' +
+        (unlocked
+          ? '<div class="course-links"><a href="' + (COURSE_LINKS[key] || '#') + '">Continue Lessons &rarr;</a></div>'
+          : '<span class="locked-tag">Not enrolled</span>');
+      grid.appendChild(card);
+    });
+
+    const { data: earnings } = await supabaseClient
+      .from('referral_earnings')
+      .select('commission_amount')
+      .eq('referrer_id', userId);
+
+    const total = (earnings || []).reduce((sum, e) => sum + Number(e.commission_amount), 0);
+    document.getElementById('referral-count').textContent = (earnings || []).length;
+    document.getElementById('referral-earnings').textContent = '$' + total.toFixed(2);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+
+  document.getElementById('copy-referral').addEventListener('click', function() {
+    const input = document.getElementById('referral-link');
+    input.select();
+    navigator.clipboard.writeText(input.value);
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = 'Copy'; }, 1500);
+  });
+
+  document.getElementById('save-profile').addEventListener('click', async function() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const msg = document.getElementById('profile-msg');
+
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({
+        full_name: document.getElementById('edit-name').value.trim(),
+        phone: document.getElementById('edit-phone').value.trim(),
+        country: document.getElementById('edit-country').value.trim()
+      })
+      .eq('id', session.user.id);
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not save changes. Please try again.';
+    } else {
+      msg.className = 'msg success';
+      msg.textContent = 'Changes saved successfully.';
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    await supabaseClient.auth.signOut();
+    window.location.href = '../index.html';
+  });
+
+  init();
+</script>
+
+</body>
+</html>
