@@ -179,7 +179,14 @@ a{color:inherit;}
 
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
-      password: password
+      password: password,
+      options: {
+        data: {
+          full_name: fullName,
+          phone: phone,
+          country: country
+        }
+      }
     });
 
     if (error) {
@@ -188,19 +195,6 @@ a{color:inherit;}
       btn.disabled = false;
       btn.textContent = 'Register Now';
       return;
-    }
-
-    if (data.user) {
-      const referralCode = data.user.id.replace(/-/g, '').substring(0, 8);
-
-      await supabaseClient.from('profiles').insert({
-        id: data.user.id,
-        full_name: fullName,
-        email: email,
-        phone: phone,
-        country: country,
-        referral_code: referralCode
-      });
     }
 
     document.getElementById('form-panel').style.display = 'none';
