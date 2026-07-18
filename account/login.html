@@ -18,11 +18,11 @@
 html{overflow-x:hidden; max-width:100%;}
 body{
   font-family:'EB Garamond', Georgia, serif; background:var(--navy-deep); color:var(--ink);
-  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 16px;
+  min-height:100dvh; display:block; padding:60px 16px;
 }
 a{color:inherit;}
 .card{
-  width:100%; max-width:420px; background:var(--paper);
+  width:100%; max-width:420px; margin:0 auto; background:var(--paper);
   border:1px solid var(--gold); box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);
 }
 .card-head{padding:36px 32px 24px; text-align:center; border-bottom:1px solid var(--hair);}
@@ -51,6 +51,16 @@ a{color:inherit;}
 .msg{font-size:14px; padding:12px 14px; margin-bottom:16px; border-left:3px solid; display:none;}
 .msg.error{background:#fbf0ee; border-color:var(--bad); color:var(--bad); display:block;}
 .msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
+
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:44px !important;}
+.pw-toggle{
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; padding:4px;
+  font-family:'Cinzel', serif; font-size:10px; letter-spacing:0.5px;
+  color:var(--ink-soft); text-transform:uppercase;
+}
+.pw-toggle:hover{color:var(--gold);}
 </style>
 </head>
 <body>
@@ -76,7 +86,7 @@ a{color:inherit;}
           <label for="password">Password</label>
           <span class="forgot-link" id="forgot-link">Forgot Password?</span>
         </div>
-        <input type="password" id="password" required autocomplete="current-password">
+        <div class="pw-wrap"><input type="password" id="password" required autocomplete="current-password"><button type="button" class="pw-toggle" data-target="password">Show</button></div>
       </div>
 
       <button type="submit" class="submit-btn" id="submit-btn">Log In</button>
@@ -147,5 +157,21 @@ a{color:inherit;}
   });
 </script>
 
+
+<script>
+  document.querySelectorAll('.pw-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+      }
+    });
+  });
+</script>
 </body>
 </html>
