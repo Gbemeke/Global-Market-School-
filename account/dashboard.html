@@ -153,11 +153,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const userId = session.user.id;
 
-    const { data: profile } = await supabaseClient
+    const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
+
+    if (profileError) {
+      console.error('Profile fetch failed:', profileError.message);
+      document.getElementById('loading').textContent = 'Something went wrong loading your account. Please contact support.';
+      return;
+    }
 
     if (!profile) {
       window.location.href = 'login.html';
