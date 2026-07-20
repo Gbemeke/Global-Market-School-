@@ -199,7 +199,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       card.innerHTML = '<h3>' + COURSE_LABELS[key] + '</h3>' +
         (unlocked
           ? '<div class="course-links"><a href="' + (COURSE_LINKS[key] || '#') + '">Continue Lessons &rarr;</a></div>'
-          : '<span class="locked-tag">Not enrolled</span>');
+          : '<a href="checkout.html" class="locked-tag" style="text-decoration:none;">Not enrolled — Enroll &rarr;</a>');
       grid.appendChild(card);
     });
 

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
+a{color:inherit;}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px;}
+header{background:var(--navy-deep); border-bottom:1px solid var(--hair);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:22px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:28px;height:28px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:14px; color:var(--gold);}
+
+.page-head{padding:36px 0 8px;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,32px); color:var(--navy-deep);}
+.page-head p{font-size:15px; color:var(--ink-soft); margin-top:8px;}
+
+main{padding:28px 0 60px;}
+.tiers{display:flex; flex-direction:column; gap:12px; margin-bottom:32px;}
+.tier{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  border:1px solid var(--hair); padding:18px 20px; cursor:pointer; background:#fff;
+}
+.tier:hover{border-color:var(--gold);}
+.tier.active{border-color:var(--gold); background:linear-gradient(180deg,#fff,#fbf6ea);}
+.tier input{accent-color:var(--gold); width:18px; height:18px;}
+.tier-info{display:flex; align-items:center; gap:14px;}
+.tier-info h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; color:var(--navy-deep);}
+.tier-info p{font-size:13px; color:var(--ink-soft);}
+.tier-price{font-family:'Cinzel', serif; font-size:16px; color:var(--navy-deep); white-space:nowrap;}
+
+.summary{background:#fff; border:1px solid var(--hair); padding:22px 24px; margin-bottom:24px;}
+.summary p{font-size:14.5px; color:var(--ink-soft); margin-bottom:4px;}
+.summary strong{color:var(--navy-deep);}
+
+.pay-btn{
+  width:100%; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:17px; cursor:pointer;
+}
+.pay-btn:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.pay-btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+.currency-note{font-size:13px; color:var(--ink-soft); margin-top:12px; text-align:center;}
+
+.confirm-panel{display:none; text-align:center; padding:60px 20px; border:1px solid var(--hair); background:#fff;}
+.confirm-panel.show{display:block;}
+.confirm-panel h2{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:26px; color:var(--navy-deep); margin-bottom:12px;}
+.confirm-panel p{color:var(--ink-soft); margin-bottom:24px; font-size:15.5px;}
+.confirm-panel a{
+  display:inline-block; font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+  background:var(--gold); color:var(--navy-deep); padding:14px 28px; text-decoration:none;
+}
+
+.loading{text-align:center; padding:60px 0; color:var(--ink-soft);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Loading checkout...</div>
+
+<div id="page-content" style="display:none;">
+<header>
+  <div class="wrap brand-row">
+    <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <p class="eyebrow">Checkout</p>
+    <h1>Choose your program.</h1>
+    <p>Purchasing a course unlocks it immediately in your dashboard — no separate enrollment step needed.</p>
+  </div>
+
+  <main>
+    <div class="tiers" id="tier-list">
+      <label class="tier" data-price="50">
+        <div class="tier-info"><input type="radio" name="tier" value="Beginner" required><div><h3>Beginner</h3><p>Foundations of money and markets</p></div></div>
+        <span class="tier-price">$50</span>
+      </label>
+      <label class="tier" data-price="100">
+        <div class="tier-info"><input type="radio" name="tier" value="Intermediate"><div><h3>Intermediate</h3><p>Includes Beginner + Intermediate</p></div></div>
+        <span class="tier-price">$100</span>
+      </label>
+      <label class="tier" data-price="150">
+        <div class="tier-info"><input type="radio" name="tier" value="Advanced"><div><h3>Advanced</h3><p>Includes everything through Advanced</p></div></div>
+        <span class="tier-price">$150</span>
+      </label>
+      <label class="tier" data-price="500">
+        <div class="tier-info"><input type="radio" name="tier" value="Elite"><div><h3>Elite Group</h3><p>All lessons + direct CEO access</p></div></div>
+        <span class="tier-price">$500</span>
+      </label>
+      <label class="tier" data-price="2000">
+        <div class="tier-info"><input type="radio" name="tier" value="Trade Group"><div><h3>Trade Group</h3><p>Everything + live trading with the CEO</p></div></div>
+        <span class="tier-price">$2,000</span>
+      </label>
+    </div>
+
+    <div class="summary" id="summary" style="display:none;">
+      <p>Paying as: <strong id="summary-name"></strong></p>
+      <p>Email: <strong id="summary-email"></strong></p>
+    </div>
+
+    <button class="pay-btn" id="pay-btn" disabled>Select a program to continue</button>
+    <p class="currency-note">Students in Nigeria, Ghana, Kenya, and South Africa are automatically charged their local currency with local payment options. All other countries are charged in USD by card.</p>
+
+    <div class="confirm-panel" id="confirm-panel">
+      <h2>Payment Confirmed</h2>
+      <p>Your course is now unlocked. Head to your dashboard to start learning and join your WhatsApp class.</p>
+      <a href="dashboard.html">Go to Dashboard</a>
+    </div>
+  </main>
+</div>
+
+<footer>&copy; 2026 Global Market School Ltd. — World's Best Financial Education</footer>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  const AFRICA_CURRENCY = {
+    "Nigeria":      { currency: "NGN", rate: 1600, options: "card, mobilemoney, ussd, banktransfer" },
+    "Ghana":        { currency: "GHS", rate: 15,   options: "card, mobilemoney" },
+    "Kenya":        { currency: "KES", rate: 130,  options: "card, mobilemoney" },
+    "South Africa": { currency: "ZAR", rate: 18,   options: "card, mobilemoney, banktransfer" },
+  };
+
+  const FLW_PUBLIC_KEY = "FLWPUBK-e9a43e577a09e8247b4107db7b5ceb1e-X";
+  const VERIFY_ENDPOINT = "https://global-market-school.vercel.app/api/verify-payment";
+
+  let currentUser = null;
+  let currentProfile = null;
+  let selectedTier = null;
+  let selectedPrice = null;
+
+  async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    currentUser = session.user;
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    currentProfile = profile;
+
+    document.getElementById('summary-name').textContent = (profile && profile.full_name) || currentUser.email;
+    document.getElementById('summary-email').textContent = currentUser.email;
+    document.getElementById('summary').style.display = 'block';
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+  }
+
+  document.querySelectorAll('.tier').forEach(function(label) {
+    label.addEventListener('click', function() {
+      document.querySelectorAll('.tier').forEach(l => l.classList.remove('active'));
+      label.classList.add('active');
+      selectedTier = label.querySelector('input').value;
+      selectedPrice = label.getAttribute('data-price');
+      const btn = document.getElementById('pay-btn');
+      btn.disabled = false;
+      btn.textContent = 'Pay Now — $' + Number(selectedPrice).toLocaleString();
+    });
+  });
+
+  document.getElementById('pay-btn').addEventListener('click', function() {
+    if (!selectedTier || !currentUser) return;
+
+    const country = (currentProfile && currentProfile.country) || '';
+    let checkoutAmount = selectedPrice;
+    let checkoutCurrency = "USD";
+    let checkoutOptions = "card";
+
+    if (AFRICA_CURRENCY[country]) {
+      const local = AFRICA_CURRENCY[country];
+      checkoutAmount = Math.round(Number(selectedPrice) * local.rate);
+      checkoutCurrency = local.currency;
+      checkoutOptions = local.options;
+    }
+
+    const btn = document.getElementById('pay-btn');
+
+    FlutterwaveCheckout({
+      public_key: FLW_PUBLIC_KEY,
+      tx_ref: "GMS-" + Date.now(),
+      amount: checkoutAmount,
+      currency: checkoutCurrency,
+      payment_options: checkoutOptions,
+      customer: {
+        email: currentUser.email,
+        phone_number: (currentProfile && currentProfile.phone) || '',
+        name: (currentProfile && currentProfile.full_name) || currentUser.email,
+      },
+      customizations: {
+        title: "Global Market School",
+        description: selectedTier + " Class Enrollment",
+      },
+      callback: async function (data) {
+        btn.disabled = true;
+        btn.textContent = "Confirming payment...";
+
+        try {
+          const verifyResponse = await fetch(VERIFY_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              transaction_id: data.transaction_id,
+              expected_amount: checkoutAmount,
+              expected_currency: checkoutCurrency,
+              user_id: currentUser.id,
+              tier: selectedTier,
+            }),
+          });
+
+          const result = await verifyResponse.json();
+
+          if (result.verified) {
+            document.querySelector('main').querySelectorAll(':scope > *:not(.confirm-panel)').forEach(el => el.style.display = 'none');
+            document.getElementById('confirm-panel').classList.add('show');
+          } else {
+            alert("We could not confirm your payment. If you were charged, please contact info@globalmarketschool.com with your transaction reference.");
+            btn.disabled = false;
+            btn.textContent = 'Pay Now — $' + Number(selectedPrice).toLocaleString();
+          }
+        } catch (err) {
+          alert("We could not confirm your payment right now. Please contact info@globalmarketschool.com.");
+          btn.disabled = false;
+          btn.textContent = 'Pay Now — $' + Number(selectedPrice).toLocaleString();
+        }
+      },
+      onclose: function() {},
+    });
+  });
+
+  init();
+</script>
+
+</body>
+</html>
