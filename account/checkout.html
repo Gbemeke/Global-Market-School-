@@ -89,35 +89,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   </div>
 
   <main>
-    <div class="tiers" id="tier-list">
-      <label class="tier" data-price="50">
-        <div class="tier-info"><input type="radio" name="tier" value="Beginner" required><div><h3>Beginner</h3><p>Foundations of money and markets</p></div></div>
-        <span class="tier-price">$50</span>
-      </label>
-      <label class="tier" data-price="100">
-        <div class="tier-info"><input type="radio" name="tier" value="Intermediate"><div><h3>Intermediate</h3><p>Includes Beginner + Intermediate</p></div></div>
-        <span class="tier-price">$100</span>
-      </label>
-      <label class="tier" data-price="150">
-        <div class="tier-info"><input type="radio" name="tier" value="Advanced"><div><h3>Advanced</h3><p>Includes everything through Advanced</p></div></div>
-        <span class="tier-price">$150</span>
-      </label>
-      <label class="tier" data-price="500">
-        <div class="tier-info"><input type="radio" name="tier" value="Elite"><div><h3>Elite Group</h3><p>All lessons + direct CEO access</p></div></div>
-        <span class="tier-price">$500</span>
-      </label>
-      <label class="tier" data-price="2000">
-        <div class="tier-info"><input type="radio" name="tier" value="Trade Group"><div><h3>Trade Group</h3><p>Everything + live trading with the CEO</p></div></div>
-        <span class="tier-price">$2,000</span>
-      </label>
-    </div>
-
     <div class="summary" id="summary" style="display:none;">
       <p>Paying as: <strong id="summary-name"></strong></p>
       <p>Email: <strong id="summary-email"></strong></p>
+      <p style="margin-top:14px; padding-top:14px; border-top:1px solid var(--hair);">Program: <strong id="summary-tier"></strong></p>
+      <p>Price: <strong id="summary-price"></strong></p>
     </div>
 
-    <button class="pay-btn" id="pay-btn" disabled>Select a program to continue</button>
+    <button class="pay-btn" id="pay-btn" disabled>Loading order details...</button>
     <p class="currency-note">Students in Nigeria, Ghana, Kenya, and South Africa are automatically charged their local currency with local payment options. All other countries are charged in USD by card.</p>
 
     <div class="confirm-panel" id="confirm-panel">
@@ -176,19 +155,38 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
+    loadTierFromUrl();
   }
 
-  document.querySelectorAll('.tier').forEach(function(label) {
-    label.addEventListener('click', function() {
-      document.querySelectorAll('.tier').forEach(l => l.classList.remove('active'));
-      label.classList.add('active');
-      selectedTier = label.querySelector('input').value;
-      selectedPrice = label.getAttribute('data-price');
-      const btn = document.getElementById('pay-btn');
-      btn.disabled = false;
-      btn.textContent = 'Pay Now — $' + Number(selectedPrice).toLocaleString();
-    });
-  });
+  const TIER_PRICES = {
+    'Beginner': { price: 50, label: 'Beginner Class (Stocks + Forex)' },
+    'Intermediate': { price: 100, label: 'Intermediate Class (Beginner + Intermediate, Stocks + Forex)' },
+    'Advanced': { price: 200, label: 'Advanced Class (Beginner + Intermediate + Advanced, Stocks + Forex)' },
+    'Elite': { price: 1000, label: 'Elite Group (All three levels + Elite, Stocks + Forex)' },
+    'Trade Group': { price: 2500, label: 'Trade Group (Everything + Trade Group, Stocks + Forex)' }
+  };
+
+  function loadTierFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const tierParam = params.get('tier');
+    const btn = document.getElementById('pay-btn');
+
+    if (!tierParam || !TIER_PRICES[tierParam]) {
+      btn.textContent = 'No program selected';
+      btn.disabled = true;
+      document.getElementById('summary-tier').textContent = 'Please select a program from your Dashboard first.';
+      return;
+    }
+
+    selectedTier = tierParam;
+    selectedPrice = TIER_PRICES[tierParam].price;
+
+    document.getElementById('summary-tier').textContent = TIER_PRICES[tierParam].label;
+    document.getElementById('summary-price').textContent = '$' + selectedPrice.toLocaleString();
+
+    btn.disabled = false;
+    btn.textContent = 'Pay Now — $' + selectedPrice.toLocaleString();
+  }
 
   document.getElementById('pay-btn').addEventListener('click', function() {
     if (!selectedTier || !currentUser) return;

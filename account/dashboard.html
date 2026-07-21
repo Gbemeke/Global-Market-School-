@@ -33,14 +33,29 @@ header{background:var(--navy-deep); color:var(--ivory);}
 section{padding:28px 0;}
 .section-title{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
 
-.course-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
-.course-card{background:#fff; border:1px solid var(--hair); padding:20px;}
-.course-card.locked{opacity:0.5;}
-.course-card h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; color:var(--navy-deep); margin-bottom:8px;}
-.course-links{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
-.course-links a{font-size:13.5px; color:var(--gold); text-decoration:none;}
-.locked-tag{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; color:var(--ink-soft);}
-@media (max-width:560px){.course-grid{grid-template-columns:1fr;}}
+.tier-grid{display:flex; flex-direction:column; gap:16px;}
+.tier-card{
+  background:#fff; border:1px solid var(--hair); padding:24px; position:relative;
+  display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;
+}
+.tier-card.unlocked{border-color:var(--good); background:linear-gradient(180deg,#fff,#f4faf6);}
+.tier-card.featured{border-color:var(--gold);}
+.tier-num{
+  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold);
+}
+.tier-card h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep); margin:4px 0 8px;}
+.tier-card p{font-size:14px; color:var(--ink-soft); line-height:1.55; max-width:46ch;}
+.tier-right{text-align:right; flex-shrink:0;}
+.tier-price{font-family:'Cinzel', serif; font-size:19px; color:var(--navy-deep); margin-bottom:10px;}
+.tier-badge{
+  display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase;
+  padding:8px 16px; text-decoration:none;
+}
+.tier-badge.locked-btn{background:var(--navy-deep); color:var(--ivory);}
+.tier-badge.locked-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.tier-badge.unlocked-tag{background:var(--good); color:#fff;}
+.tier-links{display:flex; gap:12px; margin-top:8px;}
+.tier-links a{font-size:12.5px; color:var(--gold); text-decoration:none; font-family:'Cinzel', serif; letter-spacing:0.5px;}
 
 .referral-box{background:#fff; border:1px solid var(--hair); padding:24px;}
 .referral-link-row{display:flex; gap:8px; margin:14px 0;}
@@ -84,7 +99,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     <section>
       <p class="section-title">Your Courses</p>
-      <div class="course-grid" id="course-grid"></div>
+      <div class="tier-grid" id="tier-grid"></div>
     </section>
 
     <section>
@@ -123,25 +138,62 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
-  const COURSE_LABELS = {
-    'beginner-stock': 'Beginner — Stocks',
-    'beginner-forex': 'Beginner — Forex',
-    'intermediate-stock': 'Intermediate — Stocks',
-    'intermediate-forex': 'Intermediate — Forex',
-    'advanced-stock': 'Advanced — Stocks',
-    'advanced-forex': 'Advanced — Forex',
-    'elite': 'Elite Group',
-    'trade-group': 'Trade Group'
-  };
-
-  const COURSE_LINKS = {
-    'beginner-stock': '../learn/beginner/lesson-1.html',
-    'beginner-forex': '../learn/beginner-forex/lesson-1.html',
-    'intermediate-stock': '../learn/intermediate/lesson-1.html',
-    'intermediate-forex': '../learn/intermediate-forex/lesson-1.html',
-    'advanced-stock': '../learn/advanced/lesson-1.html',
-    'advanced-forex': '../learn/advanced-forex/lesson-1.html'
-  };
+  const TIERS = [
+    {
+      key: 'Beginner',
+      title: 'Beginner Class',
+      subtitle: 'Stocks + Forex',
+      price: 50,
+      desc: 'Foundations of money and markets — zero background required. Covers both stock and forex trading from the ground up.',
+      requiredCourses: ['beginner-stock', 'beginner-forex'],
+      lessonLinks: [
+        { label: 'Stocks', href: '../learn/beginner/lesson-1.html' },
+        { label: 'Forex', href: '../learn/beginner-forex/lesson-1.html' }
+      ]
+    },
+    {
+      key: 'Intermediate',
+      title: 'Intermediate Class',
+      subtitle: 'All Beginner + Intermediate, Stocks + Forex',
+      price: 100,
+      desc: 'Everything in Beginner, plus strategy, valuation, and real analysis — for both stocks and forex.',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex'],
+      lessonLinks: [
+        { label: 'Stocks', href: '../learn/intermediate/lesson-1.html' },
+        { label: 'Forex', href: '../learn/intermediate-forex/lesson-1.html' }
+      ]
+    },
+    {
+      key: 'Advanced',
+      title: 'Advanced Class',
+      subtitle: 'Beginner + Intermediate + Advanced, Stocks + Forex',
+      price: 200,
+      desc: 'Everything above, plus institutional-grade market structure, regulation, and professional risk management.',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex'],
+      lessonLinks: [
+        { label: 'Stocks', href: '../learn/advanced/lesson-1.html' },
+        { label: 'Forex', href: '../learn/advanced-forex/lesson-1.html' }
+      ]
+    },
+    {
+      key: 'Elite',
+      title: 'Elite Group',
+      subtitle: 'All three levels above + Elite, Stocks + Forex',
+      price: 1000,
+      desc: 'Every lesson above, plus direct CEO access and ongoing mentorship.',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite'],
+      lessonLinks: []
+    },
+    {
+      key: 'Trade Group',
+      title: 'Trade Group',
+      subtitle: 'Everything above + Trade Group, Stocks + Forex',
+      price: 2500,
+      desc: 'Everything Global Market School offers, plus live trading sessions alongside the CEO himself.',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite', 'trade-group'],
+      lessonLinks: []
+    }
+  ];
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -179,7 +231,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       document.getElementById('admin-link').style.display = 'inline-block';
     }
 
-    const referralLink = 'https://www.globalmarketschool.com/enroll.html?ref=' + profile.referral_code;
+    const referralLink = 'https://www.globalmarketschool.com/account/register.html?ref=' + profile.referral_code;
     document.getElementById('referral-link').value = referralLink;
 
     const { data: access } = await supabaseClient
@@ -189,17 +241,35 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       .eq('has_access', true);
 
     const unlockedKeys = (access || []).map(a => a.course_key);
-    const grid = document.getElementById('course-grid');
+    const grid = document.getElementById('tier-grid');
     grid.innerHTML = '';
 
-    Object.keys(COURSE_LABELS).forEach(function(key) {
-      const unlocked = unlockedKeys.includes(key);
+    TIERS.forEach(function(tier) {
+      const unlocked = tier.requiredCourses.every(k => unlockedKeys.includes(k));
       const card = document.createElement('div');
-      card.className = 'course-card' + (unlocked ? '' : ' locked');
-      card.innerHTML = '<h3>' + COURSE_LABELS[key] + '</h3>' +
-        (unlocked
-          ? '<div class="course-links"><a href="' + (COURSE_LINKS[key] || '#') + '">Continue Lessons &rarr;</a></div>'
-          : '<a href="checkout.html" class="locked-tag" style="text-decoration:none;">Not enrolled — Enroll &rarr;</a>');
+      card.className = 'tier-card' + (unlocked ? ' unlocked' : '');
+
+      let linksHtml = '';
+      if (unlocked && tier.lessonLinks.length) {
+        linksHtml = '<div class="tier-links">' +
+          tier.lessonLinks.map(l => '<a href="' + l.href + '">' + l.label + ' &rarr;</a>').join('') +
+          '</div>';
+      }
+
+      card.innerHTML =
+        '<div>' +
+          '<p class="tier-num">' + tier.title + '</p>' +
+          '<h3>' + tier.subtitle + '</h3>' +
+          '<p>' + tier.desc + '</p>' +
+          linksHtml +
+        '</div>' +
+        '<div class="tier-right">' +
+          '<p class="tier-price">$' + tier.price.toLocaleString() + '</p>' +
+          (unlocked
+            ? '<span class="tier-badge unlocked-tag">Enrolled &check;</span>'
+            : '<a href="checkout.html?tier=' + encodeURIComponent(tier.key) + '" class="tier-badge locked-btn">Enroll Now</a>') +
+        '</div>';
+
       grid.appendChild(card);
     });
 
