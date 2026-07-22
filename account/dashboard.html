@@ -68,7 +68,13 @@ section{padding:28px 0;}
 .profile-box{background:#fff; border:1px solid var(--hair); padding:24px;}
 .field{margin-bottom:14px;}
 .field label{display:block; font-size:11px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
-.field input{width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:var(--paper);}
+.field input, .field select{width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:var(--paper);}
+.phone-row{display:flex; gap:8px;}
+.phone-code{
+  flex-shrink:0; padding:10px 12px; border:1px solid var(--hair); background:var(--ivory);
+  font-family:'Cinzel', serif; font-size:14px; color:var(--navy-deep); min-width:64px; text-align:center;
+}
+.phone-row input{flex:1;}
 .save-btn{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); border:none; padding:12px 22px; cursor:pointer; margin-top:6px;}
 .msg{font-size:13.5px; padding:10px 12px; margin-top:12px; border-left:3px solid; display:none;}
 .msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
@@ -121,8 +127,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <p class="section-title">Your Details</p>
       <div class="profile-box">
         <div class="field"><label>Full Name</label><input type="text" id="edit-name"></div>
-        <div class="field"><label>Phone Number</label><input type="tel" id="edit-phone"></div>
-        <div class="field"><label>Country</label><input type="text" id="edit-country"></div>
+        <div class="field">
+          <label>Country</label>
+          <select id="edit-country"></select>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <div class="phone-row">
+            <span class="phone-code" id="phone-code">+ &mdash;</span>
+            <input type="tel" id="edit-phone" placeholder="Number without country code">
+          </div>
+        </div>
         <button class="save-btn" id="save-profile">Save Changes</button>
         <p class="msg" id="profile-msg"></p>
       </div>
@@ -137,6 +152,67 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'https://djkctbtxnpdkstvznjlf.supabase.co',
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
+
+  const COUNTRIES = [
+    ["Afghanistan","93"],["Albania","355"],["Algeria","213"],["Andorra","376"],["Angola","244"],
+    ["Argentina","54"],["Armenia","374"],["Australia","61"],["Austria","43"],["Azerbaijan","994"],
+    ["Bahamas","1"],["Bahrain","973"],["Bangladesh","880"],["Barbados","1"],["Belarus","375"],
+    ["Belgium","32"],["Belize","501"],["Benin","229"],["Bhutan","975"],["Bolivia","591"],
+    ["Bosnia and Herzegovina","387"],["Botswana","267"],["Brazil","55"],["Brunei","673"],["Bulgaria","359"],
+    ["Burkina Faso","226"],["Burundi","257"],["Cambodia","855"],["Cameroon","237"],["Canada","1"],
+    ["Cape Verde","238"],["Central African Republic","236"],["Chad","235"],["Chile","56"],["China","86"],
+    ["Colombia","57"],["Comoros","269"],["Congo","242"],["Costa Rica","506"],["Croatia","385"],
+    ["Cuba","53"],["Cyprus","357"],["Czech Republic","420"],["Denmark","45"],["Djibouti","253"],
+    ["Dominica","1"],["Dominican Republic","1"],["DR Congo","243"],["Ecuador","593"],["Egypt","20"],
+    ["El Salvador","503"],["Equatorial Guinea","240"],["Eritrea","291"],["Estonia","372"],["Eswatini","268"],
+    ["Ethiopia","251"],["Fiji","679"],["Finland","358"],["France","33"],["Gabon","241"],
+    ["Gambia","220"],["Georgia","995"],["Germany","49"],["Ghana","233"],["Greece","30"],
+    ["Grenada","1"],["Guatemala","502"],["Guinea","224"],["Guinea-Bissau","245"],["Guyana","592"],
+    ["Haiti","509"],["Honduras","504"],["Hungary","36"],["Iceland","354"],["India","91"],
+    ["Indonesia","62"],["Iran","98"],["Iraq","964"],["Ireland","353"],["Israel","972"],
+    ["Italy","39"],["Ivory Coast","225"],["Jamaica","1"],["Japan","81"],["Jordan","962"],
+    ["Kazakhstan","7"],["Kenya","254"],["Kiribati","686"],["Kuwait","965"],["Kyrgyzstan","996"],
+    ["Laos","856"],["Latvia","371"],["Lebanon","961"],["Lesotho","266"],["Liberia","231"],
+    ["Libya","218"],["Liechtenstein","423"],["Lithuania","370"],["Luxembourg","352"],["Madagascar","261"],
+    ["Malawi","265"],["Malaysia","60"],["Maldives","960"],["Mali","223"],["Malta","356"],
+    ["Mauritania","222"],["Mauritius","230"],["Mexico","52"],["Moldova","373"],["Monaco","377"],
+    ["Mongolia","976"],["Montenegro","382"],["Morocco","212"],["Mozambique","258"],["Myanmar","95"],
+    ["Namibia","264"],["Nepal","977"],["Netherlands","31"],["New Zealand","64"],["Nicaragua","505"],
+    ["Niger","227"],["Nigeria","234"],["North Korea","850"],["North Macedonia","389"],["Norway","47"],
+    ["Oman","968"],["Pakistan","92"],["Palau","680"],["Panama","507"],["Papua New Guinea","675"],
+    ["Paraguay","595"],["Peru","51"],["Philippines","63"],["Poland","48"],["Portugal","351"],
+    ["Qatar","974"],["Romania","40"],["Russia","7"],["Rwanda","250"],["Samoa","685"],
+    ["Saudi Arabia","966"],["Senegal","221"],["Serbia","381"],["Seychelles","248"],["Sierra Leone","232"],
+    ["Singapore","65"],["Slovakia","421"],["Slovenia","386"],["Solomon Islands","677"],["Somalia","252"],
+    ["South Africa","27"],["South Korea","82"],["South Sudan","211"],["Spain","34"],["Sri Lanka","94"],
+    ["Sudan","249"],["Suriname","597"],["Sweden","46"],["Switzerland","41"],["Syria","963"],
+    ["Taiwan","886"],["Tajikistan","992"],["Tanzania","255"],["Thailand","66"],["Togo","228"],
+    ["Tonga","676"],["Trinidad and Tobago","1"],["Tunisia","216"],["Turkey","90"],["Turkmenistan","993"],
+    ["Uganda","256"],["Ukraine","380"],["United Arab Emirates","971"],["United Kingdom","44"],["United States","1"],
+    ["Uruguay","598"],["Uzbekistan","998"],["Vanuatu","678"],["Vatican City","379"],["Venezuela","58"],
+    ["Vietnam","84"],["Yemen","967"],["Zambia","260"],["Zimbabwe","263"]
+  ];
+
+  function populateCountryDropdown(selectedValue) {
+    const select = document.getElementById('edit-country');
+    select.innerHTML = '<option value="">Select your country</option>';
+    COUNTRIES.forEach(function(c) {
+      const opt = document.createElement('option');
+      opt.value = c[0];
+      opt.textContent = c[0];
+      if (c[0] === selectedValue) opt.selected = true;
+      select.appendChild(opt);
+    });
+    updatePhoneCode();
+  }
+
+  function updatePhoneCode() {
+    const countryName = document.getElementById('edit-country').value;
+    const match = COUNTRIES.find(c => c[0] === countryName);
+    document.getElementById('phone-code').textContent = match ? ('+' + match[1]) : '+ —';
+  }
+
+  document.getElementById('edit-country').addEventListener('change', updatePhoneCode);
 
   const TIERS = [
     {
@@ -225,7 +301,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('welcome-msg').textContent = 'Welcome back, ' + (profile.full_name || 'Student');
     document.getElementById('edit-name').value = profile.full_name || '';
     document.getElementById('edit-phone').value = profile.phone || '';
-    document.getElementById('edit-country').value = profile.country || '';
+    populateCountryDropdown(profile.country || '');
 
     if (profile.is_admin) {
       document.getElementById('admin-link').style.display = 'inline-block';
