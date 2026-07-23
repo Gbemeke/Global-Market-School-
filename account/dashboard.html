@@ -64,6 +64,15 @@ section{padding:28px 0;}
 .earnings-stat{display:flex; gap:28px; margin-top:16px;}
 .earnings-stat div p:first-child{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; color:var(--ink-soft); text-transform:uppercase;}
 .earnings-stat div p:last-child{font-family:'Cormorant Garamond', serif; font-size:24px; color:var(--navy-deep);}
+.earnings-actions{display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;}
+.earnings-btn{
+  font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  padding:12px 20px; text-decoration:none; cursor:pointer; border:1px solid var(--gold);
+  background:var(--navy-deep); color:var(--ivory);
+}
+.earnings-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.earnings-btn-alt{background:#fff; color:var(--navy-deep);}
+.earnings-btn-alt:hover{background:var(--ivory);}
 
 .profile-box{background:#fff; border:1px solid var(--hair); padding:24px;}
 .field{margin-bottom:14px;}
@@ -120,6 +129,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <div><p>Total Referrals</p><p id="referral-count">0</p></div>
           <div><p>Earnings Owed</p><p id="referral-earnings">$0</p></div>
         </div>
+        <div class="earnings-actions">
+          <button class="earnings-btn" id="withdraw-btn">Withdraw Earnings</button>
+          <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
+        </div>
+        <p class="msg" id="earnings-msg"></p>
       </div>
     </section>
 
@@ -152,6 +166,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'https://djkctbtxnpdkstvznjlf.supabase.co',
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
+
+  let availableBalance = 0;
+  let availableCurrency = 'USD';
+  let currentUserId = null;
 
   const COUNTRIES = [
     ["Afghanistan","93"],["Albania","355"],["Algeria","213"],["Andorra","376"],["Angola","244"],
@@ -280,6 +298,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
 
     const userId = session.user.id;
+    currentUserId = userId;
 
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
@@ -351,16 +370,53 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
-      .select('commission_amount')
+      .select('commission_amount, paid_out, currency')
       .eq('referrer_id', userId);
 
-    const total = (earnings || []).reduce((sum, e) => sum + Number(e.commission_amount), 0);
+    const unpaidEarnings = (earnings || []).filter(e => !e.paid_out);
+    availableBalance = unpaidEarnings.reduce((sum, e) => sum + Number(e.commission_amount), 0);
+    availableCurrency = (unpaidEarnings[0] && unpaidEarnings[0].currency) || 'USD';
+
     document.getElementById('referral-count').textContent = (earnings || []).length;
-    document.getElementById('referral-earnings').textContent = '$' + total.toFixed(2);
+    document.getElementById('referral-earnings').textContent = '$' + availableBalance.toFixed(2);
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
   }
+
+  document.getElementById('withdraw-btn').addEventListener('click', async function() {
+    const msg = document.getElementById('earnings-msg');
+    msg.className = 'msg';
+    msg.textContent = '';
+
+    if (availableBalance <= 0) {
+      msg.className = 'msg error';
+      msg.textContent = 'You have no earnings available to withdraw yet.';
+      return;
+    }
+
+    const payoutDetails = prompt(
+      'Available balance: $' + availableBalance.toFixed(2) + '\n\n' +
+      'Enter your payout details (bank account or mobile money number):'
+    );
+
+    if (!payoutDetails) return;
+
+    const { error } = await supabaseClient.from('withdrawal_requests').insert({
+      user_id: currentUserId,
+      amount: availableBalance,
+      currency: availableCurrency,
+      payout_details: payoutDetails
+    });
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not submit request. Please try again or contact support.';
+    } else {
+      msg.className = 'msg success';
+      msg.textContent = 'Withdrawal request submitted for $' + availableBalance.toFixed(2) + '. We will process this shortly.';
+    }
+  });
 
   document.getElementById('copy-referral').addEventListener('click', function() {
     const input = document.getElementById('referral-link');
