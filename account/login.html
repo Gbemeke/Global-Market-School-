@@ -130,7 +130,14 @@ a{color:inherit;}
       return;
     }
 
-    window.location.href = 'dashboard.html';
+    // Password verified (AAL1). If this account has 2FA enrolled,
+    // Supabase requires a second step (AAL2) before granting full access.
+    const { data: aal } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== aal.nextLevel) {
+      window.location.href = 'verify-mfa.html';
+    } else {
+      window.location.href = 'dashboard.html';
+    }
   });
 
   document.getElementById('forgot-link').addEventListener('click', async function() {

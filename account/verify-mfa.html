@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{
+  font-family:'EB Garamond', Georgia, serif; background:var(--navy-deep); color:var(--ink);
+  min-height:100dvh; display:block; padding:60px 16px;
+}
+a{color:inherit;}
+.card{width:100%; max-width:420px; margin:0 auto; background:var(--paper); border:1px solid var(--gold); box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);}
+.card-head{padding:36px 32px 24px; text-align:center; border-bottom:1px solid var(--hair);}
+.brand{display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none; margin-bottom:18px;}
+.brand .mark{width:28px;height:28px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:14px; color:var(--gold);}
+.card-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; color:var(--navy-deep);}
+.card-head p{font-size:14px; color:var(--ink-soft); margin-top:6px;}
+.card-body{padding:28px 32px 32px;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px;}
+.field input{
+  width:100%; padding:12px 14px; font-family:'EB Garamond', serif; font-size:18px; letter-spacing:3px; text-align:center;
+  border:1px solid var(--hair); background:#fff; color:var(--ink);
+}
+.field input:focus{outline:none; border-color:var(--gold);}
+.submit-btn{
+  width:100%; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:15px; cursor:pointer; margin-top:6px;
+}
+.submit-btn:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.submit-btn:disabled{opacity:0.6; cursor:not-allowed;}
+.msg{font-size:14px; padding:12px 14px; margin-bottom:16px; border-left:3px solid; display:none;}
+.msg.error{background:#fbf0ee; border-color:var(--bad); color:var(--bad); display:block;}
+.msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
+.toggle-link{display:block; text-align:center; margin-top:20px; font-size:13.5px; color:var(--gold); text-decoration:none; cursor:pointer;}
+.recovery-block{display:none; margin-top:24px; padding-top:24px; border-top:1px solid var(--hair);}
+.recovery-block.open{display:block;}
+.recovery-block input{letter-spacing:1px; text-transform:uppercase;}
+.recovery-note{font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-head">
+    <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <h1>Verify It's You</h1>
+    <p>Enter the 6-digit code from your authenticator app</p>
+  </div>
+  <div class="card-body">
+
+    <p class="msg" id="msg"></p>
+
+    <form id="verify-form">
+      <div class="field">
+        <label for="code">Authentication Code</label>
+        <input type="text" id="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" required autocomplete="one-time-code" placeholder="000000">
+      </div>
+      <button type="submit" class="submit-btn" id="verify-btn">Verify</button>
+    </form>
+
+    <a class="toggle-link" id="recovery-toggle">Lost your device? Use a backup code</a>
+
+    <div class="recovery-block" id="recovery-block">
+      <p class="recovery-note">Enter one of the backup codes you saved when you enabled two-factor authentication. Using it will turn 2FA off for your account — you can re-enable it afterward from your profile.</p>
+      <form id="recovery-form">
+        <div class="field">
+          <label for="backup-code">Backup Code</label>
+          <input type="text" id="backup-code" maxlength="20" required placeholder="XXXX-XXXX">
+        </div>
+        <button type="submit" class="submit-btn" id="recovery-btn">Recover Account</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  (async function guard() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+    }
+  })();
+
+  document.getElementById('verify-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const code = document.getElementById('code').value.trim();
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('verify-btn');
+
+    msg.className = 'msg';
+    msg.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    const { data: factorsData, error: factorsError } = await supabaseClient.auth.mfa.listFactors();
+    const totpFactor = factorsData && factorsData.totp && factorsData.totp.find(f => f.status === 'verified');
+
+    if (factorsError || !totpFactor) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not find your authenticator setup. Please contact support.';
+      btn.disabled = false;
+      btn.textContent = 'Verify';
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.mfa.challengeAndVerify({
+      factorId: totpFactor.id,
+      code: code
+    });
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'Incorrect or expired code. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Verify';
+      return;
+    }
+
+    window.location.href = 'dashboard.html';
+  });
+
+  document.getElementById('recovery-toggle').addEventListener('click', function() {
+    document.getElementById('recovery-block').classList.toggle('open');
+  });
+
+  async function sha256Hex(text) {
+    const bytes = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  document.getElementById('recovery-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const backupCode = document.getElementById('backup-code').value.trim();
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('recovery-btn');
+
+    msg.className = 'msg';
+    msg.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Recovering...';
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const res = await fetch('https://global-market-school.vercel.app/api/mfa-recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_token: session.access_token,
+          backup_code: backupCode
+        })
+      });
+      const result = await res.json();
+
+      if (!res.ok || !result.recovered) {
+        msg.className = 'msg error';
+        msg.textContent = result.error || 'That backup code is not valid.';
+        btn.disabled = false;
+        btn.textContent = 'Recover Account';
+        return;
+      }
+
+      msg.className = 'msg success';
+      msg.textContent = 'Two-factor authentication has been turned off for your account. Redirecting...';
+      await supabaseClient.auth.refreshSession();
+      setTimeout(function() { window.location.href = 'dashboard.html'; }, 1500);
+    } catch (err) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not reach the recovery service. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Recover Account';
+    }
+  });
+</script>
+
+</body>
+</html>

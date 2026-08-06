@@ -113,6 +113,30 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .avatar-upload-btn:hover{background:var(--gold); color:var(--navy-deep);}
 .avatar-hint{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+
+.mfa-status{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+.mfa-status-text{font-size:14px;}
+.mfa-status-text.on{color:var(--good);}
+.mfa-status-text.off{color:var(--ink-soft);}
+.mfa-btn{
+  font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:1px solid var(--gold); padding:9px 16px; cursor:pointer;
+}
+.mfa-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.mfa-btn.danger{background:var(--bad); border-color:var(--bad); color:#fff;}
+.mfa-enroll-box{display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--hair);}
+.mfa-enroll-box.open{display:block;}
+.mfa-qr{width:160px; height:160px; margin:0 auto 12px; display:block;}
+.mfa-secret{
+  font-family:monospace; font-size:12.5px; text-align:center; word-break:break-all; color:var(--ink-soft);
+  background:var(--paper); border:1px solid var(--hair); padding:8px; margin-bottom:14px;
+}
+.backup-codes-box{display:none;}
+.backup-codes-box.open{display:block;}
+.backup-codes-list{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; font-family:monospace; font-size:13.5px;
+  background:var(--paper); border:1px solid var(--hair); padding:14px; margin:14px 0; color:var(--navy-deep);
+}
 .profile-btn:hover{background:var(--gold); color:var(--navy-deep);}
 
 .profile-overlay{
@@ -229,6 +253,36 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         </div>
         <button class="save-btn" id="save-profile">Save Changes</button>
         <p class="msg" id="profile-msg"></p>
+      </div>
+
+      <p class="section-title">Two-Factor Authentication</p>
+      <div class="profile-box">
+        <div class="mfa-status">
+          <span class="mfa-status-text off" id="mfa-status-text">Not enabled</span>
+          <button class="mfa-btn" id="mfa-enable-btn">Enable 2FA</button>
+          <button class="mfa-btn danger" id="mfa-disable-btn" style="display:none;">Disable 2FA</button>
+        </div>
+
+        <div class="mfa-enroll-box" id="mfa-enroll-box">
+          <p style="font-size:13px; color:var(--ink-soft); margin-bottom:10px;">Scan this with Google Authenticator, Authy, or any TOTP app:</p>
+          <img class="mfa-qr" id="mfa-qr" alt="Scan with your authenticator app">
+          <p style="font-size:11px; color:var(--ink-soft); text-align:center; margin-bottom:6px;">Or enter this key manually:</p>
+          <p class="mfa-secret" id="mfa-secret"></p>
+          <div class="field">
+            <label>Enter the 6-digit code from your app</label>
+            <input type="text" id="mfa-verify-code" inputmode="numeric" maxlength="6" placeholder="000000">
+          </div>
+          <button class="save-btn" id="mfa-activate-btn">Activate</button>
+        </div>
+
+        <div class="backup-codes-box" id="backup-codes-box">
+          <p style="font-size:13px; color:var(--bad); font-weight:600; margin-bottom:6px;">Save these backup codes now</p>
+          <p style="font-size:12.5px; color:var(--ink-soft);">Each can be used once to get back in if you lose your authenticator device. Store them somewhere safe — they won't be shown again.</p>
+          <div class="backup-codes-list" id="backup-codes-list"></div>
+          <button class="save-btn" id="backup-codes-done-btn">I've Saved My Backup Codes</button>
+        </div>
+
+        <p class="msg" id="mfa-msg" style="display:none;"></p>
       </div>
 
       <p class="section-title">Your Referral Link</p>
@@ -529,6 +583,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('referral-count').textContent = (earnings || []).length;
     document.getElementById('referral-earnings').textContent = '$' + availableBalance.toFixed(2);
 
+    await refreshMfaStatus();
+
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
   }
@@ -667,6 +723,137 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     msg.style.display = 'block';
     msg.className = 'msg success';
     msg.textContent = 'Profile picture updated.';
+  });
+
+  // ---- Two-Factor Authentication ----
+
+  let pendingMfaFactorId = null;
+
+  async function sha256Hex(text) {
+    const bytes = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function generateBackupCodes() {
+    const codes = [];
+    for (let i = 0; i < 10; i++) {
+      const bytes = crypto.getRandomValues(new Uint8Array(5));
+      const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+      codes.push(hex.slice(0, 4) + '-' + hex.slice(4, 8));
+    }
+    return codes;
+  }
+
+  async function refreshMfaStatus() {
+    const { data } = await supabaseClient.auth.mfa.listFactors();
+    const verified = data && data.totp && data.totp.find(f => f.status === 'verified');
+
+    const statusText = document.getElementById('mfa-status-text');
+    const enableBtn = document.getElementById('mfa-enable-btn');
+    const disableBtn = document.getElementById('mfa-disable-btn');
+
+    if (verified) {
+      statusText.textContent = 'Enabled';
+      statusText.className = 'mfa-status-text on';
+      enableBtn.style.display = 'none';
+      disableBtn.style.display = 'inline-block';
+    } else {
+      statusText.textContent = 'Not enabled';
+      statusText.className = 'mfa-status-text off';
+      enableBtn.style.display = 'inline-block';
+      disableBtn.style.display = 'none';
+    }
+
+    document.getElementById('mfa-enroll-box').classList.remove('open');
+    document.getElementById('backup-codes-box').classList.remove('open');
+  }
+
+  document.getElementById('mfa-enable-btn').addEventListener('click', async function() {
+    const msg = document.getElementById('mfa-msg');
+    msg.style.display = 'none';
+
+    const { data, error } = await supabaseClient.auth.mfa.enroll({ factorType: 'totp' });
+
+    if (error || !data) {
+      msg.style.display = 'block';
+      msg.className = 'msg error';
+      msg.textContent = 'Could not start setup. Please try again.';
+      return;
+    }
+
+    pendingMfaFactorId = data.id;
+    document.getElementById('mfa-qr').src = data.totp.qr_code;
+    document.getElementById('mfa-secret').textContent = data.totp.secret;
+    document.getElementById('mfa-enroll-box').classList.add('open');
+  });
+
+  document.getElementById('mfa-activate-btn').addEventListener('click', async function() {
+    const code = document.getElementById('mfa-verify-code').value.trim();
+    const msg = document.getElementById('mfa-msg');
+    msg.style.display = 'none';
+
+    if (!code || !pendingMfaFactorId) return;
+
+    const { error } = await supabaseClient.auth.mfa.challengeAndVerify({
+      factorId: pendingMfaFactorId,
+      code: code
+    });
+
+    if (error) {
+      msg.style.display = 'block';
+      msg.className = 'msg error';
+      msg.textContent = 'Incorrect code. Please try again.';
+      return;
+    }
+
+    // Generate backup codes, store only their hashes, show the plaintext once.
+    const codes = generateBackupCodes();
+    const rows = await Promise.all(codes.map(async function(code) {
+      return { user_id: currentUserId, code_hash: await sha256Hex(code) };
+    }));
+
+    await supabaseClient.from('mfa_backup_codes').insert(rows);
+
+    document.getElementById('mfa-verify-code').value = '';
+    document.getElementById('backup-codes-list').innerHTML = codes.map(c => '<span>' + c + '</span>').join('');
+
+    await refreshMfaStatus();
+    document.getElementById('backup-codes-box').classList.add('open');
+  });
+
+  document.getElementById('backup-codes-done-btn').addEventListener('click', function() {
+    document.getElementById('backup-codes-box').classList.remove('open');
+    document.getElementById('mfa-msg').style.display = 'block';
+    document.getElementById('mfa-msg').className = 'msg success';
+    document.getElementById('mfa-msg').textContent = 'Two-factor authentication is now enabled.';
+  });
+
+  document.getElementById('mfa-disable-btn').addEventListener('click', async function() {
+    if (!confirm('Turn off two-factor authentication for your account?')) return;
+
+    const msg = document.getElementById('mfa-msg');
+    msg.style.display = 'none';
+
+    const { data } = await supabaseClient.auth.mfa.listFactors();
+    const verified = data && data.totp && data.totp.find(f => f.status === 'verified');
+
+    if (verified) {
+      const { error } = await supabaseClient.auth.mfa.unenroll({ factorId: verified.id });
+      if (error) {
+        msg.style.display = 'block';
+        msg.className = 'msg error';
+        msg.textContent = 'Could not disable 2FA. Please try again.';
+        return;
+      }
+    }
+
+    await supabaseClient.from('mfa_backup_codes').delete().eq('user_id', currentUserId);
+
+    await refreshMfaStatus();
+    msg.style.display = 'block';
+    msg.className = 'msg success';
+    msg.textContent = 'Two-factor authentication has been disabled.';
   });
 
   async function fetchFxRates() {
