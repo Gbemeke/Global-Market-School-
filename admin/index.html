@@ -69,7 +69,10 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 .status-pill{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:5px 10px;}
 .status-pill.pending{background:#fff3e0; color:#a6650a;}
 .status-pill.paid{background:#eaf3ee; color:var(--good);}
+.status-pill.diverted{background:#f4e6ea; color:var(--bad);}
 .mark-paid-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--good); color:#fff; border:none; padding:9px 14px; cursor:pointer;}
+.divert-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:9px 14px; cursor:pointer;}
+.admin-only-note{font-size:11.5px; color:var(--ink-soft); margin:-6px 0 10px;}
 
 .loading{text-align:center; padding:100px 0; color:var(--ink-soft);}
 .msg{font-size:13.5px; padding:10px 12px; margin-top:10px; border-left:3px solid; display:none;}
@@ -145,6 +148,10 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
         <p class="section-title">Broker Link</p>
         <div class="settings-grid" id="settings-broker"></div>
+
+        <p class="section-title">Company Payout Account (Admin Only)</p>
+        <p class="admin-only-note">Not shown to students. Used as the payout destination when a withdrawal is diverted from a user.</p>
+        <div class="settings-grid" id="settings-admin-only"></div>
         <p class="msg" id="settings-msg"></p>
       </div>
 
@@ -272,30 +279,36 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
   async function loadSettings() {
     const { data: settings } = await supabaseClient.from('site_settings').select('*');
+    const { data: adminSettings } = await supabaseClient.from('admin_settings').select('*');
     const map = {};
     (settings || []).forEach(s => map[s.key] = s.value);
+    const adminMap = {};
+    (adminSettings || []).forEach(s => adminMap[s.key] = s.value);
 
     const priceKeys = ['price_beginner','price_intermediate','price_advanced','price_elite','price_trade_group'];
     const rateKeys = ['rate_usd_ngn','rate_usd_ghs','rate_usd_kes','rate_usd_zar'];
     const linkKeys = ['wa_link_beginner','wa_link_intermediate','wa_link_advanced','wa_link_elite','wa_link_trade_group'];
 
-    function buildRow(key) {
+    function buildRow(key, table, valueMap) {
+      valueMap = valueMap || map;
       return '<div class="setting-row"><label>' + key + '</label>' +
-        '<input type="text" id="setting-' + key + '" value="' + (map[key] || '') + '">' +
-        '<button data-key="' + key + '">Save</button></div>';
+        '<input type="text" id="setting-' + key + '" value="' + (valueMap[key] || '') + '">' +
+        '<button data-key="' + key + '" data-table="' + (table || 'site_settings') + '">Save</button></div>';
     }
 
-    document.getElementById('settings-prices').innerHTML = priceKeys.map(buildRow).join('');
-    document.getElementById('settings-rates').innerHTML = rateKeys.map(buildRow).join('');
-    document.getElementById('settings-links').innerHTML = linkKeys.map(buildRow).join('');
+    document.getElementById('settings-prices').innerHTML = priceKeys.map(k => buildRow(k)).join('');
+    document.getElementById('settings-rates').innerHTML = rateKeys.map(k => buildRow(k)).join('');
+    document.getElementById('settings-links').innerHTML = linkKeys.map(k => buildRow(k)).join('');
     document.getElementById('settings-broker').innerHTML = buildRow('broker_forex_link');
+    document.getElementById('settings-admin-only').innerHTML = buildRow('company_payout_account', 'admin_settings', adminMap);
 
     document.querySelectorAll('.setting-row button').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         const key = btn.getAttribute('data-key');
+        const table = btn.getAttribute('data-table') || 'site_settings';
         const value = document.getElementById('setting-' + key).value;
         const msg = document.getElementById('settings-msg');
-        const { error } = await supabaseClient.from('site_settings').update({ value: value }).eq('key', key);
+        const { error } = await supabaseClient.from(table).update({ value: value }).eq('key', key);
         msg.className = error ? 'msg error' : 'msg success';
         msg.textContent = error ? 'Could not save ' + key + '.' : key + ' saved successfully.';
       });
@@ -325,9 +338,10 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
           '<p><strong>' + studentName + '</strong> — ' + r.currency + ' ' + Number(r.amount).toLocaleString() + '</p>' +
           '<p>' + (r.payout_details || 'No details provided') + '</p>' +
         '</div>' +
-        '<div style="display:flex; align-items:center; gap:10px;">' +
-          '<span class="status-pill ' + r.status + '">' + r.status + '</span>' +
+        '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+          '<span class="status-pill ' + r.status + '">' + (r.status === 'diverted' ? 'diverted to company' : r.status) + '</span>' +
           (r.status === 'pending' ? '<button class="mark-paid-btn" data-id="' + r.id + '">Mark as Paid</button>' : '') +
+          (r.status === 'pending' ? '<button class="divert-btn" data-id="' + r.id + '">Divert to Company</button>' : '') +
         '</div>';
       list.appendChild(row);
     });
@@ -342,6 +356,22 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         } else {
           msg.className = 'msg success';
           msg.textContent = 'Marked as paid.';
+          loadWithdrawals();
+        }
+      });
+    });
+
+    document.querySelectorAll('.divert-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        if (!confirm('Divert this withdrawal to the company account instead of paying the student directly?')) return;
+        const msg = document.getElementById('withdrawals-msg');
+        const { error } = await supabaseClient.from('withdrawal_requests').update({ status: 'diverted' }).eq('id', btn.getAttribute('data-id'));
+        if (error) {
+          msg.className = 'msg error';
+          msg.textContent = 'Could not divert withdrawal.';
+        } else {
+          msg.className = 'msg success';
+          msg.textContent = 'Withdrawal diverted to company account.';
           loadWithdrawals();
         }
       });
