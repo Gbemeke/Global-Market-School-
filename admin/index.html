@@ -80,6 +80,8 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 .chat-mod-row .info p:last-child{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
 .chat-mod-row .reply-tag{font-family:'Cinzel', serif; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold); padding:2px 6px; margin-right:6px;}
 .delete-post-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:9px 14px; cursor:pointer; flex-shrink:0;}
+.disable-mfa-btn{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:0.5px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:7px 10px; cursor:pointer; white-space:nowrap;}
+.disable-mfa-btn:disabled{opacity:0.5; cursor:not-allowed;}
 
 .loading{text-align:center; padding:100px 0; color:var(--ink-soft);}
 .msg{font-size:13.5px; padding:10px 12px; margin-top:10px; border-left:3px solid; display:none;}
@@ -135,7 +137,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
               <tr>
                 <th>Name</th><th>Email</th><th>Country</th><th>Admin</th>
                 <th>Beg-Stk</th><th>Beg-Fx</th><th>Int-Stk</th><th>Int-Fx</th>
-                <th>Adv-Stk</th><th>Adv-Fx</th><th>Elite</th><th>Trade Grp</th>
+                <th>Adv-Stk</th><th>Adv-Fx</th><th>Elite</th><th>Trade Grp</th><th>2FA</th>
               </tr>
             </thead>
             <tbody id="students-tbody"></tbody>
@@ -265,8 +267,50 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         cells += '<td><input type="checkbox" class="course-check" data-user="' + p.id + '" data-course="' + key + '" ' + (checked ? 'checked' : '') + '></td>';
       });
 
+      cells += '<td><button class="disable-mfa-btn" data-user="' + p.id + '" data-name="' + escapeHtml(p.full_name || p.email || 'this student') + '">Disable 2FA</button></td>';
+
       row.innerHTML = cells;
       tbody.appendChild(row);
+    });
+
+    document.querySelectorAll('.disable-mfa-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const studentName = btn.getAttribute('data-name');
+        if (!confirm('Force-disable two-factor authentication for ' + studentName + '? Use this only if they are locked out.')) return;
+
+        const msg = document.getElementById('students-msg');
+        btn.disabled = true;
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) { window.location.href = '../account/login.html'; return; }
+
+        try {
+          const res = await fetch('https://global-market-school.vercel.app/api/admin-disable-mfa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              access_token: session.access_token,
+              target_user_id: btn.getAttribute('data-user')
+            })
+          });
+          const result = await res.json();
+
+          if (!res.ok || !result.disabled) {
+            msg.className = 'msg error';
+            msg.textContent = result.error || 'Could not disable 2FA for ' + studentName + '.';
+          } else {
+            msg.className = 'msg success';
+            msg.textContent = result.factors_removed > 0
+              ? 'Two-factor authentication disabled for ' + studentName + '.'
+              : studentName + ' did not have 2FA enabled.';
+          }
+        } catch (err) {
+          msg.className = 'msg error';
+          msg.textContent = 'Could not reach the server. Please try again.';
+        }
+
+        btn.disabled = false;
+      });
     });
 
     document.querySelectorAll('.course-check[data-field="admin"]').forEach(function(cb) {
