@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Chat — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
+a{color:inherit;}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px;}
+header{background:var(--navy-deep); color:var(--ivory);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0; gap:12px; flex-wrap:wrap;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.header-actions{display:flex; align-items:center; gap:14px;}
+.back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
+.logout-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; background:none; border:1px solid var(--gold); color:var(--gold-bright); padding:9px 16px; cursor:pointer;}
+
+.page-head{padding:32px 0 8px;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,34px); color:var(--navy-deep);}
+.page-head p{color:var(--ink-soft); font-size:14.5px; margin-top:8px;}
+
+section{padding:24px 0;}
+
+.composer{background:#fff; border:1px solid var(--hair); padding:18px;}
+.composer textarea{
+  width:100%; min-height:70px; padding:12px 14px; font-family:'EB Garamond', serif; font-size:15px;
+  border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical;
+}
+.composer-actions{display:flex; justify-content:flex-end; margin-top:10px;}
+.post-btn{
+  font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:none; padding:11px 22px; cursor:pointer;
+}
+.post-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.post-btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+.feed{display:flex; flex-direction:column; gap:14px;}
+.post{background:#fff; border:1px solid var(--hair); padding:18px;}
+.post-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap;}
+.post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
+.post-time{font-size:12px; color:var(--ink-soft);}
+.post-content{margin-top:8px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+.post-actions{display:flex; gap:16px; margin-top:10px;}
+.post-action-link{background:none; border:none; padding:0; cursor:pointer; font-size:12.5px; color:var(--gold); font-family:'Cinzel', serif; letter-spacing:0.5px;}
+.post-action-link.delete{color:var(--bad);}
+
+.replies{margin-top:14px; padding-left:18px; border-left:2px solid var(--hair); display:flex; flex-direction:column; gap:12px;}
+.reply-box{display:none; margin-top:12px;}
+.reply-box.open{display:block;}
+.reply-box textarea{
+  width:100%; min-height:50px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14px;
+  border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical;
+}
+.reply-box .composer-actions{margin-top:8px;}
+
+.empty-note{text-align:center; color:var(--ink-soft); font-size:14px; padding:32px 0;}
+.loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Loading Global Chat...</div>
+
+<div id="chat-page" style="display:none;">
+  <header>
+    <div class="wrap brand-row">
+      <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+      <div class="header-actions">
+        <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
+        <button class="logout-btn" id="logout-btn">Log Out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="page-head">
+      <p class="eyebrow">Community</p>
+      <h1>Global Chat</h1>
+      <p>Post, share, and reply with other students. Be respectful — posts can be removed by admins.</p>
+    </div>
+
+    <section>
+      <div class="composer">
+        <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
+        <div class="composer-actions">
+          <button class="post-btn" id="new-post-btn">Post</button>
+        </div>
+        <p class="msg" id="composer-msg" style="display:none;"></p>
+      </div>
+    </section>
+
+    <section>
+      <div class="feed" id="feed"></div>
+      <p class="empty-note" id="empty-note" style="display:none;">No posts yet — be the first to share something.</p>
+    </section>
+  </div>
+
+  <footer>&copy; 2026 Global Market School Ltd.</footer>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  let currentUserId = null;
+  let currentUserName = 'Student';
+  let currentIsAdmin = false;
+  let refreshTimer = null;
+
+  function timeAgo(isoString) {
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return days + 'd ago';
+    return new Date(isoString).toLocaleDateString();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function canDelete(post) {
+    return currentIsAdmin || post.user_id === currentUserId;
+  }
+
+  function renderPost(post, isReply) {
+    const el = document.createElement('div');
+    el.className = isReply ? 'post reply' : 'post';
+    el.innerHTML =
+      '<div class="post-head">' +
+        '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' +
+        '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
+      '</div>' +
+      '<p class="post-content">' + escapeHtml(post.content) + '</p>' +
+      '<div class="post-actions">' +
+        (!isReply ? '<button class="post-action-link reply-toggle" data-id="' + post.id + '">Reply</button>' : '') +
+        (canDelete(post) ? '<button class="post-action-link delete" data-id="' + post.id + '">Delete</button>' : '') +
+      '</div>';
+
+    if (!isReply) {
+      const replyBox = document.createElement('div');
+      replyBox.className = 'reply-box';
+      replyBox.id = 'reply-box-' + post.id;
+      replyBox.innerHTML =
+        '<textarea placeholder="Write a reply..." maxlength="2000"></textarea>' +
+        '<div class="composer-actions"><button class="post-btn reply-submit" data-id="' + post.id + '">Reply</button></div>';
+      el.appendChild(replyBox);
+
+      const repliesWrap = document.createElement('div');
+      repliesWrap.className = 'replies';
+      repliesWrap.id = 'replies-' + post.id;
+      el.appendChild(repliesWrap);
+    }
+
+    return el;
+  }
+
+  async function loadFeed() {
+    const { data: posts, error } = await supabaseClient
+      .from('global_chat_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to load chat:', error.message);
+      return;
+    }
+
+    const feed = document.getElementById('feed');
+    const emptyNote = document.getElementById('empty-note');
+    const openReplyBoxes = new Set(
+      Array.from(document.querySelectorAll('.reply-box.open')).map(el => el.id)
+    );
+
+    feed.innerHTML = '';
+    const topLevel = (posts || []).filter(p => !p.parent_id);
+    const repliesByParent = {};
+    (posts || []).forEach(function(p) {
+      if (p.parent_id) {
+        repliesByParent[p.parent_id] = repliesByParent[p.parent_id] || [];
+        repliesByParent[p.parent_id].push(p);
+      }
+    });
+
+    emptyNote.style.display = topLevel.length ? 'none' : 'block';
+
+    topLevel.forEach(function(post) {
+      const el = renderPost(post, false);
+      feed.appendChild(el);
+
+      const repliesWrap = el.querySelector('#replies-' + post.id);
+      const replies = (repliesByParent[post.id] || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      replies.forEach(function(reply) {
+        repliesWrap.appendChild(renderPost(reply, true));
+      });
+
+      if (openReplyBoxes.has('reply-box-' + post.id)) {
+        el.querySelector('#reply-box-' + post.id).classList.add('open');
+      }
+    });
+
+    wireFeedEvents();
+  }
+
+  function wireFeedEvents() {
+    document.querySelectorAll('.reply-toggle').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const box = document.getElementById('reply-box-' + btn.getAttribute('data-id'));
+        box.classList.toggle('open');
+      });
+    });
+
+    document.querySelectorAll('.reply-submit').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const parentId = btn.getAttribute('data-id');
+        const box = document.getElementById('reply-box-' + parentId);
+        const textarea = box.querySelector('textarea');
+        const content = textarea.value.trim();
+        if (!content) return;
+
+        btn.disabled = true;
+        const { error } = await supabaseClient.from('global_chat_posts').insert({
+          user_id: currentUserId,
+          author_name: currentUserName,
+          parent_id: parentId,
+          content: content
+        });
+        btn.disabled = false;
+
+        if (!error) {
+          textarea.value = '';
+          await loadFeed();
+        }
+      });
+    });
+
+    document.querySelectorAll('.post-action-link.delete').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        if (!confirm('Delete this post?')) return;
+        const { error } = await supabaseClient.from('global_chat_posts').delete().eq('id', btn.getAttribute('data-id'));
+        if (!error) await loadFeed();
+      });
+    });
+  }
+
+  document.getElementById('new-post-btn').addEventListener('click', async function() {
+    const textarea = document.getElementById('new-post-text');
+    const content = textarea.value.trim();
+    const msg = document.getElementById('composer-msg');
+    if (!content) return;
+
+    const btn = document.getElementById('new-post-btn');
+    btn.disabled = true;
+    const { error } = await supabaseClient.from('global_chat_posts').insert({
+      user_id: currentUserId,
+      author_name: currentUserName,
+      content: content
+    });
+    btn.disabled = false;
+
+    if (error) {
+      msg.style.display = 'block';
+      msg.textContent = 'Could not post. Please try again.';
+    } else {
+      textarea.value = '';
+      msg.style.display = 'none';
+      await loadFeed();
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    await supabaseClient.auth.signOut();
+    window.location.href = '../index.html';
+  });
+
+  async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    currentUserId = session.user.id;
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('full_name, is_admin')
+      .eq('id', currentUserId)
+      .single();
+
+    if (profile) {
+      currentUserName = profile.full_name || 'Student';
+      currentIsAdmin = !!profile.is_admin;
+    }
+
+    await loadFeed();
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('chat-page').style.display = 'block';
+
+    refreshTimer = setInterval(loadFeed, 20000);
+  }
+
+  init();
+</script>
+
+</body>
+</html>

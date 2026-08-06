@@ -139,6 +139,30 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .ticker-item .rate{font-size:19px; font-weight:600; color:var(--gold-bright);}
 @keyframes ticker-scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
 .ticker-note{font-size:11px; color:var(--ink-soft); margin-top:8px; text-align:right;}
+
+.chat-fab-wrap{position:fixed; right:20px; bottom:20px; z-index:60; display:flex; flex-direction:column; align-items:flex-end; gap:12px;}
+.chat-fab{
+  height:52px; padding:0 22px 0 18px; border-radius:26px; background:var(--navy-deep); border:1.5px solid var(--gold);
+  color:var(--ivory); font-size:15px; cursor:pointer; box-shadow:0 10px 30px -8px rgba(0,0,0,0.45);
+  display:flex; align-items:center; justify-content:center; gap:8px; flex-shrink:0;
+  font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase;
+}
+.chat-fab:hover{background:var(--gold); color:var(--navy-deep);}
+.chat-menu{
+  display:flex; flex-direction:column; gap:10px; opacity:0; visibility:hidden; transform:translateY(10px);
+  transition:opacity .2s ease, transform .2s ease; align-items:flex-end;
+}
+.chat-menu.open{opacity:1; visibility:visible; transform:translateY(0);}
+.chat-option{
+  display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--hair);
+  padding:9px 18px 9px 9px; text-decoration:none; color:var(--navy-deep); font-family:'EB Garamond', serif; font-size:14.5px;
+  box-shadow:0 10px 28px -12px rgba(0,0,0,0.35); white-space:nowrap;
+}
+.chat-option:hover{border-color:var(--gold); background:var(--ivory);}
+.chat-option-icon{
+  width:32px; height:32px; border-radius:50%; background:var(--navy-deep); color:var(--gold-bright);
+  display:flex; align-items:center; justify-content:center; font-family:'Cinzel', serif; font-size:13px; font-weight:600; flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -226,6 +250,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       </div>
     </section>
 
+  </div>
+
+  <div class="chat-fab-wrap">
+    <div class="chat-menu" id="chat-menu">
+      <a class="chat-option" href="https://whatsapp.com/channel/0029VbClKaJ0VycEEDOgGX2U" target="_blank" rel="noopener">
+        <span class="chat-option-icon">W</span> WhatsApp Channel
+      </a>
+      <a class="chat-option" href="mailto:info@globalmarketschool.com">
+        <span class="chat-option-icon">@</span> Email Us
+      </a>
+      <a class="chat-option" href="tel:+2348108764924">
+        <span class="chat-option-icon">T</span> Call Us
+      </a>
+      <a class="chat-option" href="global-chat.html">
+        <span class="chat-option-icon">G</span> Global Chat
+      </a>
+    </div>
+    <button class="chat-fab" id="chat-fab" aria-label="Support">&#128172; Support</button>
   </div>
 
   <footer>&copy; 2026 Global Market School Ltd.</footer>
@@ -536,13 +578,32 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   document.getElementById('panel-close').addEventListener('click', closeProfilePanel);
   document.getElementById('profile-overlay').addEventListener('click', closeProfilePanel);
 
+  document.getElementById('chat-fab').addEventListener('click', function() {
+    document.getElementById('chat-menu').classList.toggle('open');
+  });
+
+  async function fetchFxRates() {
+    // Primary: open.er-api.com — free, no key, built for client-side use
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      if (!res.ok) throw new Error('open.er-api.com HTTP ' + res.status);
+      const data = await res.json();
+      if (data.result !== 'success' || !data.rates) throw new Error('open.er-api.com: unexpected payload');
+      return data.rates;
+    } catch (primaryErr) {
+      console.warn('Primary FX source failed, trying fallback:', primaryErr);
+    }
+    // Fallback: Frankfurter (ECB rates)
+    const res2 = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CHF');
+    if (!res2.ok) throw new Error('frankfurter HTTP ' + res2.status);
+    const data2 = await res2.json();
+    return data2.rates;
+  }
+
   async function loadMarketTicker() {
     const track = document.getElementById('ticker-track');
     try {
-      const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CHF');
-      if (!res.ok) throw new Error('bad response');
-      const data = await res.json();
-      const r = data.rates;
+      const r = await fetchFxRates();
 
       const pairs = [
         { label: 'EUR / USD', value: (1 / r.EUR).toFixed(4) },
@@ -558,6 +619,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       // Duplicated so the CSS marquee (translateX(-50%)) loops seamlessly
       track.innerHTML = itemsHtml + itemsHtml;
     } catch (e) {
+      console.error('Market ticker: both FX sources failed:', e);
       track.textContent = 'Market data temporarily unavailable.';
     }
   }
