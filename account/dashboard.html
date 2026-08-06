@@ -91,6 +91,54 @@ section{padding:28px 0;}
 
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
 footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
+
+.header-actions{display:flex; align-items:center; gap:10px;}
+.profile-btn{
+  width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gold); background:none;
+  color:var(--gold-bright); font-family:'Cinzel', serif; font-size:13px; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.profile-btn:hover{background:var(--gold); color:var(--navy-deep);}
+
+.profile-overlay{
+  position:fixed; inset:0; background:rgba(11,27,51,0.55); opacity:0; visibility:hidden;
+  transition:opacity .25s ease; z-index:40;
+}
+.profile-overlay.open{opacity:1; visibility:visible;}
+
+.profile-panel{
+  position:fixed; top:0; right:0; height:100%; width:min(380px, 90vw); background:var(--paper);
+  border-left:1px solid var(--gold); box-shadow:-24px 0 60px -20px rgba(0,0,0,0.4);
+  transform:translateX(100%); transition:transform .3s ease; z-index:50; overflow-y:auto;
+}
+.profile-panel.open{transform:translateX(0);}
+.profile-panel-head{
+  display:flex; justify-content:space-between; align-items:center; padding:22px 24px;
+  border-bottom:1px solid var(--hair); background:var(--navy-deep); position:sticky; top:0;
+}
+.profile-panel-head p{color:var(--gold); margin:0;}
+.panel-close{background:none; border:none; color:var(--ivory); font-size:26px; cursor:pointer; line-height:1; padding:0;}
+.profile-panel-body{padding:24px;}
+.profile-panel-body .profile-box{border:none; padding:0; margin-bottom:8px;}
+.profile-panel-body .section-title:not(:first-child){margin-top:28px;}
+
+.ticker-box{
+  background:#08111f; border:1px solid var(--gold); overflow:hidden; position:relative;
+  padding:14px 0; display:flex; align-items:center;
+}
+.ticker-live{
+  flex-shrink:0; display:flex; align-items:center; gap:6px; padding:0 16px;
+  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; color:var(--bad); border-right:1px solid rgba(178,142,76,0.3);
+}
+.ticker-live .dot{width:7px; height:7px; border-radius:50%; background:var(--bad); animation:ticker-pulse 1.4s ease-in-out infinite;}
+@keyframes ticker-pulse{0%,100%{opacity:1;} 50%{opacity:0.25;}}
+.ticker-viewport{overflow:hidden; flex:1;}
+.ticker-track{display:inline-flex; gap:48px; white-space:nowrap; animation:ticker-scroll 26s linear infinite; padding-left:24px;}
+.ticker-item{display:inline-flex; align-items:baseline; gap:8px; font-family:'Cormorant Garamond', serif;}
+.ticker-item .pair{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; color:var(--ivory);}
+.ticker-item .rate{font-size:19px; font-weight:600; color:var(--gold-bright);}
+@keyframes ticker-scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+.ticker-note{font-size:11px; color:var(--ink-soft); margin-top:8px; text-align:right;}
 </style>
 </head>
 <body>
@@ -101,43 +149,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   <header>
     <div class="wrap brand-row">
       <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
-      <button class="logout-btn" id="logout-btn">Log Out</button>
+      <div class="header-actions">
+        <button class="profile-btn" id="profile-btn" aria-label="Your profile" title="Your profile">A</button>
+        <button class="logout-btn" id="logout-btn">Log Out</button>
+      </div>
     </div>
   </header>
 
-  <div class="wrap">
-    <div class="page-head">
-      <p class="eyebrow">Student Dashboard</p>
-      <h1 id="welcome-msg">Welcome back</h1>
-      <a href="../admin/index.html" class="admin-link" id="admin-link" style="display:none;">Go to Admin Panel</a>
+  <div class="profile-overlay" id="profile-overlay"></div>
+  <aside class="profile-panel" id="profile-panel" aria-label="Your profile">
+    <div class="profile-panel-head">
+      <p class="section-title">Your Profile</p>
+      <button class="panel-close" id="panel-close" aria-label="Close">&times;</button>
     </div>
-
-    <section>
-      <p class="section-title">Your Courses</p>
-      <div class="tier-grid" id="tier-grid"></div>
-    </section>
-
-    <section>
-      <p class="section-title">Referral Program</p>
-      <div class="referral-box">
-        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment.</p>
-        <div class="referral-link-row">
-          <input type="text" id="referral-link" readonly>
-          <button class="copy-btn" id="copy-referral">Copy</button>
-        </div>
-        <div class="earnings-stat">
-          <div><p>Total Referrals</p><p id="referral-count">0</p></div>
-          <div><p>Earnings Owed</p><p id="referral-earnings">$0</p></div>
-        </div>
-        <div class="earnings-actions">
-          <button class="earnings-btn" id="withdraw-btn">Withdraw Earnings</button>
-          <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
-        </div>
-        <p class="msg" id="earnings-msg"></p>
-      </div>
-    </section>
-
-    <section>
+    <div class="profile-panel-body">
       <p class="section-title">Your Details</p>
       <div class="profile-box">
         <div class="field"><label>Full Name</label><input type="text" id="edit-name"></div>
@@ -155,7 +180,52 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         <button class="save-btn" id="save-profile">Save Changes</button>
         <p class="msg" id="profile-msg"></p>
       </div>
+
+      <p class="section-title">Your Referral Link</p>
+      <div class="referral-link-row">
+        <input type="text" id="referral-link" readonly>
+        <button class="copy-btn" id="copy-referral">Copy</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="wrap">
+    <div class="page-head">
+      <p class="eyebrow">Student Dashboard</p>
+      <h1 id="welcome-msg">Welcome back</h1>
+      <a href="../admin/index.html" class="admin-link" id="admin-link" style="display:none;">Go to Admin Panel</a>
+    </div>
+
+    <section style="padding-bottom:8px;">
+      <p class="section-title">Live Market Watch</p>
+      <div class="ticker-box">
+        <span class="ticker-live"><span class="dot"></span>LIVE</span>
+        <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading market data&hellip;</div></div>
+      </div>
+      <p class="ticker-note">Forex reference rates via the European Central Bank. Updated daily, not tick-by-tick.</p>
     </section>
+
+    <section>
+      <p class="section-title">Your Courses</p>
+      <div class="tier-grid" id="tier-grid"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Referral Program</p>
+      <div class="referral-box">
+        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment. Find your link under your profile (top right).</p>
+        <div class="earnings-stat">
+          <div><p>Total Referrals</p><p id="referral-count">0</p></div>
+          <div><p>Earnings Owed</p><p id="referral-earnings">$0</p></div>
+        </div>
+        <div class="earnings-actions">
+          <button class="earnings-btn" id="withdraw-btn">Withdraw Earnings</button>
+          <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
+        </div>
+        <p class="msg" id="earnings-msg"></p>
+      </div>
+    </section>
+
   </div>
 
   <footer>&copy; 2026 Global Market School Ltd.</footer>
@@ -318,6 +388,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
 
     document.getElementById('welcome-msg').textContent = 'Welcome back, ' + (profile.full_name || 'Student');
+    document.getElementById('profile-btn').textContent = (profile.full_name || profile.email || 'A').charAt(0).toUpperCase();
     document.getElementById('edit-name').value = profile.full_name || '';
     document.getElementById('edit-phone').value = profile.phone || '';
     populateCountryDropdown(profile.country || '');
@@ -452,6 +523,47 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     await supabaseClient.auth.signOut();
     window.location.href = '../index.html';
   });
+
+  function openProfilePanel() {
+    document.getElementById('profile-panel').classList.add('open');
+    document.getElementById('profile-overlay').classList.add('open');
+  }
+  function closeProfilePanel() {
+    document.getElementById('profile-panel').classList.remove('open');
+    document.getElementById('profile-overlay').classList.remove('open');
+  }
+  document.getElementById('profile-btn').addEventListener('click', openProfilePanel);
+  document.getElementById('panel-close').addEventListener('click', closeProfilePanel);
+  document.getElementById('profile-overlay').addEventListener('click', closeProfilePanel);
+
+  async function loadMarketTicker() {
+    const track = document.getElementById('ticker-track');
+    try {
+      const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CHF');
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+      const r = data.rates;
+
+      const pairs = [
+        { label: 'EUR / USD', value: (1 / r.EUR).toFixed(4) },
+        { label: 'GBP / USD', value: (1 / r.GBP).toFixed(4) },
+        { label: 'USD / JPY', value: r.JPY.toFixed(2) },
+        { label: 'USD / CHF', value: r.CHF.toFixed(4) }
+      ];
+
+      const itemsHtml = pairs.map(function(p) {
+        return '<span class="ticker-item"><span class="pair">' + p.label + '</span><span class="rate">' + p.value + '</span></span>';
+      }).join('');
+
+      // Duplicated so the CSS marquee (translateX(-50%)) loops seamlessly
+      track.innerHTML = itemsHtml + itemsHtml;
+    } catch (e) {
+      track.textContent = 'Market data temporarily unavailable.';
+    }
+  }
+
+  loadMarketTicker();
+  setInterval(loadMarketTicker, 5 * 60 * 1000);
 
   init();
 </script>
