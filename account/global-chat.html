@@ -49,7 +49,14 @@ section{padding:24px 0;}
 
 .feed{display:flex; flex-direction:column; gap:14px;}
 .post{background:#fff; border:1px solid var(--hair); padding:18px;}
-.post-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap;}
+.post-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+.post-author-row{display:flex; align-items:center; gap:9px;}
+.post-avatar{
+  width:28px; height:28px; border-radius:50%; border:1px solid var(--gold); background:var(--navy-deep);
+  color:var(--gold-bright); font-family:'Cinzel', serif; font-size:11px; font-weight:600;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
+}
+.post-avatar img{width:100%; height:100%; object-fit:cover;}
 .post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
 .post-time{font-size:12px; color:var(--ink-soft);}
 .post-content{margin-top:8px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
@@ -120,6 +127,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   let currentUserId = null;
   let currentUserName = 'Student';
+  let currentUserAvatarUrl = null;
   let currentIsAdmin = false;
   let refreshTimer = null;
 
@@ -146,11 +154,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }
 
   function renderPost(post, isReply) {
+    const avatarInner = post.author_avatar_url
+      ? '<img src="' + escapeHtml(post.author_avatar_url) + '" alt="">'
+      : escapeHtml((post.author_name || 'A').charAt(0).toUpperCase());
+
     const el = document.createElement('div');
     el.className = isReply ? 'post reply' : 'post';
     el.innerHTML =
       '<div class="post-head">' +
-        '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' +
+        '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
+        '<span class="post-author">' + escapeHtml(post.author_name) + '</span></span>' +
         '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
       '</div>' +
       '<p class="post-content">' + escapeHtml(post.content) + '</p>' +
@@ -244,6 +257,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         const { error } = await supabaseClient.from('global_chat_posts').insert({
           user_id: currentUserId,
           author_name: currentUserName,
+          author_avatar_url: currentUserAvatarUrl,
           parent_id: parentId,
           content: content
         });
@@ -276,6 +290,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const { error } = await supabaseClient.from('global_chat_posts').insert({
       user_id: currentUserId,
       author_name: currentUserName,
+      author_avatar_url: currentUserAvatarUrl,
       content: content
     });
     btn.disabled = false;
@@ -306,13 +321,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('full_name, is_admin')
+      .select('full_name, is_admin, avatar_url')
       .eq('id', currentUserId)
       .single();
 
     if (profile) {
       currentUserName = profile.full_name || 'Student';
       currentIsAdmin = !!profile.is_admin;
+      currentUserAvatarUrl = profile.avatar_url || null;
     }
 
     await loadFeed();
