@@ -773,7 +773,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const msg = document.getElementById('mfa-msg');
     msg.style.display = 'none';
 
-    const { data, error } = await supabaseClient.auth.mfa.enroll({ factorType: 'totp' });
+    const { data, error } = await supabaseClient.auth.mfa.enroll({
+      factorType: 'totp',
+      issuer: 'Global Market School',
+      friendlyName: 'Global Market School'
+    });
 
     if (error || !data) {
       msg.style.display = 'block';
