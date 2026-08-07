@@ -1,0 +1,14 @@
+/* Global Market School — lesson header auth-aware nav */
+
+.nav-profile{
+  display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit;
+}
+.nav-avatar{
+  width:34px; height:34px; border-radius:50%; overflow:hidden; flex-shrink:0;
+  border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center;
+  background:var(--navy-deep); font-family:'Cinzel', serif; font-size:13px; color:var(--gold-bright);
+}
+.nav-avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+.nav-profile-text{display:flex; flex-direction:column; line-height:1.25;}
+.nav-profile-hi{font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold);}
+.nav-profile-name{font-family:'EB Garamond', serif; font-size:13.5px; color:var(--navy-deep); font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}

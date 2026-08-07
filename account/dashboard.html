@@ -35,13 +35,18 @@ section{padding:28px 0;}
 
 .tier-grid{display:flex; flex-direction:column; gap:16px;}
 .tier-card{
-  background:#fff; border:1px solid var(--hair); padding:24px; position:relative;
+  background:linear-gradient(165deg, #fffdf6 0%, #faf3e0 55%, #f6ecd4 100%);
+  border:1px solid var(--hair); padding:24px; position:relative;
   display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;
+  box-shadow:0 1px 0 rgba(178,142,76,0.15) inset;
 }
-.tier-card.unlocked{border-color:var(--good); background:linear-gradient(180deg,#fff,#f4faf6);}
+.tier-card.unlocked{border-color:var(--good);}
 .tier-card.featured{border-color:var(--gold);}
 .tier-num{
-  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold);
+  display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+  background:linear-gradient(100deg, var(--gold) 0%, var(--gold-bright) 50%, var(--gold) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  padding-bottom:4px; border-bottom:2px solid var(--gold-bright); margin-bottom:2px;
 }
 .tier-card h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep); margin:4px 0 8px;}
 .tier-card p{font-size:14px; color:var(--ink-soft); line-height:1.55; max-width:46ch;}
@@ -54,7 +59,11 @@ section{padding:28px 0;}
 .tier-badge.locked-btn{background:var(--navy-deep); color:var(--ivory);}
 .tier-badge.locked-btn:hover{background:var(--gold); color:var(--navy-deep);}
 .tier-badge.unlocked-tag{background:var(--good); color:#fff;}
-.tier-links{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+.tier-links-panel{
+  margin-top:16px; padding:14px; background:rgba(178,142,76,0.08);
+  border:1px dashed var(--hair); border-radius:5px;
+}
+.tier-links{display:flex; gap:10px; flex-wrap:wrap;}
 .tier-links a{
   position:relative; overflow:hidden; display:inline-flex; align-items:center; gap:5px;
   font-family:'Cinzel', serif; font-size:11px; letter-spacing:0.6px; text-transform:uppercase; text-decoration:none;
@@ -574,9 +583,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
       let linksHtml = '';
       if (unlocked && tier.lessonLinks.length) {
-        linksHtml = '<div class="tier-links">' +
+        linksHtml = '<div class="tier-links-panel"><div class="tier-links">' +
           tier.lessonLinks.map(l => '<a href="' + l.href + '">' + l.label + ' &rarr;</a>').join('') +
-          '</div>';
+          '</div></div>';
       } else if (unlocked && tier.comingSoon) {
         linksHtml = '<p class="tier-coming-soon">Your enrollment is confirmed. Full lesson content for this track is still being finalized — message Support and we\'ll walk you through what\'s available right now.</p>';
       }

@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/lesson-header-auth.css">
 <style>
 :root{
   --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
@@ -89,7 +90,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 <header>
   <div class="wrap brand-row">
     <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
-    <a href="../../enroll.html" class="nav-cta">Enroll Now</a>
+    <div id="nav-auth-slot" data-dashboard-href="../../account/dashboard.html">
+      <a href="../../enroll.html" class="nav-cta">Enroll Now</a>
+    </div>
   </div>
 </header>
 
@@ -214,5 +217,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/lesson-header-auth.js"></script>
 </body>
 </html>
