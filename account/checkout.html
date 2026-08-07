@@ -104,6 +104,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <p>Your course is now unlocked. Head to your dashboard to start learning and join your WhatsApp class.</p>
       <a href="dashboard.html">Go to Dashboard</a>
     </div>
+
+    <div class="confirm-panel" id="already-owned-panel">
+      <h2>You're Already Enrolled</h2>
+      <p>You already have full access to this program — no need to pay for it again. Head to your dashboard to keep learning.</p>
+      <a href="dashboard.html">Go to Dashboard</a>
+    </div>
   </main>
 </div>
 
@@ -153,9 +159,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('summary-email').textContent = currentUser.email;
     document.getElementById('summary').style.display = 'block';
 
+    await loadTierFromUrl();
+
     document.getElementById('loading').style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
-    loadTierFromUrl();
   }
 
   const TIER_PRICES = {
@@ -166,7 +173,32 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'Trade Group': { price: 2500, label: 'Trade Group (Everything + Trade Group, Stocks + Forex)' }
   };
 
-  function loadTierFromUrl() {
+  // Mirrors api/verify-payment.js's TIER_COURSES -- what a tier actually
+  // grants. Used to check whether the student (or an admin, on their
+  // behalf) already owns everything this tier would unlock, so they're
+  // never shown a "Pay Now" button for something they've already paid
+  // for or been granted.
+  const TIER_COURSES = {
+    "Beginner": ["beginner-stock", "beginner-forex"],
+    "Intermediate": ["beginner-stock", "beginner-forex", "intermediate-stock", "intermediate-forex"],
+    "Advanced": ["beginner-stock", "beginner-forex", "intermediate-stock", "intermediate-forex", "advanced-stock", "advanced-forex"],
+    "Elite": ["beginner-stock", "beginner-forex", "intermediate-stock", "intermediate-forex", "advanced-stock", "advanced-forex", "elite"],
+    "Trade Group": ["beginner-stock", "beginner-forex", "intermediate-stock", "intermediate-forex", "advanced-stock", "advanced-forex", "elite", "trade-group"]
+  };
+
+  async function alreadyOwnsTier(tierParam) {
+    const required = TIER_COURSES[tierParam];
+    if (!required) return false;
+    const { data } = await supabaseClient
+      .from('course_access')
+      .select('course_key')
+      .eq('user_id', currentUser.id)
+      .eq('has_access', true);
+    const owned = (data || []).map(function (r) { return r.course_key; });
+    return required.every(function (k) { return owned.indexOf(k) !== -1; });
+  }
+
+  async function loadTierFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const tierParam = params.get('tier');
     const btn = document.getElementById('pay-btn');
@@ -175,6 +207,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       btn.textContent = 'No program selected';
       btn.disabled = true;
       document.getElementById('summary-tier').textContent = 'Please select a program from your Dashboard first.';
+      return;
+    }
+
+    if (await alreadyOwnsTier(tierParam)) {
+      document.getElementById('summary').style.display = 'none';
+      btn.style.display = 'none';
+      document.querySelector('.currency-note').style.display = 'none';
+      document.getElementById('already-owned-panel').classList.add('show');
       return;
     }
 
