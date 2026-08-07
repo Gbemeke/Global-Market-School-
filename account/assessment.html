@@ -100,11 +100,52 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   );
 
   const TIERS = {
+    'Beginner': {
+      label: 'Beginner Class',
+      badge: 'Beginner Class — Certification Assessment',
+      requiredCourses: ['beginner-stock', 'beginner-forex'],
+      passScore: 0.8,
+      questions: [
+        { q: "Why does money exist, according to the barter problem?", options: ["To make trade look more official", "To remove the need for two people to each want exactly what the other has", "To let governments track spending", "To replace gold"], correct: 1 },
+        { q: "Which of these gives money real value?", options: ["The color of the note", "Trust, scarcity, and backing by an authority", "How many people carry it in their wallet", "Its weight"], correct: 1 },
+        { q: "What is the main difference between saving and investing?", options: ["There is no real difference", "Saving protects your money; investing puts it to work with more risk and more potential growth", "Investing is always safer than saving", "Saving always earns more than investing"], correct: 1 },
+        { q: "When you buy a share of a company, you are:", options: ["Placing a bet with the company", "Becoming a genuine part-owner of that real company", "Lending the company money with no ownership", "Buying an insurance policy on the company"], correct: 1 },
+        { q: "Why do stock prices constantly move?", options: ["A computer randomly changes them", "Buyers and sellers are in a live, ongoing disagreement about what the company is worth", "The government resets them every hour", "They only move once a day"], correct: 1 },
+        { q: "What does a market order do?", options: ["Buys or sells immediately at the best available price", "Only fills at a price you specifically choose", "Cancels itself automatically", "Only works after the market closes"], correct: 0 },
+        { q: "What is the biggest risk of investing money you might need very soon?", options: ["There is no risk", "You could be forced to sell during a downturn and lock in a loss", "Your broker will refuse to sell it", "It's actually not a risk at all"], correct: 1 },
+        { q: "Why does diversifying across many companies reduce risk?", options: ["It guarantees profit", "One company's bad year has much less impact on your overall portfolio", "It removes all risk completely", "It only works for large investors"], correct: 1 },
+        { q: "In forex, what does it mean that currencies trade in pairs?", options: ["You can buy a currency without selling another", "To buy one currency, you must simultaneously sell another", "Only banks can trade currency pairs", "Pairs only apply to exotic currencies"], correct: 1 },
+        { q: "What is a pip?", options: ["A type of forex broker", "The smallest standard unit of price movement in a currency pair", "A fee charged on every trade", "A type of stop-loss order"], correct: 1 },
+        { q: "What does 'leverage' allow a forex trader to do?", options: ["Guarantee a profit", "Control a larger position than their account balance alone would allow", "Avoid all risk", "Trade without a broker"], correct: 1 },
+        { q: "Why should beginners always use a stop-loss on a leveraged position?", options: ["It's required by law everywhere", "Without one, a leveraged loss has no defined limit", "It guarantees a win", "It increases your leverage"], correct: 1 }
+      ]
+    },
+    'Intermediate': {
+      label: 'Intermediate Class',
+      badge: 'Intermediate Class — Certification Assessment',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex'],
+      passScore: 0.8,
+      questions: [
+        { q: "Why can rising revenue with shrinking profit margins be a warning sign?", options: ["It never is a warning sign", "It means the company is keeping a smaller share of each sale as actual profit", "It means the company has no debt", "Revenue and margin are unrelated"], correct: 1 },
+        { q: "What does a healthy balance sheet generally show?", options: ["Zero debt in all cases", "Manageable debt relative to what the company owns and earns", "As much debt as possible", "No assets at all"], correct: 1 },
+        { q: "A P/E ratio only becomes meaningful when:", options: ["Compared to the company's own history and its direct competitors", "It is below 10", "It is above 50", "It is exactly equal to the company's stock price"], correct: 0 },
+        { q: "What is a 'value trap'?", options: ["A stock that is cheap because the market is temporarily wrong", "A stock that looks cheap but is actually in real, structural decline", "Any stock with a low price", "A type of stop-loss order"], correct: 1 },
+        { q: "What does technical analysis study?", options: ["The company's financial statements", "Price charts, trends, and trading patterns", "The CEO's biography", "Interest rate policy only"], correct: 1 },
+        { q: "A price breakout on unusually low volume is generally:", options: ["More trustworthy than a high-volume breakout", "Less trustworthy and more likely to fade or reverse", "Completely irrelevant to volume", "Impossible to happen"], correct: 1 },
+        { q: "What makes something an actual trading strategy, rather than a guess?", options: ["A feeling that a stock looks good", "Written, specific, repeatable entry and exit criteria decided in advance", "Buying whatever is trending on social media", "Never selling under any circumstance"], correct: 1 },
+        { q: "Why does a strategy need defined exit criteria, not just entry criteria?", options: ["Exits don't actually matter", "Without a planned exit, you're holding a position and hoping rather than following a strategy", "Only professionals need exit plans", "Exits are decided by the broker automatically"], correct: 1 },
+        { q: "How do rising interest rates generally affect stock valuations broadly?", options: ["They have no effect on stocks", "They tend to compress valuations across the market, as future profits are worth relatively less today", "They always make every stock rise", "They only affect bonds, never stocks"], correct: 1 },
+        { q: "In forex, what does purchasing power parity compare?", options: ["Interest rates only", "What the same amount of money can actually buy in different countries, over the long run", "The number of banks in each country", "Stock market performance"], correct: 1 },
+        { q: "Why might a currency stay 'mispriced' relative to its fundamentals for a long time?", options: ["Mispricing always corrects within a day", "Being right about relative value doesn't guarantee being right about timing", "Fundamentals don't affect currency prices", "It's not possible for a currency to be mispriced"], correct: 1 },
+        { q: "What does 'risk-on' market sentiment generally favor?", options: ["Traditional safe-haven currencies", "Currencies linked to growth and higher yields", "No currencies at all", "Only gold"], correct: 1 },
+        { q: "Why do central banks 'watch each other' when setting policy?", options: ["They don't — each acts in complete isolation", "Large interest rate gaps between economies can trigger significant capital flows", "It's a legal requirement with no real reason", "Only for public relations"], correct: 1 }
+      ]
+    },
     'Advanced': {
       label: 'Advanced Class',
       badge: 'Advanced Class — Certification Assessment',
       requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex'],
-      passScore: 0.7,
+      passScore: 0.8,
       questions: [
         { q: "In a live order book, the small gap between the best bid and the best ask is called:", options: ["The slippage", "The spread", "The margin", "The float"], correct: 1 },
         { q: "Dark pools primarily exist so that:", options: ["Retail traders can hide small orders", "Large institutions can trade blocks without moving the visible order book beforehand", "Regulators can monitor insider trading", "Market makers can avoid paying commissions"], correct: 1 },

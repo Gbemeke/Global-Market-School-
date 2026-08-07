@@ -231,6 +231,54 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   width:32px; height:32px; border-radius:50%; background:var(--navy-deep); color:var(--gold-bright);
   display:flex; align-items:center; justify-content:center; font-family:'Cinzel', serif; font-size:13px; font-weight:600; flex-shrink:0;
 }
+
+.join-fab{
+  position:fixed; left:20px; bottom:20px; z-index:60;
+  height:52px; padding:0 22px 0 18px; border-radius:26px; background:var(--good); border:1.5px solid var(--gold-bright);
+  color:#fff; font-size:14px; cursor:pointer; box-shadow:0 10px 30px -8px rgba(0,0,0,0.45);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase;
+}
+.join-fab:hover{background:#2f6249;}
+
+.join-panel{
+  position:fixed; top:0; left:0; height:100%; width:min(420px, 92vw); background:var(--paper);
+  border-right:1px solid var(--gold); box-shadow:24px 0 60px -20px rgba(0,0,0,0.4);
+  transform:translateX(-100%); transition:transform .3s ease; z-index:50; overflow-y:auto;
+}
+.join-panel.open{transform:translateX(0);}
+.join-panel-body{padding:24px;}
+.join-class-list{display:flex; flex-direction:column; gap:10px;}
+.join-class-btn{
+  display:block; width:100%; text-align:left; padding:16px 18px; background:#fff; border:1px solid var(--hair);
+  font-family:'Cormorant Garamond', serif; font-size:18px; color:var(--navy-deep); cursor:pointer;
+}
+.join-class-btn:hover{border-color:var(--gold); background:var(--ivory);}
+.join-back{font-size:12.5px; color:var(--gold); text-decoration:none; display:inline-block; margin-bottom:16px; cursor:pointer; background:none; border:none; font-family:'EB Garamond', serif;}
+.join-q{border:1px solid var(--hair); padding:18px; margin-bottom:16px; background:#fff;}
+.join-q .join-q-label{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; display:block;}
+.join-q p{font-size:15px; color:var(--ink); margin-bottom:12px;}
+.join-yn{display:flex; gap:10px;}
+.join-yn button{
+  flex:1; padding:10px; font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  border:1px solid var(--hair); background:#fff; color:var(--ink); cursor:pointer;
+}
+.join-yn button.active-yes{background:var(--good); border-color:var(--good); color:#fff;}
+.join-yn button.active-no{background:var(--bad); border-color:var(--bad); color:#fff;}
+.join-score-row{display:flex; gap:8px; margin-bottom:10px;}
+.join-score-row input{flex:1; padding:10px 12px; border:1px solid var(--hair); font-family:'EB Garamond', serif; font-size:15px;}
+.join-score-row button{padding:10px 14px; font-family:'Cinzel', serif; font-size:11px; letter-spacing:0.5px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); cursor:pointer;}
+.join-score-badge{padding:10px 14px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:0.5px; text-align:center; font-weight:600;}
+.join-score-badge.pass{background:#eaf3ee; color:var(--good); border:1px solid var(--good);}
+.join-score-badge.fail{background:#fbf0ee; color:var(--bad); border:1px solid var(--bad);}
+.join-rules-box{max-height:220px; overflow-y:auto; background:var(--ivory); border:1px solid var(--hair); padding:14px; font-size:13.5px; color:var(--ink-soft); white-space:pre-line; margin-bottom:14px; line-height:1.6;}
+.join-request-btn{
+  width:100%; padding:16px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+  background:var(--gold); color:var(--navy-deep); border:1px solid var(--gold); cursor:pointer; text-decoration:none; display:block; text-align:center;
+}
+.join-request-btn:hover{background:var(--gold-bright);}
+.join-request-btn.deemed{background:#ddd8c8; color:#8a8474; border-color:#ddd8c8; cursor:not-allowed; pointer-events:none;}
+.join-req-note{font-size:12px; color:var(--ink-soft); margin-top:10px; text-align:center;}
 </style>
 </head>
 <body>
@@ -249,6 +297,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   </header>
 
   <div class="profile-overlay" id="profile-overlay"></div>
+  <aside class="join-panel" id="join-panel" aria-label="Join your class WhatsApp group">
+    <div class="profile-panel-head">
+      <p class="section-title">Join Class WhatsApp Group</p>
+      <button class="panel-close" id="join-panel-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="join-panel-body" id="join-panel-body"></div>
+  </aside>
+
   <aside class="profile-panel" id="profile-panel" aria-label="Your profile">
     <div class="profile-panel-head">
       <p class="section-title">Your Profile</p>
@@ -361,6 +417,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   </div>
 
+  <button class="join-fab" id="join-fab" aria-label="Join Class WhatsApp Group">&#128241; Join Class</button>
+
   <div class="chat-fab-wrap">
     <div class="chat-menu" id="chat-menu">
       <a class="chat-option" href="https://whatsapp.com/channel/0029VbClKaJ0VycEEDOgGX2U" target="_blank" rel="noopener">
@@ -393,6 +451,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentUserId = null;
   let currentInitial = 'A';
   let currentAvatarUrl = null;
+  let unlockedTierKeys = [];
+  let joinSelectedTier = null;
+  let joinQ1 = null;
+  let joinScore = null;
+  let joinScoreChecked = false;
+  let joinQ3 = null;
 
   function renderAvatar() {
     const html = currentAvatarUrl ? '<img src="' + currentAvatarUrl + '" alt="">' : currentInitial;
@@ -471,7 +535,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       requiredCourses: ['beginner-stock', 'beginner-forex'],
       lessonLinks: [
         { label: 'Beginner Stock Lesson 1', href: '../learn/beginner/lesson-1.html' },
-        { label: 'Beginner Forex Lesson 1', href: '../learn/beginner-forex/lesson-1.html' }
+        { label: 'Beginner Forex Lesson 1', href: '../learn/beginner-forex/lesson-1.html' },
+        { label: 'View Certificate', href: '../account/assessment.html?tier=Beginner' }
       ]
     },
     {
@@ -483,7 +548,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex'],
       lessonLinks: [
         { label: 'Intermediate Stock Lesson 1', href: '../learn/intermediate/lesson-1.html' },
-        { label: 'Intermediate Forex Lesson 1', href: '../learn/intermediate-forex/lesson-1.html' }
+        { label: 'Intermediate Forex Lesson 1', href: '../learn/intermediate-forex/lesson-1.html' },
+        { label: 'View Certificate', href: '../account/assessment.html?tier=Intermediate' }
       ]
     },
     {
@@ -575,9 +641,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const unlockedKeys = (access || []).map(a => a.course_key);
     const grid = document.getElementById('tier-grid');
     grid.innerHTML = '';
+    unlockedTierKeys = [];
 
     TIERS.forEach(function(tier) {
       const unlocked = tier.requiredCourses.every(k => unlockedKeys.includes(k));
+      if (unlocked) unlockedTierKeys.push(tier.key);
       const card = document.createElement('div');
       card.className = 'tier-card' + (unlocked ? ' unlocked' : '');
 
@@ -704,7 +772,168 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }
   document.getElementById('profile-btn').addEventListener('click', openProfilePanel);
   document.getElementById('panel-close').addEventListener('click', closeProfilePanel);
-  document.getElementById('profile-overlay').addEventListener('click', closeProfilePanel);
+  document.getElementById('profile-overlay').addEventListener('click', function() {
+    closeProfilePanel();
+    closeJoinPanel();
+  });
+
+  // ---- Join Class WhatsApp Group ----
+
+  const WHATSAPP_CONFIG = {
+    'Beginner': {
+      link: 'https://chat.whatsapp.com/GTqdXlYwskf6f6X7GEPnJf?s=cl&p=a&mlu=4',
+      rules: "Important Notice:\n\nThis group is for learning and discussion.\n\nPlease follow these rules:\n• Ask only trading-related questions\n• No spam or promotions\n• No unrelated discussions\n• Respect all members\n\nAdmin messages and lessons should be taken seriously.\n\nFailure to follow rules may lead to removal."
+    },
+    'Intermediate': {
+      link: 'https://chat.whatsapp.com/Gwm6klJScP21vkctYspyYY?s=cl&p=a&mlu=4',
+      rules: "• Keep discussions trading-related only\n• No signal reselling\n• Respect the learning process\n• Avoid unnecessary messages\n• Follow all instructions given\n• Failure to keep the rules will lead to permanent removal\n\nSerious traders only."
+    },
+    'Advanced': {
+      link: 'https://chat.whatsapp.com/IIBOT1h0UNB4vKl1Y73sit?s=cl&p=a&mlu=4',
+      rules: "• Respect confidentiality of this group\n• No sharing of content outside\n• Stay active and responsive\n• Follow all trading guidelines\n• Maintain discipline\n• Failure to keep this rule will lead to permanent removal\n\nThis is a serious environment for serious traders."
+    },
+    'Elite': {
+      link: 'https://chat.whatsapp.com/EbY5HQlFJcQ1j03YC1YEC2?s=cl&p=a&mlu=4',
+      rules: "ELITE CEO GROUP RULES\n\n- Respect the CEO\n- Respect All Members\n- Be Punctual\n- Maintain Discipline\n- Protect Confidentiality\n- No Content Sharing\n- No Spam\n- Stay Active\n- Follow Instructions\n- Manage Risk Wisely\n- Ask Smart Questions\n- Keep Learning\n- Be Honest\n- Take Responsibility\n- Strive for Excellence\n\nFailure to keep this rule will lead to permanent removal."
+    },
+    'Trade Group': {
+      link: 'https://chat.whatsapp.com/LAvfACvPF3yBQtKAYzuKR7?s=cl&p=a&mlu=4',
+      rules: "TRADE WITH THE CEO RULES\n\n- Follow the Trading Plan\n- Wait for CEO Confirmation\n- Respect Risk Management\n- No Emotional Trading\n- No Overtrading\n- Be Punctual\n- Stay Focused\n- Ask Relevant Questions\n- Respect All Members\n- Maintain Confidentiality\n- Trade with Discipline\n- Learn Before You Earn\n\nFailure to keep this rule will lead to permanent removal."
+    }
+  };
+  const JOIN_PASS_SCORE = 0.8;
+
+  function tierTitleFor(key) {
+    const t = TIERS.find(function(x) { return x.key === key; });
+    return t ? t.title : key;
+  }
+
+  function openJoinPanel() {
+    joinSelectedTier = null;
+    renderJoinClassList();
+    document.getElementById('join-panel').classList.add('open');
+    document.getElementById('profile-overlay').classList.add('open');
+  }
+  function closeJoinPanel() {
+    document.getElementById('join-panel').classList.remove('open');
+    document.getElementById('profile-overlay').classList.remove('open');
+  }
+
+  function renderJoinClassList() {
+    const body = document.getElementById('join-panel-body');
+    if (!unlockedTierKeys.length) {
+      body.innerHTML = '<p style="font-size:14.5px; color:var(--ink-soft);">You need to be enrolled in a class before you can request to join its WhatsApp group.</p>';
+      return;
+    }
+    body.innerHTML =
+      '<p style="font-size:13.5px; color:var(--ink-soft); margin-bottom:16px;">Select the class you\'d like to join the WhatsApp group for:</p>' +
+      '<div class="join-class-list">' +
+        unlockedTierKeys.map(function(key) {
+          return '<button type="button" class="join-class-btn" data-tier="' + key + '">' + tierTitleFor(key) + '</button>';
+        }).join('') +
+      '</div>';
+    body.querySelectorAll('.join-class-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { selectJoinTier(btn.getAttribute('data-tier')); });
+    });
+  }
+
+  async function selectJoinTier(tierKey) {
+    joinSelectedTier = tierKey;
+    joinQ1 = null;
+    joinScore = null;
+    joinScoreChecked = false;
+    joinQ3 = null;
+    renderJoinFlow();
+
+    const { data } = await supabaseClient
+      .from('certificates')
+      .select('score')
+      .eq('user_id', currentUserId)
+      .eq('tier', tierKey)
+      .order('issued_at', { ascending: false })
+      .limit(1);
+    joinScore = (data && data[0]) ? Number(data[0].score) : null;
+    joinScoreChecked = true;
+    renderJoinFlow();
+  }
+
+  function joinRequirementsMet() {
+    return joinQ1 === true && joinScoreChecked && joinScore !== null && joinScore >= JOIN_PASS_SCORE && joinQ3 === true;
+  }
+
+  function renderJoinFlow() {
+    const body = document.getElementById('join-panel-body');
+    const config = WHATSAPP_CONFIG[joinSelectedTier];
+    const title = tierTitleFor(joinSelectedTier);
+
+    let scoreHtml;
+    if (!joinScoreChecked) {
+      scoreHtml = '<p style="font-size:13.5px; color:var(--ink-soft);">Checking your assessment record…</p>';
+    } else if (joinScore === null) {
+      scoreHtml = '<div class="join-score-badge fail">No assessment score on record yet — complete the ' + title + ' assessment first.</div>';
+    } else {
+      const pct = Math.round(joinScore * 100);
+      const passed = joinScore >= JOIN_PASS_SCORE;
+      scoreHtml = '<div class="join-score-badge ' + (passed ? 'pass' : 'fail') + '">Your recorded score: ' + pct + '% ' + (passed ? '✓ Meets the 80% requirement' : '✗ Below the required 80%') + '</div>';
+    }
+
+    const ready = joinRequirementsMet();
+
+    body.innerHTML =
+      '<button type="button" class="join-back">&larr; Choose a different class</button>' +
+      '<h3 style="font-family:\'Cormorant Garamond\', serif; font-size:20px; color:var(--navy-deep); margin-bottom:16px;">' + title + '</h3>' +
+
+      '<div class="join-q">' +
+        '<span class="join-q-label">1. Classroom Confirmation</span>' +
+        '<p>Do you understand — you study in your classroom?</p>' +
+        '<div class="join-yn">' +
+          '<button type="button" id="join-q1-yes" class="' + (joinQ1 === true ? 'active-yes' : '') + '">Yes</button>' +
+          '<button type="button" id="join-q1-no" class="' + (joinQ1 === false ? 'active-no' : '') + '">No</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="join-q">' +
+        '<span class="join-q-label">2. Assessment Score</span>' +
+        '<p>What is your ' + title + ' assessment score? (Enter your guess — we\'ll verify it against your real record.)</p>' +
+        '<div class="join-score-row">' +
+          '<input type="text" id="join-score-input" placeholder="e.g. 85" inputmode="numeric">' +
+          '<button type="button" id="join-score-check">Verify</button>' +
+        '</div>' +
+        scoreHtml +
+      '</div>' +
+
+      '<div class="join-q">' +
+        '<span class="join-q-label">3. WhatsApp Class Rules</span>' +
+        '<div class="join-rules-box">' + (config ? config.rules : '') + '</div>' +
+        '<p>Do you agree to follow these rules?</p>' +
+        '<div class="join-yn">' +
+          '<button type="button" id="join-q3-yes" class="' + (joinQ3 === true ? 'active-yes' : '') + '">Yes, I Agree</button>' +
+          '<button type="button" id="join-q3-no" class="' + (joinQ3 === false ? 'active-no' : '') + '">No</button>' +
+        '</div>' +
+      '</div>' +
+
+      (ready
+        ? '<a href="' + (config ? config.link : '#') + '" target="_blank" rel="noopener" class="join-request-btn">Request to Join ' + title + ' Group</a>'
+        : '<button type="button" class="join-request-btn deemed" disabled>Request to Join ' + title + ' Group</button>') +
+      (ready ? '' : '<p class="join-req-note">Complete all three steps above (Yes, 80%+ score, Yes) to unlock your request button.</p>');
+
+    document.getElementById('join-q1-yes').addEventListener('click', function() { joinQ1 = true; renderJoinFlow(); });
+    document.getElementById('join-q1-no').addEventListener('click', function() { joinQ1 = false; renderJoinFlow(); });
+    document.getElementById('join-q3-yes').addEventListener('click', function() { joinQ3 = true; renderJoinFlow(); });
+    document.getElementById('join-q3-no').addEventListener('click', function() { joinQ3 = false; renderJoinFlow(); });
+    document.getElementById('join-score-check').addEventListener('click', function() {
+      // The user's typed guess is never trusted for gating -- we always
+      // re-render using the real, already-fetched certificate score.
+      renderJoinFlow();
+    });
+    body.querySelector('.join-back').addEventListener('click', function() {
+      joinSelectedTier = null;
+      renderJoinClassList();
+    });
+  }
+
+  document.getElementById('join-fab').addEventListener('click', openJoinPanel);
+  document.getElementById('join-panel-close').addEventListener('click', closeJoinPanel);
 
   document.getElementById('chat-fab').addEventListener('click', function() {
     document.getElementById('chat-menu').classList.toggle('open');
