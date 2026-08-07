@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /account/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://www.globalmarketschool.com/sitemap.xml
