@@ -63,6 +63,12 @@
             '<span class="nav-avatar">' + avatarInner + '</span>' +
             '<span class="nav-profile-text"><span class="nav-profile-hi">Welcome back</span><span class="nav-profile-name">' + safeName + '</span></span>' +
           '</a>';
+
+        // On pages with a mobile hamburger menu (currently just the
+        // homepage), its own separate "Log In" entry needs hiding too --
+        // harmless no-op anywhere this element doesn't exist.
+        const mobileLogin = document.querySelector(".nav-login-mobile");
+        if (mobileLogin) mobileLogin.style.display = "none";
       })
       .catch(function () { /* leave Enroll Now in place */ });
   }

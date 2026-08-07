@@ -76,7 +76,7 @@ a{color:inherit;}
 </head>
 <body>
 
-<div class="card">
+<div class="card" id="card" style="display:none;">
   <div class="card-head">
     <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
     <h1>Create Your Account</h1>
@@ -142,6 +142,20 @@ a{color:inherit;}
     'https://djkctbtxnpdkstvznjlf.supabase.co',
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
+
+  // An already-enrolled student landing here (old link, back button,
+  // whatever) should never be shown a signup form for an account they
+  // already have -- send them straight to their dashboard instead.
+  (async function redirectIfAlreadySignedIn() {
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+    } catch (e) { /* fall through and show the form as normal */ }
+    document.getElementById('card').style.display = '';
+  })();
 
   // Same list (and dial codes) used on the dashboard's profile editor --
   // keeping these identical matters, since checkout.html matches a
