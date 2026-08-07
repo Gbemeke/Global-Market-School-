@@ -56,6 +56,7 @@ section{padding:28px 0;}
 .tier-badge.unlocked-tag{background:var(--good); color:#fff;}
 .tier-links{display:flex; gap:12px; margin-top:8px;}
 .tier-links a{font-size:12.5px; color:var(--gold); text-decoration:none; font-family:'Cinzel', serif; letter-spacing:0.5px;}
+.tier-coming-soon{font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:8px; max-width:42ch;}
 
 .referral-box{background:#fff; border:1px solid var(--hair); padding:24px;}
 .referral-link-row{display:flex; gap:8px; margin:14px 0;}
@@ -464,10 +465,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       price: 200,
       desc: 'Everything above, plus institutional-grade market structure, regulation, and professional risk management.',
       requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex'],
-      lessonLinks: [
-        { label: 'Stocks', href: '../learn/advanced/lesson-1.html' },
-        { label: 'Forex', href: '../learn/advanced-forex/lesson-1.html' }
-      ]
+      lessonLinks: [],
+      comingSoon: true
     },
     {
       key: 'Elite',
@@ -476,7 +475,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       price: 1000,
       desc: 'Every lesson above, plus direct CEO access and ongoing mentorship.',
       requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite'],
-      lessonLinks: []
+      lessonLinks: [],
+      comingSoon: true
     },
     {
       key: 'Trade Group',
@@ -485,7 +485,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       price: 2500,
       desc: 'Everything Global Market School offers, plus live trading sessions alongside the CEO himself.',
       requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite', 'trade-group'],
-      lessonLinks: []
+      lessonLinks: [],
+      comingSoon: true
     }
   ];
 
@@ -552,6 +553,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         linksHtml = '<div class="tier-links">' +
           tier.lessonLinks.map(l => '<a href="' + l.href + '">' + l.label + ' &rarr;</a>').join('') +
           '</div>';
+      } else if (unlocked && tier.comingSoon) {
+        linksHtml = '<p class="tier-coming-soon">Your enrollment is confirmed. Full lesson content for this track is still being finalized — message Support and we\'ll walk you through what\'s available right now.</p>';
       }
 
       card.innerHTML =
