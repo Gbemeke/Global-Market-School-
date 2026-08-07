@@ -34,8 +34,6 @@
 
     let current = 0;
     let playing = false;
-    let sentenceIndex = 0;
-    let voicesReady = false;
     const supportsSpeech = "speechSynthesis" in window;
 
     root.innerHTML =
@@ -50,6 +48,7 @@
         '<button type="button" class="nl-btn nl-btn-primary" id="nl-play"' + (supportsSpeech ? '' : ' disabled') + '>' + (supportsSpeech ? '&#9658; Play Narration' : 'Voice not supported — read below') + '</button>' +
         '<button type="button" class="nl-btn nl-btn-ghost" id="nl-next">Next &rarr;</button>' +
       '</div>' +
+      '<p class="nl-fallback-note" id="nl-silent-note" style="display:none;">Still no sound? This usually means your phone\'s text-to-speech engine isn\'t installed or enabled — not a problem with this page. On Android: Settings → System → Languages &amp; input → Text-to-speech output, make sure a voice engine (e.g. \'Google Text-to-Speech\') is selected and installed. Also check your phone\'s <strong>media</strong> volume specifically, separate from ringtone volume. You can keep reading every slide below either way.</p>' +
       (supportsSpeech ? '' : '<p class="nl-fallback-note">Your browser doesn\'t support voice narration. You can still read every slide and move through the lesson with Prev / Next.</p>');
 
     const dotsEl = document.getElementById('nl-dots');
@@ -81,7 +80,6 @@
       document.getElementById('nl-caption').innerHTML = sentences.map(function (s, i) {
         return '<span class="nl-sentence" data-i="' + i + '">' + s + ' </span>';
       }).join('');
-      sentenceIndex = 0;
       updateDots();
       document.getElementById('nl-prev').disabled = current === 0;
       const nextBtn = document.getElementById('nl-next');
@@ -98,37 +96,86 @@
       });
     }
 
+    // Chrome (especially on Android) often returns an empty voice list
+    // on the very first call -- it loads voices asynchronously. Waiting
+    // briefly for the 'voiceschanged' event before the first utterance
+    // gives the device's TTS engine a real chance to be ready, instead
+    // of silently speaking with no voice assigned.
+    function getVoicesReady() {
+      return new Promise(function (resolve) {
+        const existing = window.speechSynthesis.getVoices();
+        if (existing.length) { resolve(existing); return; }
+        let done = false;
+        window.speechSynthesis.onvoiceschanged = function () {
+          if (done) return;
+          done = true;
+          resolve(window.speechSynthesis.getVoices());
+        };
+        setTimeout(function () {
+          if (done) return;
+          done = true;
+          resolve(window.speechSynthesis.getVoices());
+        }, 1200);
+      });
+    }
+
+    let heardAudioStart = false;
+    let silenceCheckTimer = null;
+
     function speakCurrentSlide() {
       if (!supportsSpeech) return;
       window.speechSynthesis.cancel();
+      document.getElementById('nl-silent-note').style.display = 'none';
       const sentences = splitSentences(LESSON.slides[current].narration);
       let i = 0;
+      let firstUtteranceOfSession = true;
 
-      function speakNext() {
-        if (i >= sentences.length) {
-          playing = false;
-          document.getElementById('nl-play').innerHTML = '&#9658; Play Narration';
-          root.querySelectorAll('.nl-sentence').forEach(function (el) { el.classList.remove('speaking'); });
-          if (current < LESSON.slides.length - 1) {
-            setTimeout(function () {
-              if (!playing) goTo(current + 1, true);
-            }, 900);
+      getVoicesReady().then(function (voices) {
+        speakNext();
+
+        function speakNext() {
+          if (i >= sentences.length) {
+            playing = false;
+            document.getElementById('nl-play').innerHTML = '&#9658; Play Narration';
+            root.querySelectorAll('.nl-sentence').forEach(function (el) { el.classList.remove('speaking'); });
+            if (current < LESSON.slides.length - 1) {
+              setTimeout(function () {
+                if (!playing) goTo(current + 1, true);
+              }, 900);
+            }
+            return;
           }
-          return;
+          highlightSentence(i);
+          const utter = new SpeechSynthesisUtterance(sentences[i]);
+          utter.rate = 0.97;
+          utter.pitch = 1;
+          const preferred = voices.find(function (v) { return /en-US|en-GB|en_/.test(v.lang) && /female|male/i.test(v.name) === false; }) ||
+            voices.find(function (v) { return v.lang && v.lang.indexOf('en') === 0; });
+          if (preferred) utter.voice = preferred;
+
+          if (firstUtteranceOfSession) {
+            firstUtteranceOfSession = false;
+            clearTimeout(silenceCheckTimer);
+            // If audio genuinely never starts within a few seconds of
+            // clicking Play, that's almost always the device's own TTS
+            // engine being unavailable, not a page bug -- surface it
+            // rather than leaving the student wondering why it's silent.
+            silenceCheckTimer = setTimeout(function () {
+              if (!heardAudioStart) {
+                document.getElementById('nl-silent-note').style.display = 'block';
+              }
+            }, 3500);
+          }
+
+          utter.onstart = function () {
+            heardAudioStart = true;
+            document.getElementById('nl-silent-note').style.display = 'none';
+          };
+          utter.onend = function () { i++; if (playing) speakNext(); };
+          utter.onerror = function () { i++; if (playing) speakNext(); };
+          window.speechSynthesis.speak(utter);
         }
-        highlightSentence(i);
-        const utter = new SpeechSynthesisUtterance(sentences[i]);
-        utter.rate = 0.97;
-        utter.pitch = 1;
-        const voices = window.speechSynthesis.getVoices();
-        const preferred = voices.find(function (v) { return /en-US|en-GB|en_/.test(v.lang) && /female|male/i.test(v.name) === false; }) ||
-          voices.find(function (v) { return v.lang && v.lang.indexOf('en') === 0; });
-        if (preferred) utter.voice = preferred;
-        utter.onend = function () { i++; if (playing) speakNext(); };
-        utter.onerror = function () { i++; if (playing) speakNext(); };
-        window.speechSynthesis.speak(utter);
-      }
-      speakNext();
+      });
     }
 
     function goTo(index, autoplay) {
@@ -166,12 +213,6 @@
     document.getElementById('nl-play').addEventListener('click', function () { togglePlay(); });
     document.getElementById('nl-prev').addEventListener('click', function () { goTo(current - 1); });
     document.getElementById('nl-next').addEventListener('click', function () { goTo(current + 1); });
-
-    // Chrome loads voices asynchronously; nothing to do but let it
-    // happen -- getVoices() is called fresh at speak-time above.
-    if (supportsSpeech) {
-      window.speechSynthesis.onvoiceschanged = function () { voicesReady = true; };
-    }
 
     renderSlide();
 
