@@ -217,6 +217,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .global-chat-fab:hover{background:var(--gold-bright);}
 .global-chat-fab-logo{width:34px; height:34px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1.5px var(--navy-deep);}
+.global-chat-badge{
+  position:absolute; top:-6px; right:12px; min-width:19px; height:19px; padding:0 5px; border-radius:10px;
+  background:var(--bad); color:#fff; font-family:'Cinzel', serif; font-size:10.5px; font-weight:600;
+  display:none; align-items:center; justify-content:center; box-shadow:0 0 0 2px var(--paper);
+}
+.global-chat-badge.show{display:flex;}
 
 .chat-fab-wrap{position:fixed; right:20px; bottom:20px; z-index:60; display:flex; flex-direction:column; align-items:flex-end; gap:12px; pointer-events:none;}
 .chat-fab{
@@ -433,6 +439,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   <a class="global-chat-fab" href="global-chat.html" aria-label="Global Chat">
     <img src="../assets/images/global-chat-logo.png" alt="" class="global-chat-fab-logo">
     Global Chat
+    <span class="global-chat-badge" id="global-chat-badge"></span>
   </a>
 
   <div class="chat-fab-wrap">
@@ -608,6 +615,30 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
   ];
 
+  async function checkGlobalChatUnread(userId) {
+    try {
+      const { data: seenRow } = await supabaseClient
+        .from('global_chat_last_seen')
+        .select('last_seen_at')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const since = (seenRow && seenRow.last_seen_at) || '1970-01-01T00:00:00Z';
+
+      const { count } = await supabaseClient
+        .from('global_chat_posts')
+        .select('id', { count: 'exact', head: true })
+        .gt('created_at', since)
+        .neq('user_id', userId);
+
+      const badge = document.getElementById('global-chat-badge');
+      if (badge && count) {
+        badge.textContent = count > 9 ? '9+' : String(count);
+        badge.classList.add('show');
+      }
+    } catch (e) { /* non-critical — leave the button unbadged */ }
+  }
+
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
 
@@ -618,6 +649,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const userId = session.user.id;
     currentUserId = userId;
+    checkGlobalChatUnread(userId);
 
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')

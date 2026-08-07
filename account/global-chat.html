@@ -60,6 +60,8 @@ section{padding:24px 0;}
 
 .feed{display:flex; flex-direction:column; gap:14px;}
 .post{background:#fff; border:1px solid var(--hair); padding:18px;}
+.post.reply{padding:14px; background:var(--paper);}
+.msg-target{cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;}
 .post-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
 .post-author-row{display:flex; align-items:center; gap:9px;}
 .post-avatar{
@@ -72,27 +74,31 @@ section{padding:24px 0;}
 .post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
 .post-time{font-size:12px; color:var(--ink-soft);}
 .post-content{margin-top:10px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+.repost-tag{display:flex; align-items:center; gap:6px; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
 
 .post-media{margin-top:12px; border:1px solid var(--hair); background:#000; overflow:hidden;}
 .post-media img, .post-media video{width:100%; max-height:440px; object-fit:contain; display:block; background:#000;}
 
+.quoted-post{border:1px solid var(--hair); padding:12px; margin-top:10px; background:var(--paper);}
+.post.reply .quoted-post{background:#fff;}
+.quoted-content{margin-top:8px; font-size:14px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+
 .engagement-summary{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12.5px; color:var(--ink-soft);}
 .likes-summary{display:flex; align-items:center; gap:6px;}
-.like-badge-icon{width:17px; height:17px; border-radius:50%; background:var(--gold); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0;}
+.like-badge-icon{display:inline-flex; align-items:center; justify-content:center; font-size:13px; letter-spacing:-3px; padding-right:3px;}
 .counts-summary{display:flex; gap:12px;}
-.counts-summary span{cursor:default;}
 
 .post-actions-bar{display:flex; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); margin-top:10px;}
 .action-btn{
   flex:1; display:flex; align-items:center; justify-content:center; gap:7px; background:none; border:none;
   padding:9px 0; cursor:pointer; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
 }
 .action-btn:hover{background:var(--paper);}
 .action-btn.liked{color:var(--gold);}
-.post-actions{display:flex; gap:16px; margin-top:8px;}
-.post-action-link.delete{background:none; border:none; padding:0; cursor:pointer; font-size:12px; color:var(--bad); font-family:'Cinzel', serif; letter-spacing:0.5px;}
 
 .replies{margin-top:14px; padding-left:18px; border-left:2px solid var(--hair); display:flex; flex-direction:column; gap:12px;}
+.replies:empty{margin-top:0; border-left:none;}
 .reply-box{display:none; margin-top:12px;}
 .reply-box.open{display:block;}
 .reply-box textarea{
@@ -105,8 +111,20 @@ section{padding:24px 0;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
 footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
 
-.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:80; opacity:0; pointer-events:none; transition:opacity .25s ease;}
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:95; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88vw; text-align:center;}
 .toast.show{opacity:1;}
+
+.reaction-picker{position:fixed; display:none; align-items:center; gap:2px; background:#fff; border:1px solid var(--hair); border-radius:30px; padding:6px 8px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;}
+.reaction-picker.show{display:flex;}
+.reaction-picker button{background:none; border:none; font-size:23px; cursor:pointer; padding:3px 5px; line-height:1; transition:transform .12s ease;}
+.reaction-picker button:hover{transform:scale(1.3) translateY(-2px);}
+
+.context-menu{position:fixed; display:none; flex-direction:column; background:#fff; border:1px solid var(--hair); min-width:160px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;}
+.context-menu.show{display:flex;}
+.context-menu button{background:none; border:none; text-align:left; padding:12px 18px; font-family:'EB Garamond', serif; font-size:14.5px; color:var(--ink); cursor:pointer; border-bottom:1px solid var(--hair);}
+.context-menu button:last-child{border-bottom:none;}
+.context-menu button:hover{background:var(--paper);}
+.context-menu button.danger{color:var(--bad);}
 </style>
 </head>
 <body>
@@ -130,7 +148,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <div>
         <p class="eyebrow">Community</p>
         <h1>Global Chat</h1>
-        <p>Post, share, and reply with other students. Be respectful — posts can be removed by admins.</p>
+        <p>Post, react, and reply with other students. Long-press a message for more options. Be respectful — posts can be removed by admins.</p>
       </div>
       <img src="../assets/images/global-chat-logo.png" alt="Global Chat" class="mark-lg">
     </div>
@@ -166,6 +184,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="reaction-picker" id="reaction-picker"></div>
+<div class="context-menu" id="context-menu"></div>
 
 <script>
   const supabaseClient = supabase.createClient(
@@ -173,12 +193,31 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
+  const REACTIONS = [
+    { key: 'like',  emoji: '\u{1F44D}', label: 'Like' },
+    { key: 'love',  emoji: '\u{2764}\u{FE0F}', label: 'Love' },
+    { key: 'haha',  emoji: '\u{1F602}', label: 'Haha' },
+    { key: 'wow',   emoji: '\u{1F62E}', label: 'Wow' },
+    { key: 'sad',   emoji: '\u{1F622}', label: 'Sad' },
+    { key: 'angry', emoji: '\u{1F621}', label: 'Angry' }
+  ];
+  function reactionMeta(key) {
+    return REACTIONS.filter(function(r) { return r.key === key; })[0] || REACTIONS[0];
+  }
+
   let currentUserId = null;
   let currentUserName = 'Student';
   let currentUserAvatarUrl = null;
   let currentIsAdmin = false;
   let refreshTimer = null;
   let presenceChannel = null;
+
+  // Rebuilt on every loadFeed() so the delegated handlers below can look
+  // up post data without re-querying Supabase for every interaction.
+  let postsById = {};
+  let likesByPost = {};
+  let sharesByPost = {};
+  let childrenByParent = {};
 
   // Composer attachment state (image and video are mutually exclusive per post)
   let composerFile = null;
@@ -192,7 +231,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     toast.textContent = text;
     toast.classList.add('show');
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(function() { toast.classList.remove('show'); }, 2200);
+    showToast._t = setTimeout(function() { toast.classList.remove('show'); }, 2400);
   }
 
   function formatCount(n) {
@@ -216,7 +255,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   function escapeHtml(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str || '';
     return div.innerHTML;
   }
 
@@ -298,18 +337,27 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       : { image_url: urlData.publicUrl, video_url: null };
   }
 
-  // ---- Feed rendering ----
+  // ---- Feed rendering (recursive: comments can themselves be reacted to,
+  // commented on, and shared, to any depth) ----
 
-  function renderPost(post, isReply, likesByPost, sharesByPost, repliesByParent) {
+  function renderNode(post, depth) {
     const avatarInner = post.author_avatar_url
       ? '<img src="' + escapeHtml(post.author_avatar_url) + '" alt="">'
       : escapeHtml((post.author_name || 'A').charAt(0).toUpperCase());
 
     const likeRows = likesByPost[post.id] || [];
-    const likeCount = likeRows.length;
-    const iLiked = likeRows.some(function(r) { return r.user_id === currentUserId; });
-    const commentCount = isReply ? 0 : ((repliesByParent[post.id] || []).length);
-    const shareCount = isReply ? 0 : ((sharesByPost[post.id] || []).length);
+    const reactionCounts = {};
+    likeRows.forEach(function(r) { reactionCounts[r.reaction] = (reactionCounts[r.reaction] || 0) + 1; });
+    const myReaction = (likeRows.filter(function(r) { return r.user_id === currentUserId; })[0] || {}).reaction || '';
+    const totalReactions = likeRows.length;
+    const topReactionEmojis = Object.keys(reactionCounts)
+      .sort(function(a, b) { return reactionCounts[b] - reactionCounts[a]; })
+      .slice(0, 3)
+      .map(function(k) { return reactionMeta(k).emoji; })
+      .join('');
+
+    const commentCount = (childrenByParent[post.id] || []).length;
+    const shareCount = (sharesByPost[post.id] || []).length;
 
     let mediaHtml = '';
     if (post.image_url) {
@@ -318,48 +366,76 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       mediaHtml = '<div class="post-media"><video src="' + escapeHtml(post.video_url) + '" controls playsinline></video></div>';
     }
 
+    let quoteHtml = '';
+    if (post.shared_post_id) {
+      const original = postsById[post.shared_post_id];
+      if (original) {
+        const oAvatar = original.author_avatar_url
+          ? '<img src="' + escapeHtml(original.author_avatar_url) + '" alt="">'
+          : escapeHtml((original.author_name || 'A').charAt(0).toUpperCase());
+        let oMedia = '';
+        if (original.image_url) oMedia = '<div class="post-media"><img src="' + escapeHtml(original.image_url) + '" alt="" loading="lazy"></div>';
+        else if (original.video_url) oMedia = '<div class="post-media"><video src="' + escapeHtml(original.video_url) + '" controls playsinline></video></div>';
+
+        quoteHtml =
+          '<div class="quoted-post">' +
+            '<div class="post-head">' +
+              '<span class="post-author-row"><span class="post-avatar">' + oAvatar + '</span>' +
+              '<span class="post-author">' + escapeHtml(original.author_name) + '</span></span>' +
+              '<span class="post-time">' + timeAgo(original.created_at) + '</span>' +
+            '</div>' +
+            '<p class="quoted-content">' + escapeHtml(original.content) + '</p>' +
+            oMedia +
+          '</div>';
+      } else {
+        quoteHtml = '<div class="quoted-post"><p class="quoted-content" style="color:var(--ink-soft); font-style:italic;">Original post unavailable.</p></div>';
+      }
+    }
+
+    const reactionBtnLabel = myReaction
+      ? (reactionMeta(myReaction).emoji + ' ' + reactionMeta(myReaction).label)
+      : '\u{1F44D} Like';
+
     const el = document.createElement('div');
-    el.className = isReply ? 'post reply' : 'post';
+    el.className = depth > 0 ? 'post reply' : 'post';
     el.innerHTML =
-      '<div class="post-head">' +
-        '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
-        '<span class="post-author">' + escapeHtml(post.author_name) + '</span></span>' +
-        '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
-      '</div>' +
-      '<p class="post-content">' + escapeHtml(post.content) + '</p>' +
-      mediaHtml +
-      (!isReply ?
-        '<div class="engagement-summary">' +
-          '<span class="likes-summary">' + (likeCount ? '<span class="like-badge-icon">&#128077;</span>' + formatCount(likeCount) : '') + '</span>' +
-          '<span class="counts-summary">' +
-            (commentCount ? '<span>' + formatCount(commentCount) + ' Comment' + (commentCount === 1 ? '' : 's') + '</span>' : '') +
-            (shareCount ? '<span>' + formatCount(shareCount) + ' Share' + (shareCount === 1 ? '' : 's') + '</span>' : '') +
-          '</span>' +
+      '<div class="msg-target" data-id="' + post.id + '">' +
+        (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
+        '<div class="post-head">' +
+          '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
+          '<span class="post-author">' + escapeHtml(post.author_name) + '</span></span>' +
+          '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
         '</div>' +
-        '<div class="post-actions-bar">' +
-          '<button class="action-btn like-toggle' + (iLiked ? ' liked' : '') + '" data-id="' + post.id + '" data-liked="' + iLiked + '">&#128077; Like</button>' +
-          '<button class="action-btn reply-toggle" data-id="' + post.id + '">&#128172; Comment</button>' +
-          '<button class="action-btn share-btn" data-id="' + post.id + '">&#8599; Share</button>' +
-        '</div>'
-      : '') +
-      '<div class="post-actions">' +
-        (canDelete(post) ? '<button class="post-action-link delete" data-id="' + post.id + '">Delete</button>' : '') +
+        (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
+        mediaHtml + quoteHtml +
+      '</div>' +
+      '<div class="engagement-summary">' +
+        '<span class="likes-summary">' + (totalReactions ? '<span class="like-badge-icon">' + topReactionEmojis + '</span>' + formatCount(totalReactions) : '') + '</span>' +
+        '<span class="counts-summary">' +
+          (commentCount ? '<span>' + formatCount(commentCount) + ' Comment' + (commentCount === 1 ? '' : 's') + '</span>' : '') +
+          (shareCount ? '<span>' + formatCount(shareCount) + ' Share' + (shareCount === 1 ? '' : 's') + '</span>' : '') +
+        '</span>' +
+      '</div>' +
+      '<div class="post-actions-bar">' +
+        '<button class="action-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + reactionBtnLabel + '</button>' +
+        '<button class="action-btn comment-toggle" data-id="' + post.id + '">&#128172; Comment</button>' +
+        '<button class="action-btn share-btn" data-id="' + post.id + '">&#8599; Share</button>' +
       '</div>';
 
-    if (!isReply) {
-      const replyBox = document.createElement('div');
-      replyBox.className = 'reply-box';
-      replyBox.id = 'reply-box-' + post.id;
-      replyBox.innerHTML =
-        '<textarea placeholder="Write a comment..." maxlength="2000"></textarea>' +
-        '<div class="composer-actions"><button class="post-btn reply-submit" data-id="' + post.id + '">Comment</button></div>';
-      el.appendChild(replyBox);
+    const replyBox = document.createElement('div');
+    replyBox.className = 'reply-box';
+    replyBox.id = 'reply-box-' + post.id;
+    replyBox.innerHTML =
+      '<textarea placeholder="Write a comment..." maxlength="2000"></textarea>' +
+      '<div class="composer-actions"><button class="post-btn comment-submit" data-id="' + post.id + '">Comment</button></div>';
+    el.appendChild(replyBox);
 
-      const repliesWrap = document.createElement('div');
-      repliesWrap.className = 'replies';
-      repliesWrap.id = 'replies-' + post.id;
-      el.appendChild(repliesWrap);
-    }
+    const childWrap = document.createElement('div');
+    childWrap.className = 'replies';
+    childWrap.id = 'replies-' + post.id;
+    const children = (childrenByParent[post.id] || []).slice().sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+    children.forEach(function(child) { childWrap.appendChild(renderNode(child, depth + 1)); });
+    el.appendChild(childWrap);
 
     return el;
   }
@@ -376,66 +452,64 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
 
     const [{ data: likes }, { data: shares }] = await Promise.all([
-      supabaseClient.from('global_chat_likes').select('post_id, user_id'),
+      supabaseClient.from('global_chat_likes').select('post_id, user_id, reaction'),
       supabaseClient.from('global_chat_shares').select('post_id, user_id')
     ]);
 
-    const likesByPost = {};
+    postsById = {};
+    (posts || []).forEach(function(p) { postsById[p.id] = p; });
+
+    likesByPost = {};
     (likes || []).forEach(function(r) {
       likesByPost[r.post_id] = likesByPost[r.post_id] || [];
       likesByPost[r.post_id].push(r);
     });
-    const sharesByPost = {};
+
+    sharesByPost = {};
     (shares || []).forEach(function(r) {
       sharesByPost[r.post_id] = sharesByPost[r.post_id] || [];
       sharesByPost[r.post_id].push(r);
     });
 
+    childrenByParent = {};
+    (posts || []).forEach(function(p) {
+      const key = p.parent_id || '__root__';
+      childrenByParent[key] = childrenByParent[key] || [];
+      childrenByParent[key].push(p);
+    });
+
     const feed = document.getElementById('feed');
     const emptyNote = document.getElementById('empty-note');
     const openReplyBoxes = new Set(
-      Array.from(document.querySelectorAll('.reply-box.open')).map(el => el.id)
+      Array.from(document.querySelectorAll('.reply-box.open')).map(function(el) { return el.id; })
     );
 
     feed.innerHTML = '';
-    const topLevel = (posts || []).filter(p => !p.parent_id);
-    const repliesByParent = {};
-    (posts || []).forEach(function(p) {
-      if (p.parent_id) {
-        repliesByParent[p.parent_id] = repliesByParent[p.parent_id] || [];
-        repliesByParent[p.parent_id].push(p);
-      }
-    });
+    const topLevel = (childrenByParent['__root__'] || []).slice().sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
 
     emptyNote.style.display = topLevel.length ? 'none' : 'block';
 
     topLevel.forEach(function(post) {
-      const el = renderPost(post, false, likesByPost, sharesByPost, repliesByParent);
-      feed.appendChild(el);
+      feed.appendChild(renderNode(post, 0));
+    });
 
-      const repliesWrap = el.querySelector('#replies-' + post.id);
-      const replies = (repliesByParent[post.id] || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-      replies.forEach(function(reply) {
-        repliesWrap.appendChild(renderPost(reply, true, likesByPost, sharesByPost, repliesByParent));
-      });
-
-      if (openReplyBoxes.has('reply-box-' + post.id)) {
-        el.querySelector('#reply-box-' + post.id).classList.add('open');
-      }
+    openReplyBoxes.forEach(function(id) {
+      const box = document.getElementById(id);
+      if (box) box.classList.add('open');
     });
 
     wireFeedEvents();
   }
 
   function wireFeedEvents() {
-    document.querySelectorAll('.reply-toggle').forEach(function(btn) {
+    document.querySelectorAll('.comment-toggle').forEach(function(btn) {
       btn.addEventListener('click', function() {
         const box = document.getElementById('reply-box-' + btn.getAttribute('data-id'));
         box.classList.toggle('open');
       });
     });
 
-    document.querySelectorAll('.reply-submit').forEach(function(btn) {
+    document.querySelectorAll('.comment-submit').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         const parentId = btn.getAttribute('data-id');
         const box = document.getElementById('reply-box-' + parentId);
@@ -460,49 +534,230 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       });
     });
 
-    document.querySelectorAll('.like-toggle').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        const postId = btn.getAttribute('data-id');
-        const alreadyLiked = btn.getAttribute('data-liked') === 'true';
-        btn.disabled = true;
-
-        if (alreadyLiked) {
-          await supabaseClient.from('global_chat_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
-        } else {
-          await supabaseClient.from('global_chat_likes').insert({ post_id: postId, user_id: currentUserId });
-        }
-
-        btn.disabled = false;
-        await loadFeed();
-      });
-    });
-
     document.querySelectorAll('.share-btn').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         const postId = btn.getAttribute('data-id');
+        const original = postsById[postId];
+        if (!original) return;
+
+        const caption = window.prompt('Add a comment to your repost (optional):', '');
+        if (caption === null) return; // cancelled
+
         btn.disabled = true;
         await supabaseClient.from('global_chat_shares').insert({ post_id: postId, user_id: currentUserId });
+        const { error } = await supabaseClient.from('global_chat_posts').insert({
+          user_id: currentUserId,
+          author_name: currentUserName,
+          author_avatar_url: currentUserAvatarUrl,
+          content: caption.trim(),
+          shared_post_id: postId
+        });
         btn.disabled = false;
 
-        try {
-          const link = window.location.origin + window.location.pathname + '#post-' + postId;
-          await navigator.clipboard.writeText(link);
-          showToast('Link copied — share it with your class!');
-        } catch (e) {
-          showToast('Shared!');
+        if (!error) {
+          showToast('Reposted to Global Chat!');
+          await loadFeed();
+        } else {
+          showToast('Could not repost. Please try again.');
         }
-        await loadFeed();
-      });
-    });
-
-    document.querySelectorAll('.post-action-link.delete').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        if (!confirm('Delete this post?')) return;
-        const { error } = await supabaseClient.from('global_chat_posts').delete().eq('id', btn.getAttribute('data-id'));
-        if (!error) await loadFeed();
       });
     });
   }
+
+  // ---- Reactions: quick tap toggles Like, long-press opens the emoji picker ----
+
+  async function setReaction(postId, type) {
+    await supabaseClient.from('global_chat_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
+    await supabaseClient.from('global_chat_likes').insert({ post_id: postId, user_id: currentUserId, reaction: type });
+    await loadFeed();
+  }
+
+  async function removeReaction(postId) {
+    await supabaseClient.from('global_chat_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
+    await loadFeed();
+  }
+
+  function hideReactionPicker() {
+    document.getElementById('reaction-picker').classList.remove('show');
+    document.removeEventListener('pointerdown', hideReactionPickerOnOutsideClick, true);
+  }
+
+  function hideReactionPickerOnOutsideClick(e) {
+    const picker = document.getElementById('reaction-picker');
+    if (!picker.contains(e.target)) hideReactionPicker();
+  }
+
+  function openReactionPicker(btn) {
+    const picker = document.getElementById('reaction-picker');
+    const postId = btn.getAttribute('data-id');
+    const current = btn.getAttribute('data-reaction') || '';
+
+    picker.innerHTML = REACTIONS.map(function(r) {
+      return '<button type="button" data-reaction-type="' + r.key + '" title="' + r.label + '">' + r.emoji + '</button>';
+    }).join('');
+    picker.dataset.postId = postId;
+    picker.dataset.currentReaction = current;
+
+    const rect = btn.getBoundingClientRect();
+    picker.style.display = 'flex'; // measure before final positioning
+    const pickerWidth = picker.offsetWidth || 260;
+    let left = rect.left + rect.width / 2 - pickerWidth / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - pickerWidth - 8));
+    let top = rect.top - 58;
+    if (top < 8) top = rect.bottom + 8;
+
+    picker.style.left = left + 'px';
+    picker.style.top = top + 'px';
+    picker.classList.add('show');
+
+    setTimeout(function() { document.addEventListener('pointerdown', hideReactionPickerOnOutsideClick, true); }, 0);
+  }
+
+  document.getElementById('reaction-picker').addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-reaction-type]');
+    if (!btn) return;
+    const picker = document.getElementById('reaction-picker');
+    const postId = picker.dataset.postId;
+    const type = btn.getAttribute('data-reaction-type');
+    const current = picker.dataset.currentReaction;
+    hideReactionPicker();
+    if (type === current) removeReaction(postId);
+    else setReaction(postId, type);
+  });
+
+  // ---- Long-press message menu: Delete / Report / Copy / Paste ----
+
+  function insertIntoOwnCommentBox(postId, text) {
+    if (!text) { showToast('Clipboard is empty.'); return; }
+    const box = document.getElementById('reply-box-' + postId);
+    if (!box) return;
+    box.classList.add('open');
+    const ta = box.querySelector('textarea');
+    ta.value = ta.value ? (ta.value + '\n' + text) : text;
+    ta.focus();
+  }
+
+  function hideContextMenu() {
+    document.getElementById('context-menu').classList.remove('show');
+    document.removeEventListener('pointerdown', hideContextMenuOnOutsideClick, true);
+  }
+
+  function hideContextMenuOnOutsideClick(e) {
+    const menu = document.getElementById('context-menu');
+    if (!menu.contains(e.target)) hideContextMenu();
+  }
+
+  function openContextMenu(postId, x, y) {
+    const post = postsById[postId];
+    if (!post) return;
+    const menu = document.getElementById('context-menu');
+    const isOwn = post.user_id === currentUserId;
+
+    let html = '<button data-action="copy">Copy</button>';
+    html += '<button data-action="paste">Paste</button>';
+    if (!isOwn) html += '<button data-action="report">Report</button>';
+    if (canDelete(post)) html += '<button class="danger" data-action="delete">Delete</button>';
+
+    menu.innerHTML = html;
+    menu.dataset.postId = postId;
+    menu.style.display = 'flex';
+    const menuWidth = menu.offsetWidth || 170;
+    const menuHeight = menu.offsetHeight || 140;
+    const left = Math.max(8, Math.min(x, window.innerWidth - menuWidth - 8));
+    const top = Math.max(8, Math.min(y, window.innerHeight - menuHeight - 8));
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    menu.classList.add('show');
+
+    setTimeout(function() { document.addEventListener('pointerdown', hideContextMenuOnOutsideClick, true); }, 0);
+  }
+
+  document.getElementById('context-menu').addEventListener('click', async function(e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const menu = document.getElementById('context-menu');
+    const postId = menu.dataset.postId;
+    const post = postsById[postId];
+    const action = btn.getAttribute('data-action');
+    hideContextMenu();
+    if (!post) return;
+
+    if (action === 'copy') {
+      try {
+        await navigator.clipboard.writeText(post.content || '');
+        showToast('Copied to clipboard.');
+      } catch (err) {
+        showToast('Could not copy on this device.');
+      }
+    } else if (action === 'paste') {
+      try {
+        const text = await navigator.clipboard.readText();
+        insertIntoOwnCommentBox(postId, text);
+      } catch (err) {
+        showToast('Paste not available on this device.');
+      }
+    } else if (action === 'report') {
+      const { error } = await supabaseClient.from('global_chat_reports').insert({ post_id: postId, reporter_id: currentUserId });
+      if (error) {
+        showToast(error.code === '23505' ? "You've already reported this." : 'Could not report. Please try again.');
+      } else {
+        showToast('Reported to admins. Thank you.');
+      }
+    } else if (action === 'delete') {
+      if (!confirm('Delete this message?')) return;
+      const { error } = await supabaseClient.from('global_chat_posts').delete().eq('id', postId);
+      if (!error) await loadFeed();
+    }
+  });
+
+  // ---- Press-and-hold delegation on the feed (react button + message bubble) ----
+
+  let pressTimer = null;
+  let pressKind = null;   // 'react' | 'message'
+  let pressFired = false;
+
+  document.getElementById('feed').addEventListener('pointerdown', function(e) {
+    const reactBtn = e.target.closest('.react-btn');
+    if (reactBtn) {
+      pressKind = 'react';
+      pressFired = false;
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(function() {
+        pressFired = true;
+        openReactionPicker(reactBtn);
+      }, 450);
+      return;
+    }
+
+    const msgEl = e.target.closest('.msg-target');
+    if (msgEl) {
+      pressKind = 'message';
+      pressFired = false;
+      const x = e.clientX, y = e.clientY;
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(function() {
+        pressFired = true;
+        openContextMenu(msgEl.getAttribute('data-id'), x, y);
+      }, 450);
+    }
+  });
+
+  document.getElementById('feed').addEventListener('pointerup', function(e) {
+    const reactBtn = e.target.closest('.react-btn');
+    clearTimeout(pressTimer);
+    if (reactBtn && pressKind === 'react' && !pressFired) {
+      const postId = reactBtn.getAttribute('data-id');
+      const current = reactBtn.getAttribute('data-reaction') || '';
+      if (current) removeReaction(postId);
+      else setReaction(postId, 'like');
+    }
+    pressKind = null;
+  });
+
+  document.getElementById('feed').addEventListener('pointercancel', function() {
+    clearTimeout(pressTimer);
+    pressKind = null;
+  });
 
   document.getElementById('new-post-btn').addEventListener('click', async function() {
     const textarea = document.getElementById('new-post-text');
@@ -569,6 +824,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       });
   }
 
+  async function markChatAsSeen() {
+    try {
+      await supabaseClient.from('global_chat_last_seen').upsert(
+        { user_id: currentUserId, last_seen_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      );
+    } catch (e) { /* non-critical */ }
+  }
+
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
@@ -592,11 +856,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     await loadFeed();
     startPresence();
+    markChatAsSeen();
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('chat-page').style.display = 'block';
 
-    refreshTimer = setInterval(loadFeed, 20000);
+    refreshTimer = setInterval(function() { loadFeed(); markChatAsSeen(); }, 20000);
   }
 
   init();
