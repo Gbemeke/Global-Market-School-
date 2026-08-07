@@ -272,6 +272,39 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .chat-fab-wrap.fab-hidden .chat-fab, .chat-fab-wrap.fab-hidden .chat-menu.open{pointer-events:none;}
 
+/* Fading on scroll (above) still leaves them covering content the
+   moment scrolling settles -- confirmed on the live site. On phones,
+   where card content runs edge to edge, shrink all three down to
+   plain icon circles instead: small enough that whatever's directly
+   underneath is still readable and tappable, scrolling or not. */
+@media (max-width:600px){
+  .join-fab, .chat-fab, .global-chat-fab{
+    width:52px; padding:0; justify-content:center; border-radius:50%;
+  }
+  .fab-label{display:none;}
+  .global-chat-fab-logo{width:100%; height:100%; box-shadow:none;}
+  .global-chat-badge{top:-4px; right:-4px;}
+
+  /* Even at 52px, a circle pinned to the edge still rests mostly on
+     top of card content -- these cards run edge to edge, with only a
+     sliver of true empty gutter past their border. Idle, tuck each
+     button mostly off past the viewport edge so only that sliver
+     shows, sitting past the card instead of on it. Tapping still
+     fires the button/link normally -- it's the same element, just
+     shifted, and the visible sliver is exactly where the tap lands. */
+  .join-fab{transform:translateX(-62%);}
+  .global-chat-fab, .chat-fab{transform:translateX(62%);}
+  .join-fab.fab-hidden{transform:translateX(-62%) translateY(16px) scale(0.94);}
+  .global-chat-fab.fab-hidden{transform:translateX(62%) translateY(16px) scale(0.94);}
+
+  /* Slide fully into view the moment it's actually in use: a press,
+     keyboard focus, or (for Support) while its menu is open. */
+  .join-fab:active, .join-fab:focus-visible{transform:translateX(0);}
+  .global-chat-fab:active, .global-chat-fab:focus-visible{transform:translateX(0);}
+  .chat-fab:active, .chat-fab:focus-visible,
+  .chat-fab-wrap.menu-open .chat-fab{transform:translateX(0);}
+}
+
 .join-panel{
   position:fixed; top:0; left:0; height:100%; width:min(420px, 92vw); background:var(--paper);
   border-right:1px solid var(--gold); box-shadow:24px 0 60px -20px rgba(0,0,0,0.4);
@@ -462,11 +495,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   </div>
 
-  <button class="join-fab" id="join-fab" aria-label="Join Class WhatsApp Group">&#128241; Join Class</button>
+  <button class="join-fab" id="join-fab" aria-label="Join Class WhatsApp Group">&#128241; <span class="fab-label">Join Class</span></button>
 
   <a class="global-chat-fab" href="global-chat.html" aria-label="Global Chat">
     <img src="../assets/images/global-chat-logo.png" alt="" class="global-chat-fab-logo">
-    Global Chat
+    <span class="fab-label">Global Chat</span>
     <span class="global-chat-badge" id="global-chat-badge"></span>
   </a>
 
@@ -482,7 +515,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         <span class="chat-option-icon">T</span> Call Us
       </a>
     </div>
-    <button class="chat-fab" id="chat-fab" aria-label="Support">&#128172; Support</button>
+    <button class="chat-fab" id="chat-fab" aria-label="Support">&#128172; <span class="fab-label">Support</span></button>
   </div>
 
   <footer>&copy; 2026 Global Market School Ltd.</footer>
@@ -1128,7 +1161,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   document.getElementById('join-panel-close').addEventListener('click', closeJoinPanel);
 
   document.getElementById('chat-fab').addEventListener('click', function() {
-    document.getElementById('chat-menu').classList.toggle('open');
+    const isOpen = document.getElementById('chat-menu').classList.toggle('open');
+    document.querySelector('.chat-fab-wrap').classList.toggle('menu-open', isOpen);
   });
 
   document.getElementById('avatar-file-input').addEventListener('change', async function(e) {
