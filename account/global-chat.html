@@ -622,21 +622,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         if (caption === null) return; // cancelled
 
         btn.disabled = true;
-        await supabaseClient.from('global_chat_shares').insert({ post_id: postId, user_id: currentUserId });
-        const { error } = await supabaseClient.from('global_chat_posts').insert({
-          user_id: currentUserId,
-          author_name: currentUserName,
-          author_avatar_url: currentUserAvatarUrl,
-          content: caption.trim(),
-          shared_post_id: postId
-        });
-        btn.disabled = false;
+        try {
+          const { error: shareLogError } = await supabaseClient
+            .from('global_chat_shares')
+            .insert({ post_id: postId, user_id: currentUserId });
+          if (shareLogError) console.error('Share log insert failed:', shareLogError.message);
 
-        if (!error) {
+          const { error } = await supabaseClient.from('global_chat_posts').insert({
+            user_id: currentUserId,
+            author_name: currentUserName,
+            author_avatar_url: currentUserAvatarUrl,
+            content: (caption || '').trim(),
+            shared_post_id: postId
+          });
+
+          if (error) throw error;
+
           showToast('Reposted to Global Chat!');
           await loadFeed();
-        } else {
-          showToast('Could not repost. Please try again.');
+        } catch (err) {
+          console.error('Repost failed:', err && err.message);
+          showToast('Could not repost' + (err && err.message ? ': ' + err.message : '. Please try again.'));
+        } finally {
+          btn.disabled = false;
         }
       });
     });
