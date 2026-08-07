@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Assessment — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+.hero{padding:32px 0 8px;}
+.tier-badge{display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); background:var(--ivory); border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;}
+.hero h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.2vw,34px); color:var(--navy-deep); margin-bottom:12px;}
+.hero p{font-size:16px; color:var(--ink-soft);}
+#loading{padding:60px 0; text-align:center; color:var(--ink-soft); font-style:italic;}
+.msg{font-size:14px; padding:14px 16px; margin:20px 0; border-left:3px solid; display:none;}
+.msg.error{background:#fbf0ee; border-color:var(--bad); color:var(--bad); display:block;}
+.msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
+.already-box{background:#fff; border:1px solid var(--hair); padding:32px 26px; margin:32px 0; text-align:center;}
+.already-box h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep); margin-bottom:10px;}
+.already-box p{font-size:15px; color:var(--ink-soft); margin-bottom:20px;}
+.q-block{background:#fff; border:1px solid var(--hair); padding:24px 22px; margin:20px 0;}
+.q-block .q-num{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
+.q-block .q-text{font-size:17px; color:var(--ink); margin-bottom:16px;}
+.q-option{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-top:1px solid var(--hair); cursor:pointer;}
+.q-option:first-of-type{border-top:none;}
+.q-option input{margin-top:4px; accent-color:var(--gold);}
+.q-option span{font-size:15.5px;}
+.submit-row{margin:32px 0 60px;}
+.btn-primary{
+  font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:15px 28px; cursor:pointer;
+  text-decoration:none; display:inline-block;
+}
+.btn-primary:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.btn-primary:disabled{opacity:0.6; cursor:not-allowed;}
+.result-box{background:var(--navy-deep); color:var(--ivory); padding:36px 30px; margin:32px 0; text-align:center;}
+.result-box h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:26px; margin-bottom:12px;}
+.result-box.pass h3{color:var(--gold-bright);}
+.result-box p{font-size:16px; color:rgba(244,239,224,0.85); margin-bottom:20px;}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px; margin-top:40px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <a href="dashboard.html" class="nav-cta">Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="loading">Loading assessment…</div>
+
+  <div id="content" style="display:none;">
+    <div class="hero">
+      <span class="tier-badge" id="tier-badge"></span>
+      <h1 id="quiz-title"></h1>
+      <p id="quiz-sub"></p>
+    </div>
+
+    <p class="msg" id="msg"></p>
+
+    <div id="already-block" style="display:none;"></div>
+
+    <form id="quiz-form" style="display:none;">
+      <div id="questions"></div>
+      <div class="submit-row">
+        <button type="submit" class="btn-primary" id="submit-btn">Submit Assessment</button>
+      </div>
+    </form>
+
+    <div id="result-block"></div>
+  </div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  const TIERS = {
+    'Advanced': {
+      label: 'Advanced Class',
+      badge: 'Advanced Class — Certification Assessment',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex'],
+      passScore: 0.7,
+      questions: [
+        { q: "In a live order book, the small gap between the best bid and the best ask is called:", options: ["The slippage", "The spread", "The margin", "The float"], correct: 1 },
+        { q: "Dark pools primarily exist so that:", options: ["Retail traders can hide small orders", "Large institutions can trade blocks without moving the visible order book beforehand", "Regulators can monitor insider trading", "Market makers can avoid paying commissions"], correct: 1 },
+        { q: "A stock's slippage cost is most directly determined by its:", options: ["Dividend yield", "P/E ratio", "Liquidity / average daily volume", "Sector classification"], correct: 2 },
+        { q: "Which financial statement is generally hardest for a company to manipulate?", options: ["Income statement", "Balance sheet", "Cash flow statement", "Shareholder letter"], correct: 2 },
+        { q: "A low P/E ratio by itself most reliably indicates:", options: ["The stock is definitely undervalued", "Nothing on its own — it must be compared to history and competitors", "The company has no debt", "The company is about to be acquired"], correct: 1 },
+        { q: "Which best describes 'confluence' in professional technical analysis?", options: ["Using exactly one strong indicator", "Multiple independent signals — trend, volume, momentum — all aligning before acting", "Trading only on news days", "Ignoring the higher timeframe"], correct: 1 },
+        { q: "A breakout above resistance on unusually low volume is generally:", options: ["More reliable than a high-volume breakout", "Less reliable and more likely to fail", "Irrelevant to the outcome", "A guaranteed reversal signal"], correct: 1 },
+        { q: "Position size should primarily be calculated from:", options: ["A round number of shares you feel comfortable with", "Account risk percentage and stop-loss distance", "The maximum leverage your broker allows", "Yesterday's closing price"], correct: 1 },
+        { q: "Why do professionals typically risk only 1-2% of their account per trade?", options: ["It's a legal requirement", "It allows the account to survive a losing streak without severe damage", "It guarantees a profit", "Brokers require it"], correct: 1 },
+        { q: "Holding five 'different' stocks that are all in the same sector and move together is an example of:", options: ["True diversification", "Hidden correlation risk", "Risk-free hedging", "Value investing"], correct: 1 },
+        { q: "Insider trading is illegal primarily because it:", options: ["Reduces market volume", "Breaks the assumption that all traders act on the same public information", "Increases spreads", "Is only illegal for company executives"], correct: 1 },
+        { q: "In forex, the London-New York session overlap is significant because it typically has:", options: ["The lowest liquidity of the day", "The highest liquidity and often the sharpest volatility", "No effect on major pairs", "Only exotic pairs trading actively"], correct: 1 },
+        { q: "If a currency's central bank raises interest rates significantly more than expected, the currency will most likely:", options: ["Always fall, since higher rates slow the economy", "Tend to strengthen, as higher rates attract foreign capital", "Be unaffected, since rates don't influence forex", "Only affect bond markets, not currency"], correct: 1 },
+        { q: "Going long EUR/USD and long GBP/USD at the same time is an example of:", options: ["Full diversification across two unrelated trades", "A correlated position — both are effectively bets against the US dollar", "A hedged, risk-free position", "An illegal trading strategy"], correct: 1 },
+        { q: "'Effective leverage' refers to:", options: ["The maximum leverage your broker advertises", "The actual ratio between your total position size and your real account equity", "A fixed number set by regulators", "The spread on a currency pair"], correct: 1 },
+        { q: "Risk of ruin describes:", options: ["The guaranteed outcome of any trading strategy", "The statistical probability that a strategy eventually wipes out an account given oversized position risk", "A type of stop-loss order", "The maximum leverage allowed by law"], correct: 1 },
+        { q: "The primary goal of professional trading, according to this course, is:", options: ["Maximizing profit on every single trade", "Capital preservation — staying in the game long enough for edge to play out", "Trading as frequently as possible", "Using maximum available leverage"], correct: 1 },
+        { q: "Revenge trading refers to:", options: ["A disciplined, plan-based re-entry after analysis", "Immediately re-entering the market after a loss to try to win it back, without a real setup", "A hedging strategy used by institutions", "Trading only during high-volatility sessions"], correct: 1 }
+      ]
+    }
+  };
+
+  function getParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  function randCode(len) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const bytes = new Uint8Array(len);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(b => chars[b % chars.length]).join('');
+  }
+
+  let currentUser = null;
+  let currentProfile = null;
+  let tierKey = null;
+  let tierConfig = null;
+
+  async function init() {
+    tierKey = getParam('tier');
+    tierConfig = TIERS[tierKey];
+
+    if (!tierConfig) {
+      document.getElementById('loading').textContent = 'Unknown assessment. Please return to your Dashboard.';
+      return;
+    }
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = session.user;
+
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
+    currentProfile = profile;
+
+    // Confirm the student actually has access to every course this tier requires.
+    const { data: access } = await supabaseClient
+      .from('course_access')
+      .select('course_key')
+      .eq('user_id', currentUser.id)
+      .eq('has_access', true);
+    const unlockedKeys = (access || []).map(a => a.course_key);
+    const hasAccess = tierConfig.requiredCourses.every(k => unlockedKeys.includes(k));
+
+    if (!hasAccess) {
+      document.getElementById('loading').textContent = 'You need to be enrolled in this class to take its assessment.';
+      return;
+    }
+
+    // Already certified? Show the existing certificate instead of re-quizzing.
+    const { data: existing } = await supabaseClient
+      .from('certificates')
+      .select('certificate_number, score, issued_at')
+      .eq('user_id', currentUser.id)
+      .eq('tier', tierKey)
+      .order('issued_at', { ascending: false })
+      .limit(1);
+
+    document.getElementById('tier-badge').textContent = tierConfig.badge;
+    document.getElementById('quiz-title').textContent = tierConfig.label + ' Assessment';
+
+    if (existing && existing.length) {
+      document.getElementById('quiz-sub').textContent = 'You already passed this assessment.';
+      const box = document.getElementById('already-block');
+      box.style.display = 'block';
+      box.innerHTML =
+        '<div class="already-box">' +
+          '<h3>You\'re Already Certified</h3>' +
+          '<p>You passed the ' + tierConfig.label + ' assessment with a score of ' + Math.round(existing[0].score * 100) + '%.</p>' +
+          '<a href="certificate.html?id=' + encodeURIComponent(existing[0].certificate_number) + '" class="btn-primary">View Your Certificate</a>' +
+        '</div>';
+    } else {
+      document.getElementById('quiz-sub').textContent = 'Answer all ' + tierConfig.questions.length + ' questions. You need ' + Math.round(tierConfig.passScore * 100) + '% to pass and earn your certificate.';
+      renderQuiz();
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+  }
+
+  function renderQuiz() {
+    const container = document.getElementById('questions');
+    container.innerHTML = tierConfig.questions.map(function (item, qi) {
+      return '<div class="q-block">' +
+        '<div class="q-num">Question ' + (qi + 1) + ' of ' + tierConfig.questions.length + '</div>' +
+        '<div class="q-text">' + item.q + '</div>' +
+        item.options.map(function (opt, oi) {
+          return '<label class="q-option"><input type="radio" name="q' + qi + '" value="' + oi + '" required><span>' + opt + '</span></label>';
+        }).join('') +
+        '</div>';
+    }).join('');
+    document.getElementById('quiz-form').style.display = 'block';
+  }
+
+  document.getElementById('quiz-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    msg.className = 'msg';
+    msg.textContent = '';
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Grading…';
+
+    let correctCount = 0;
+    tierConfig.questions.forEach(function (item, qi) {
+      const picked = document.querySelector('input[name="q' + qi + '"]:checked');
+      if (picked && Number(picked.value) === item.correct) correctCount++;
+    });
+    const score = correctCount / tierConfig.questions.length;
+    const passed = score >= tierConfig.passScore;
+
+    const resultBlock = document.getElementById('result-block');
+
+    if (!passed) {
+      resultBlock.innerHTML =
+        '<div class="result-box">' +
+          '<h3>' + Math.round(score * 100) + '% — Not Quite</h3>' +
+          '<p>You need ' + Math.round(tierConfig.passScore * 100) + '% to pass. Review the lessons and try again whenever you\'re ready.</p>' +
+          '<button type="button" class="btn-primary" onclick="window.location.reload()">Try Again</button>' +
+        '</div>';
+      document.getElementById('quiz-form').style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = 'Submit Assessment';
+      return;
+    }
+
+    const certificateNumber = 'GMS-' + tierKey.toUpperCase().slice(0, 3) + '-' + randCode(8);
+
+    const { error } = await supabaseClient.from('certificates').insert({
+      certificate_number: certificateNumber,
+      user_id: currentUser.id,
+      student_name: (currentProfile && currentProfile.full_name) || currentUser.email,
+      tier: tierKey,
+      score: score
+    });
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'You passed, but we could not save your certificate. Please try submitting again.';
+      btn.disabled = false;
+      btn.textContent = 'Submit Assessment';
+      return;
+    }
+
+    document.getElementById('quiz-form').style.display = 'none';
+    resultBlock.innerHTML =
+      '<div class="result-box pass">' +
+        '<h3>' + Math.round(score * 100) + '% — You Passed!</h3>' +
+        '<p>Congratulations — you\'ve earned your ' + tierConfig.label + ' certificate of completion.</p>' +
+        '<a href="certificate.html?id=' + encodeURIComponent(certificateNumber) + '" class="btn-primary">View Your Certificate</a>' +
+      '</div>';
+  });
+
+  init();
+</script>
+
+</body>
+</html>

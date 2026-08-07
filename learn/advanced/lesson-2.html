@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 2: Reading Financial Statements Like an Analyst — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/narrated-lesson.css">
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+.breadcrumb{font-size:13px; color:var(--ink-soft); padding:20px 0 0;}
+.breadcrumb a{text-decoration:none; color:var(--gold);}
+.lesson-head{padding:20px 0 30px; border-bottom:1px solid var(--hair); margin-bottom:30px;}
+.tier-badge{display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); background:var(--ivory); border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;}
+.lesson-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.2vw,36px); color:var(--navy-deep); margin-bottom:12px; line-height:1.15;}
+.lesson-meta{font-size:14px; color:var(--ink-soft); display:flex; gap:16px; flex-wrap:wrap;}
+.recap{background:var(--navy-deep); color:var(--ivory); padding:32px 28px; margin:40px 0 32px;}
+.recap h3{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:16px;}
+.recap ul{list-style:none;}
+.recap li{font-size:15.5px; margin-bottom:12px; padding-left:22px; position:relative; color:rgba(244,239,224,0.85);}
+.recap li::before{content:"—"; position:absolute; left:0; color:var(--gold-bright);}
+.next-lesson{border:1px solid var(--hair); padding:26px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:60px; flex-wrap:wrap;}
+.next-lesson p{font-size:12.5px; color:var(--ink-soft); font-family:'Cinzel', serif; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;}
+.next-lesson h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep);}
+.btn-primary{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; background:var(--gold); color:var(--navy-deep); padding:14px 24px; border:1px solid var(--gold); white-space:nowrap;}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <a href="../../account/dashboard.html" class="nav-cta">Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="breadcrumb"><a href="../../account/dashboard.html">Dashboard</a> / Advanced Track &mdash; Stocks / Lesson 2</p>
+
+  <div class="lesson-head">
+    <span class="tier-badge">Advanced Track — Stocks — Lesson 2</span>
+    <h1>Reading Financial Statements Like an Analyst</h1>
+    <div class="lesson-meta"><span>Lesson 2 of 5</span><span>Narrated presentation — 5 slides</span></div>
+  </div>
+
+  <div id="lesson-root"></div>
+
+  <div class="recap">
+    <h3>Quick Recap</h3>
+    <ul>
+      <li>The income statement, balance sheet, and cash flow statement each answer a different question: profitability, financial position, and real cash movement.</li>
+      <li>Net income can be manipulated by accounting choices — cash flow is much harder to fake, which is why professionals weight it heavily.</li>
+      <li>P/E and P/B ratios only mean something in comparison — to the company's own history and to its direct competitors.</li>
+      <li>A cheap-looking valuation without understanding why it's cheap is a value trap, not a bargain.</li>
+    </ul>
+  </div>
+
+  <div class="next-lesson">
+    <div>
+      <p>Next Lesson</p>
+      <h3>Professional-Level Technical Analysis</h3>
+    </div>
+    <a href="lesson-3.html" class="btn-primary">Continue &rarr;</a>
+  </div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script src="../../assets/narrated-lesson.js"></script>
+<script>
+const LESSON = {
+  nextHref: 'lesson-3.html',
+  nextLabel: 'Finish → Lesson 3',
+  slides: [
+    {
+      kicker: 'THE THREE STATEMENTS',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>Income Statement</strong>Revenue minus expenses over a period — did the company make a profit, and from what?</li>' +
+          '<li><strong>Balance Sheet</strong>A snapshot of what the company owns, owes, and what\'s left for shareholders, at one exact moment.</li>' +
+          '<li><strong>Cash Flow Statement</strong>Actual cash moving in and out — separate from accounting profit, and much harder to fake.</li>' +
+        '</ul>',
+      narration: "Every public company files three core financial statements, and professionals read all three together, never just one. The income statement shows revenue and expenses over a period of time, ending in net income — the headline profit figure. The balance sheet is a snapshot at a single moment: assets the company owns, liabilities it owes, and the equity left for shareholders after subtracting one from the other. The cash flow statement tracks actual cash moving in and out of the business. This last one matters enormously, because net income involves accounting judgment calls — cash is much harder to manufacture, which is why seasoned analysts always check whether reported profit is backed by real cash flow."
+    },
+    {
+      kicker: 'WHY CASH FLOW CATCHES WHAT PROFIT HIDES',
+      visual:
+        '<div class="nl-stage-title">Profitable on Paper, Starving for Cash</div>' +
+        '<svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="10" y="20" font-family="Cinzel, serif" font-size="10" letter-spacing="1.5" fill="#b28e4c">REPORTED NET INCOME</text>' +
+          '<rect x="10" y="30" width="300" height="30" fill="#eaf3ee"/><text x="18" y="50" font-family="EB Garamond" font-size="14" fill="#1c2333">+$4.2M profit reported</text>' +
+          '<text x="10" y="85" font-family="Cinzel, serif" font-size="10" letter-spacing="1.5" fill="#8a3b2e">OPERATING CASH FLOW</text>' +
+          '<rect x="10" y="95" width="140" height="30" fill="#fbf0ee"/><text x="18" y="115" font-family="EB Garamond" font-size="14" fill="#1c2333">-$1.1M actual cash</text>' +
+        '</svg>',
+      narration: "Here's why this distinction is not academic: a company can report a healthy profit while its unpaid customer invoices pile up and it slowly runs out of actual cash to pay its own bills. This gap between reported profit and real operating cash flow is one of the first things a professional checks, because a company that's profitable on paper but bleeding cash is often heading toward serious trouble long before the headline numbers show it. If net income is rising every quarter but operating cash flow is flat or falling, that divergence deserves real scrutiny, not celebration."
+    },
+    {
+      kicker: 'THE RATIOS THAT ACTUALLY MATTER',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>P/E Ratio (Price ÷ Earnings)</strong>What investors are paying for each dollar of profit — high isn\'t automatically bad, low isn\'t automatically good.</li>' +
+          '<li><strong>P/B Ratio (Price ÷ Book Value)</strong>Price relative to net assets — most useful for asset-heavy businesses like banks and industrials.</li>' +
+          '<li><strong>ROE (Return on Equity)</strong>How efficiently the company turns shareholder capital into profit.</li>' +
+          '<li><strong>Debt-to-Equity</strong>How much of the company is financed by debt — higher means more risk if earnings fall.</li>' +
+        '</ul>',
+      narration: "The price-to-earnings ratio tells you how much investors are paying for each dollar of the company's profit — but it only means something in comparison, to the company's own history and to direct competitors in the same industry, not as a number in isolation. Price-to-book is more useful for asset-heavy businesses like banks. Return on equity shows how efficiently a company turns shareholder money into profit — consistently high ROE, especially without heavy debt, is a strong sign of a well-run business. And debt-to-equity tells you how much of the company's operations are funded by borrowed money, which matters enormously when interest rates rise or earnings dip."
+    },
+    {
+      kicker: 'THE VALUE TRAP',
+      visual:
+        '<div class="nl-stage-title">Cheap For a Reason vs. Genuinely Undervalued</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">Low P/E</div><div class="l">Could Mean Undervalued...</div></div>' +
+          '<div class="nl-stat"><div class="n">Or</div><div class="l">Declining Business, Priced Correctly</div></div>' +
+        '</div>',
+      narration: "A common trap at this level is assuming a low P/E ratio automatically means a bargain. Sometimes it does. But sometimes a stock is cheap precisely because the market correctly expects declining earnings, increasing competition, or a dying business model — and buying it purely because the ratio looks low is a classic value trap. A genuinely undervalued company usually has a specific, identifiable reason the market is temporarily wrong — a one-time write-down, a misunderstood product cycle, a sector-wide panic unrelated to the company's actual fundamentals. If you can't articulate that specific reason, the cheap price is probably not a mistake."
+    },
+    {
+      kicker: 'READING BEYOND THE NUMBERS',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>Read the Footnotes</strong>Accounting policy changes and one-time items are often disclosed in small print, not the headline numbers.</li>' +
+          '<li><strong>Compare, Don\'t Isolate</strong>Every ratio is only meaningful next to the company\'s own trend and its closest competitors.</li>' +
+          '<li><strong>Follow the Cash</strong>When profit and cash flow diverge for multiple quarters, that\'s the signal worth investigating first.</li>' +
+        '</ul>',
+      narration: "Bringing this together: real financial analysis is never about one ratio in isolation. Build the habit of comparing a company's numbers to its own recent history and to its closest competitors, reading past the headline numbers into the footnotes where accounting policy changes and one-off items get disclosed, and always checking whether reported profit is actually backed by cash. None of this requires an accounting degree — it requires discipline and the willingness to ask 'compared to what, and why' before accepting a number at face value."
+    }
+  ]
+};
+
+NarratedLesson.render(LESSON, '#lesson-root');
+</script>
+
+</body>
+</html>

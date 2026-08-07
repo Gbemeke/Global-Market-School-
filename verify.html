@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify a Certificate — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:600px; margin:0 auto; padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.hero{padding:40px 0 10px; text-align:center;}
+.hero h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.5vw,36px); color:var(--navy-deep); margin-bottom:12px;}
+.hero p{font-size:16px; color:var(--ink-soft);}
+.form-box{background:#fff; border:1px solid var(--hair); padding:28px 26px; margin:32px 0;}
+.field label{display:block; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
+.field input{width:100%; padding:13px 14px; font-family:'EB Garamond', serif; font-size:16px; letter-spacing:1px; text-transform:uppercase; border:1px solid var(--hair); background:#fff; color:var(--ink);}
+.field input:focus{outline:none; border-color:var(--gold);}
+.btn-primary{
+  width:100%; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:15px; cursor:pointer; margin-top:16px;
+}
+.btn-primary:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.result{margin:28px 0 60px; padding:26px 24px; border-left:3px solid; display:none;}
+.result.valid{background:#eaf3ee; border-color:var(--good); display:block;}
+.result.invalid{background:#fbf0ee; border-color:var(--bad); display:block;}
+.result h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:20px; margin-bottom:10px;}
+.result.valid h3{color:var(--good);}
+.result.invalid h3{color:var(--bad);}
+.result dl{margin-top:14px;}
+.result dt{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-top:12px;}
+.result dd{font-size:16px; color:var(--ink);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Verify a Certificate</h1>
+    <p>Enter a Global Market School certificate number to confirm it's genuine.</p>
+  </div>
+
+  <div class="form-box">
+    <form id="verify-form">
+      <div class="field">
+        <label for="cert-input">Certificate Number</label>
+        <input type="text" id="cert-input" placeholder="GMS-ADV-XXXXXXXX" required autocomplete="off">
+      </div>
+      <button type="submit" class="btn-primary">Verify</button>
+    </form>
+  </div>
+
+  <div id="result" class="result"></div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  const TIER_LABELS = { 'Advanced': 'Advanced Class' };
+
+  function getParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  async function verify(code) {
+    const result = document.getElementById('result');
+    result.className = 'result';
+    result.innerHTML = 'Checking…';
+    result.style.display = 'block';
+
+    const { data, error } = await supabaseClient
+      .from('certificates')
+      .select('certificate_number, student_name, tier, score, issued_at')
+      .eq('certificate_number', code.trim().toUpperCase())
+      .single();
+
+    if (error || !data) {
+      result.className = 'result invalid';
+      result.innerHTML = '<h3>Not Found</h3><p>No certificate matches that number. Double-check it and try again.</p>';
+      return;
+    }
+
+    const issuedDate = new Date(data.issued_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    result.className = 'result valid';
+    result.innerHTML =
+      '<h3>&#10003; Genuine Certificate</h3>' +
+      '<p>This certificate number is on record with Global Market School.</p>' +
+      '<dl>' +
+        '<dt>Awarded To</dt><dd>' + data.student_name + '</dd>' +
+        '<dt>Course</dt><dd>' + (TIER_LABELS[data.tier] || data.tier + ' Class') + '</dd>' +
+        '<dt>Score</dt><dd>' + Math.round(Number(data.score) * 100) + '%</dd>' +
+        '<dt>Issued</dt><dd>' + issuedDate + '</dd>' +
+      '</dl>';
+  }
+
+  document.getElementById('verify-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    verify(document.getElementById('cert-input').value);
+  });
+
+  const preset = getParam('id');
+  if (preset) {
+    document.getElementById('cert-input').value = preset;
+    verify(preset);
+  }
+</script>
+
+</body>
+</html>

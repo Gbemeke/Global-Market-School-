@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 4: Risk Management &amp; Position Sizing — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/narrated-lesson.css">
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+.breadcrumb{font-size:13px; color:var(--ink-soft); padding:20px 0 0;}
+.breadcrumb a{text-decoration:none; color:var(--gold);}
+.lesson-head{padding:20px 0 30px; border-bottom:1px solid var(--hair); margin-bottom:30px;}
+.tier-badge{display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); background:var(--ivory); border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;}
+.lesson-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.2vw,36px); color:var(--navy-deep); margin-bottom:12px; line-height:1.15;}
+.lesson-meta{font-size:14px; color:var(--ink-soft); display:flex; gap:16px; flex-wrap:wrap;}
+.recap{background:var(--navy-deep); color:var(--ivory); padding:32px 28px; margin:40px 0 32px;}
+.recap h3{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:16px;}
+.recap ul{list-style:none;}
+.recap li{font-size:15.5px; margin-bottom:12px; padding-left:22px; position:relative; color:rgba(244,239,224,0.85);}
+.recap li::before{content:"—"; position:absolute; left:0; color:var(--gold-bright);}
+.next-lesson{border:1px solid var(--hair); padding:26px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:60px; flex-wrap:wrap;}
+.next-lesson p{font-size:12.5px; color:var(--ink-soft); font-family:'Cinzel', serif; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;}
+.next-lesson h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep);}
+.btn-primary{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; background:var(--gold); color:var(--navy-deep); padding:14px 24px; border:1px solid var(--gold); white-space:nowrap;}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <a href="../../account/dashboard.html" class="nav-cta">Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="breadcrumb"><a href="../../account/dashboard.html">Dashboard</a> / Advanced Track &mdash; Stocks / Lesson 4</p>
+
+  <div class="lesson-head">
+    <span class="tier-badge">Advanced Track — Stocks — Lesson 4</span>
+    <h1>Risk Management &amp; Position Sizing</h1>
+    <div class="lesson-meta"><span>Lesson 4 of 5</span><span>Narrated presentation — 5 slides</span></div>
+  </div>
+
+  <div id="lesson-root"></div>
+
+  <div class="recap">
+    <h3>Quick Recap</h3>
+    <ul>
+      <li>Position size should be calculated from your stop-loss distance and a fixed risk percentage per trade — never a round number of shares.</li>
+      <li>Professionals risk a small, consistent percentage of capital per trade, typically 1-2%, regardless of how confident they feel.</li>
+      <li>A favorable risk-to-reward ratio means you can be wrong more often than right and still be profitable overall.</li>
+      <li>Correlation between your open positions can silently multiply your real risk far beyond what it looks like on paper.</li>
+    </ul>
+  </div>
+
+  <div class="next-lesson">
+    <div>
+      <p>Next Lesson</p>
+      <h3>Regulation, Compliance &amp; Market Integrity</h3>
+    </div>
+    <a href="lesson-5.html" class="btn-primary">Continue &rarr;</a>
+  </div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script src="../../assets/narrated-lesson.js"></script>
+<script>
+const LESSON = {
+  nextHref: 'lesson-5.html',
+  nextLabel: 'Finish → Lesson 5',
+  slides: [
+    {
+      kicker: 'THE MOST IGNORED SKILL IN TRADING',
+      visual:
+        '<div class="nl-stage-title">Being Right Isn\'t the Goal. Surviving Is.</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">-50%</div><div class="l">Loss Needs a +100% Gain Just to Break Even</div></div>' +
+        '</div>',
+      narration: "Every lesson so far has been about finding good trades. This lesson is about something more important: surviving your bad ones, because you will have bad ones no matter how skilled you become. Here's the math that makes risk management non-negotiable — if you lose 50% of your capital, you don't need a 50% gain to get back to even, you need a 100% gain, because you're now working with half as much money. Large losses don't just hurt, they mathematically require disproportionately larger wins just to recover. Professional traders organize their entire process around never taking a loss large enough to put them in that hole."
+    },
+    {
+      kicker: 'CALCULATING POSITION SIZE PROPERLY',
+      visual:
+        '<div class="nl-stage-title">The Formula Professionals Actually Use</div>' +
+        '<svg viewBox="0 0 480 130" xmlns="http://www.w3.org/2000/svg">' +
+          '<rect x="10" y="20" width="460" height="90" fill="#f4efe0" stroke="#b28e4c" stroke-width="1"/>' +
+          '<text x="240" y="55" text-anchor="middle" font-family="EB Garamond" font-size="16" fill="#1c2333">Position Size = (Account Risk %) &times; (Account Size)</text>' +
+          '<text x="240" y="85" text-anchor="middle" font-family="EB Garamond" font-size="16" fill="#1c2333">&divide; (Entry Price &minus; Stop-Loss Price)</text>' +
+        '</svg>',
+      narration: "Position size should never be a round number you picked because it felt right. It's calculated. Decide what percentage of your account you're willing to risk on this one trade — commonly one to two percent for professionals. Multiply that by your account size to get your dollar risk. Then divide that dollar risk by the distance, in price, between your entry and your stop-loss. That calculation tells you exactly how many shares to buy so that if your stop is hit, you lose precisely your intended risk amount — not more, regardless of how volatile or expensive the stock is."
+    },
+    {
+      kicker: 'THE ONE-TO-TWO PERCENT RULE',
+      visual:
+        '<div class="nl-stage-title">Why Small, Consistent Risk Wins</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">10</div><div class="l">Losses in a Row at 2% Risk</div></div>' +
+          '<div class="nl-stat"><div class="n">~18%</div><div class="l">Total Account Drawdown</div></div>' +
+          '<div class="nl-stat"><div class="n">Survivable</div><div class="l">Still Room to Recover</div></div>' +
+        '</div>',
+      narration: "Risking only one to two percent of your account per trade might feel unambitious, but it's precisely what allows a trader to survive an inevitable losing streak. Even ten consecutive losses at two percent risk each leaves your account down only around eighteen percent, not wiped out — fully recoverable with a normal winning streak afterward. Compare that to traders who risk ten or twenty percent per trade chasing faster growth: two or three bad trades in a row and they're facing a hole that's mathematically brutal to climb out of. Consistency in risk sizing is what lets skill compound over time instead of being erased by one bad week."
+    },
+    {
+      kicker: 'RISK-TO-REWARD RATIO',
+      visual:
+        '<div class="nl-stage-title">Why You Can Be Wrong More Than Right</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">1:3</div><div class="l">Risk-to-Reward Ratio</div></div>' +
+          '<div class="nl-stat"><div class="n">35%</div><div class="l">Win Rate Needed to Stay Profitable</div></div>' +
+        '</div>',
+      narration: "Risk-to-reward ratio compares how much you stand to lose against how much you stand to gain on a trade. With a one-to-three ratio — risking one dollar to potentially make three — you can actually be wrong more often than you're right and still come out ahead overall, because your winners are structurally larger than your losers. This is why professional traders spend as much time defining their profit target and stop-loss before entering a trade as they do finding the entry itself. A trade with a poor risk-to-reward ratio isn't worth taking even if you're fairly confident, because confidence is never certainty."
+    },
+    {
+      kicker: 'THE HIDDEN RISK: CORRELATION',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>Five "Different" Positions</strong>All in tech stocks that move together — you\'re really holding one concentrated bet, not five diversified ones.</li>' +
+          '<li><strong>Check Correlation, Not Just Count</strong>True diversification means positions that don\'t all fall on the same bad day.</li>' +
+          '<li><strong>Stress-Test Your Portfolio</strong>Ask: if the sector I\'m most exposed to drops sharply, what happens to my entire account, not just one position?</li>' +
+        '</ul>',
+      narration: "One risk professionals actively manage that beginners rarely consider is correlation. Holding five positions feels diversified, but if all five are technology stocks that tend to rise and fall together, you don't actually have five independent bets — you have one large, concentrated bet wearing five different tickers. True risk management means looking at your whole portfolio together and asking what happens to your total account, not just one position, if the sector or theme you're most exposed to has a genuinely bad day. Position sizing protects you trade by trade; correlation awareness protects your entire account at once."
+    }
+  ]
+};
+
+NarratedLesson.render(LESSON, '#lesson-root');
+</script>
+
+</body>
+</html>

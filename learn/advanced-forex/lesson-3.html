@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3: Advanced Chart Analysis for Forex — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/narrated-lesson.css">
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+.breadcrumb{font-size:13px; color:var(--ink-soft); padding:20px 0 0;}
+.breadcrumb a{text-decoration:none; color:var(--gold);}
+.lesson-head{padding:20px 0 30px; border-bottom:1px solid var(--hair); margin-bottom:30px;}
+.tier-badge{display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); background:var(--ivory); border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;}
+.lesson-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.2vw,36px); color:var(--navy-deep); margin-bottom:12px; line-height:1.15;}
+.lesson-meta{font-size:14px; color:var(--ink-soft); display:flex; gap:16px; flex-wrap:wrap;}
+.recap{background:var(--navy-deep); color:var(--ivory); padding:32px 28px; margin:40px 0 32px;}
+.recap h3{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:16px;}
+.recap ul{list-style:none;}
+.recap li{font-size:15.5px; margin-bottom:12px; padding-left:22px; position:relative; color:rgba(244,239,224,0.85);}
+.recap li::before{content:"—"; position:absolute; left:0; color:var(--gold-bright);}
+.next-lesson{border:1px solid var(--hair); padding:26px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:60px; flex-wrap:wrap;}
+.next-lesson p{font-size:12.5px; color:var(--ink-soft); font-family:'Cinzel', serif; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;}
+.next-lesson h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep);}
+.btn-primary{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; background:var(--gold); color:var(--navy-deep); padding:14px 24px; border:1px solid var(--gold); white-space:nowrap;}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <a href="../../account/dashboard.html" class="nav-cta">Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="breadcrumb"><a href="../../account/dashboard.html">Dashboard</a> / Advanced Track &mdash; Forex / Lesson 3</p>
+
+  <div class="lesson-head">
+    <span class="tier-badge">Advanced Track — Forex — Lesson 3</span>
+    <h1>Advanced Chart Analysis for Forex</h1>
+    <div class="lesson-meta"><span>Lesson 3 of 5</span><span>Narrated presentation — 5 slides</span></div>
+  </div>
+
+  <div id="lesson-root"></div>
+
+  <div class="recap">
+    <h3>Quick Recap</h3>
+    <ul>
+      <li>Multi-timeframe analysis — checking the higher timeframe trend before acting on a lower timeframe signal — filters out most false setups.</li>
+      <li>Currency pairs sharing a base or quote currency are often correlated, which can silently double your real exposure.</li>
+      <li>Key forex session opens and closes often produce characteristic volatility patterns worth recognizing.</li>
+      <li>The same technical tools from stocks apply to forex, but must be read alongside session timing and correlation, not in isolation.</li>
+    </ul>
+  </div>
+
+  <div class="next-lesson">
+    <div>
+      <p>Next Lesson</p>
+      <h3>Risk Management in Leveraged Trading</h3>
+    </div>
+    <a href="lesson-4.html" class="btn-primary">Continue &rarr;</a>
+  </div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script src="../../assets/narrated-lesson.js"></script>
+<script>
+const LESSON = {
+  nextHref: 'lesson-4.html',
+  nextLabel: 'Finish → Lesson 4',
+  slides: [
+    {
+      kicker: 'MULTI-TIMEFRAME ANALYSIS',
+      visual:
+        '<div class="nl-stage-title">Zoom Out Before You Zoom In</div>' +
+        '<ul class="nl-bullets">' +
+          '<li><strong>Daily/4-Hour Chart</strong>Establishes the dominant trend — the direction you should be biased toward trading.</li>' +
+          '<li><strong>1-Hour Chart</strong>Refines timing within that established trend.</li>' +
+          '<li><strong>15-Minute Chart</strong>Used only for precise entry — never to decide direction on its own.</li>' +
+        '</ul>',
+      narration: "The single most valuable habit separating advanced forex traders from beginners is multi-timeframe analysis. A signal on a 15-minute chart might look perfect in isolation, but if the daily chart shows a strong opposing trend, that signal is far more likely to fail — you'd be fighting the dominant flow of the market. The professional approach works top-down: check the daily or four-hour chart first to establish the real trend direction, use a mid-timeframe like the one-hour chart to refine timing within that trend, and only then use a lower timeframe like fifteen minutes to fine-tune your actual entry. Never let a small timeframe override what the bigger picture is telling you."
+    },
+    {
+      kicker: 'CURRENCY PAIR CORRELATION',
+      visual:
+        '<div class="nl-stage-title">Two "Different" Trades, One Real Risk</div>' +
+        '<svg viewBox="0 0 480 130" xmlns="http://www.w3.org/2000/svg">' +
+          '<rect x="10" y="30" width="210" height="60" fill="#f4efe0" stroke="#b28e4c"/><text x="115" y="55" text-anchor="middle" font-family="EB Garamond" font-size="14" fill="#1c2333">Long EUR/USD</text><text x="115" y="75" text-anchor="middle" font-family="EB Garamond" font-size="12" fill="#4a5468">Betting against USD</text>' +
+          '<rect x="260" y="30" width="210" height="60" fill="#f4efe0" stroke="#b28e4c"/><text x="365" y="55" text-anchor="middle" font-family="EB Garamond" font-size="14" fill="#1c2333">Long GBP/USD</text><text x="365" y="75" text-anchor="middle" font-family="EB Garamond" font-size="12" fill="#4a5468">Also betting against USD</text>' +
+        '</svg>',
+      narration: "Just as we covered correlation risk between stocks in the Advanced Stocks track, forex pairs correlate heavily too — often more predictably, because so many major pairs share the US dollar as one side of the trade. Going long EUR/USD and long GBP/USD at the same time might feel like two separate trades, but both are really the same underlying bet: that the US dollar weakens. If that view is wrong, both positions lose together. Before opening multiple forex positions, check whether they share a base or quote currency — if they do, you're not diversifying, you're doubling down on a single macro view without realizing it."
+    },
+    {
+      kicker: 'SESSION-BASED VOLATILITY PATTERNS',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>Session Opens</strong>Often produce a burst of volatility as fresh liquidity and orders enter the market.</li>' +
+          '<li><strong>The "London Kill Zone"</strong>The first hour or two of the London session frequently sees the sharpest early-day moves.</li>' +
+          '<li><strong>Late New York / Pre-Sydney</strong>Typically the thinnest, choppiest hours — often best avoided for new setups.</li>' +
+        '</ul>',
+      narration: "Building on session structure from Lesson 1, certain windows have characteristic volatility patterns worth recognizing. The opening hour or two of the London session — sometimes informally called the London kill zone by traders — frequently produces some of the sharpest, most decisive moves of the entire trading day, as European institutional volume floods in. By contrast, the quiet window after New York closes and before Sydney opens tends to be thin and choppy, with price often drifting without real conviction. Learning to recognize which pattern you're likely in helps you distinguish a genuine breakout from session-driven noise that's likely to reverse."
+    },
+    {
+      kicker: 'READING FOREX-SPECIFIC PATTERNS',
+      visual:
+        '<div class="nl-stage-title">Same Tools, Forex Context</div>' +
+        '<svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg">' +
+          '<polyline points="20,110 80,90 140,95 200,60 260,65 320,35 380,45 440,20" fill="none" stroke="#12233f" stroke-width="2"/>' +
+          '<rect x="60" y="88" width="160" height="14" fill="none" stroke="#b28e4c" stroke-dasharray="3,2"/>' +
+          '<text x="70" y="130" font-family="EB Garamond" font-style="italic" font-size="12" fill="#4a5468">Consolidation before continuation — common at session transitions</text>' +
+        '</svg>',
+      narration: "The chart patterns and indicators from your Advanced Stocks track apply directly to forex — trend structure, support and resistance, moving averages, RSI, and MACD all work the same way technically. What changes is the context you read them in. A consolidation pattern that would simply be 'sideways chop' on a stock chart often has a specific explanation in forex: it may be the market pausing near a session transition, waiting for the next region's liquidity to arrive before continuing. Reading a forex chart well means combining the same technical tools you already know with awareness of session timing and correlation — neither one alone tells the full story."
+    },
+    {
+      kicker: 'BUILDING YOUR ANALYSIS ROUTINE',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>1. Check the Higher Timeframe</strong>Confirm the dominant trend before considering any trade.</li>' +
+          '<li><strong>2. Check Correlation</strong>Make sure any additional position isn\'t secretly duplicating existing exposure.</li>' +
+          '<li><strong>3. Check the Session</strong>Confirm you\'re trading during a liquid, relevant window for that pair.</li>' +
+          '<li><strong>4. Then, and Only Then, Look for an Entry</strong>Technical signals mean far more once the first three boxes are checked.</li>' +
+        '</ul>',
+      narration: "Pulling this lesson together into a repeatable routine: before you ever look for an entry signal, confirm the higher-timeframe trend, check whether any new position duplicates correlation risk you already have open, and confirm you're trading during a session where that specific pair actually has real liquidity. Only after those three checks does it make sense to zoom into a lower timeframe looking for a precise entry. This order matters — reversing it, hunting for entries first and checking context second, is exactly how promising-looking setups quietly turn into low-quality trades."
+    }
+  ]
+};
+
+NarratedLesson.render(LESSON, '#lesson-root');
+</script>
+
+</body>
+</html>

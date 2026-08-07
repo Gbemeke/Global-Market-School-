@@ -1,0 +1,45 @@
+/* Global Market School — Narrated Lesson Engine styles */
+
+.nl-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+.nl-kicker{font-family:'Cinzel', serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold);}
+.nl-dots{display:flex; gap:8px;}
+.nl-dot{width:9px; height:9px; border-radius:50%; border:1.5px solid var(--gold); cursor:pointer; transition:background .15s;}
+.nl-dot.done{background:var(--gold);}
+.nl-dot.active{background:var(--navy-deep); border-color:var(--navy-deep);}
+
+.nl-stage{
+  background:#fff; border:1px solid var(--hair); padding:28px 22px; margin-bottom:20px;
+  min-height:220px; display:flex; align-items:center; justify-content:center; text-align:center;
+}
+.nl-stage svg{max-width:100%; height:auto;}
+.nl-stage .nl-bullets{list-style:none; text-align:left; width:100%;}
+.nl-stage .nl-bullets li{
+  font-size:17px; padding:12px 0 12px 28px; border-bottom:1px solid var(--hair); position:relative; color:var(--ink);
+}
+.nl-stage .nl-bullets li:last-child{border-bottom:none;}
+.nl-stage .nl-bullets li::before{content:"—"; position:absolute; left:0; color:var(--gold);}
+.nl-stage .nl-bullets li strong{color:var(--navy-deep); font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:4px;}
+.nl-stage-title{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep); margin-bottom:14px; width:100%;}
+.nl-stat-row{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; width:100%;}
+.nl-stat{border:1px solid var(--hair); padding:16px 20px; min-width:120px;}
+.nl-stat .n{font-family:'Cormorant Garamond', serif; font-size:26px; color:var(--navy-deep); font-weight:600;}
+.nl-stat .l{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-top:4px;}
+
+.nl-caption{
+  background:var(--navy-deep); color:rgba(244,239,224,0.75); padding:20px 22px; margin-bottom:20px;
+  font-size:16px; line-height:1.7;
+}
+.nl-sentence{transition:color .2s, opacity .2s; opacity:0.7;}
+.nl-sentence.speaking{color:var(--gold-bright); opacity:1;}
+
+.nl-controls{display:flex; gap:10px; flex-wrap:wrap;}
+.nl-btn{
+  font-family:'Cinzel', serif; font-size:12px; letter-spacing:1px; text-transform:uppercase;
+  padding:13px 20px; border:1px solid var(--navy-deep); cursor:pointer; background:none; color:var(--navy-deep);
+  flex:1; min-width:110px; text-align:center;
+}
+.nl-btn:disabled{opacity:0.35; cursor:not-allowed;}
+.nl-btn-primary{background:var(--navy-deep); color:var(--ivory); flex:1.4;}
+.nl-btn-primary:hover:not(:disabled){background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.nl-btn-ghost:hover:not(:disabled){border-color:var(--gold); color:var(--gold);}
+.nl-fallback-note{font-size:13px; color:var(--ink-soft); margin-top:12px; font-style:italic;}

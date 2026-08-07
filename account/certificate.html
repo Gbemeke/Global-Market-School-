@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--navy-mid); color:var(--ink); min-height:100vh;}
+a{color:inherit;}
+.toolbar{max-width:900px; margin:0 auto; padding:22px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.toolbar-actions{display:flex; gap:10px;}
+.btn{font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; padding:11px 18px; border:1px solid var(--gold); cursor:pointer; background:none; color:var(--gold-bright);}
+.btn:hover{background:var(--gold); color:var(--navy-deep);}
+.btn-primary{background:var(--gold); color:var(--navy-deep);}
+.btn-primary:hover{background:var(--gold-bright);}
+#loading, #error{max-width:600px; margin:80px auto; text-align:center; color:var(--ivory); font-style:italic; padding:0 24px;}
+#error{display:none;}
+
+.cert-frame{max-width:900px; margin:10px auto 60px; padding:0 24px;}
+.certificate{
+  background:var(--paper); border:2px solid var(--gold); padding:6px; position:relative;
+}
+.certificate-inner{border:1px solid var(--gold); padding:56px 48px; text-align:center; position:relative;}
+.corner{position:absolute; width:28px; height:28px; border:1.5px solid var(--gold);}
+.corner.tl{top:14px; left:14px; border-right:none; border-bottom:none;}
+.corner.tr{top:14px; right:14px; border-left:none; border-bottom:none;}
+.corner.bl{bottom:14px; left:14px; border-right:none; border-top:none;}
+.corner.br{bottom:14px; right:14px; border-left:none; border-top:none;}
+.seal{width:70px; height:70px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; margin:0 auto 22px; font-family:'Cormorant Garamond', serif; font-weight:600; font-size:30px; color:var(--gold);}
+.cert-kicker{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
+.cert-org{font-family:'Cinzel', serif; font-size:15px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:30px;}
+.cert-presented{font-size:14px; color:var(--ink-soft); font-style:italic; margin-bottom:6px;}
+.cert-name{font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600; font-size:clamp(30px,5vw,44px); color:var(--navy-deep); margin-bottom:22px; padding-bottom:16px; border-bottom:1px solid var(--hair); display:inline-block; min-width:60%;}
+.cert-body{font-size:16.5px; color:var(--ink); max-width:56ch; margin:0 auto 30px; line-height:1.8;}
+.cert-body strong{color:var(--navy-deep);}
+.cert-meta-row{display:flex; justify-content:center; gap:50px; flex-wrap:wrap; margin:34px 0 10px;}
+.cert-meta{text-align:center;}
+.cert-meta .l{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:6px;}
+.cert-meta .v{font-family:'Cormorant Garamond', serif; font-size:16px; color:var(--navy-deep); font-weight:600;}
+.cert-sign-row{display:flex; justify-content:space-between; align-items:flex-end; margin-top:44px; gap:20px; flex-wrap:wrap;}
+.cert-sign{text-align:center; flex:1; min-width:180px;}
+.cert-sign .line{border-top:1px solid var(--ink-soft); margin-bottom:8px; padding-top:6px; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:19px; color:var(--navy-deep);}
+.cert-sign .role{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);}
+.cert-verify{margin-top:36px; padding-top:20px; border-top:1px solid var(--hair); font-size:12px; color:var(--ink-soft);}
+.cert-verify strong{color:var(--navy-deep); letter-spacing:0.5px;}
+
+@media print {
+  body{background:#fff;}
+  .toolbar{display:none;}
+  .cert-frame{margin:0; padding:0; max-width:none;}
+  .certificate{border-width:1.5px;}
+  @page{size:landscape; margin:12mm;}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <a href="dashboard.html" class="brand"><span class="mark">G</span>Global Market School</a>
+  <div class="toolbar-actions">
+    <a href="dashboard.html" class="btn">Dashboard</a>
+    <button type="button" class="btn btn-primary" id="print-btn" style="display:none;">Print Certificate</button>
+  </div>
+</div>
+
+<div id="loading">Loading certificate…</div>
+<p id="error">Certificate not found. Double-check the link, or contact support if you believe this is an error.</p>
+
+<div class="cert-frame" id="cert-frame" style="display:none;">
+  <div class="certificate">
+    <div class="certificate-inner">
+      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      <div class="seal">G</div>
+      <div class="cert-kicker">Certificate of Completion</div>
+      <div class="cert-org">Global Market School</div>
+      <p class="cert-presented">This certifies that</p>
+      <div class="cert-name" id="cert-name"></div>
+      <p class="cert-body">has successfully completed the <strong id="cert-tier"></strong> curriculum and passed its certification assessment, demonstrating proficiency in the subject matter taught throughout the program.</p>
+      <div class="cert-meta-row">
+        <div class="cert-meta"><div class="l">Score Achieved</div><div class="v" id="cert-score"></div></div>
+        <div class="cert-meta"><div class="l">Date Issued</div><div class="v" id="cert-date"></div></div>
+        <div class="cert-meta"><div class="l">Certificate No.</div><div class="v" id="cert-number"></div></div>
+      </div>
+      <div class="cert-sign-row">
+        <div class="cert-sign"><div class="line">Akodi Victor</div><div class="role">CEO &amp; Founder, Global Market School</div></div>
+        <div class="cert-sign"><div class="line">Global Market School</div><div class="role">Issuing Institution</div></div>
+      </div>
+      <div class="cert-verify">
+        Verify this certificate's authenticity anytime at <strong>globalmarketschool.com/verify.html</strong> using certificate number <strong id="cert-verify-number"></strong>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  const TIER_LABELS = { 'Advanced': 'Advanced Class' };
+
+  function getParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
+
+  async function init() {
+    const id = getParam('id');
+    if (!id) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from('certificates')
+      .select('certificate_number, student_name, tier, score, issued_at')
+      .eq('certificate_number', id)
+      .single();
+
+    document.getElementById('loading').style.display = 'none';
+
+    if (error || !data) {
+      document.getElementById('error').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('cert-name').textContent = data.student_name;
+    document.getElementById('cert-tier').textContent = TIER_LABELS[data.tier] || (data.tier + ' Class');
+    document.getElementById('cert-score').textContent = Math.round(Number(data.score) * 100) + '%';
+    document.getElementById('cert-date').textContent = new Date(data.issued_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('cert-number').textContent = data.certificate_number;
+    document.getElementById('cert-verify-number').textContent = data.certificate_number;
+    document.title = data.student_name + ' — ' + (TIER_LABELS[data.tier] || data.tier) + ' Certificate — Global Market School';
+
+    document.getElementById('cert-frame').style.display = 'block';
+    document.getElementById('print-btn').style.display = 'inline-block';
+  }
+
+  document.getElementById('print-btn').addEventListener('click', function () { window.print(); });
+
+  init();
+</script>
+
+</body>
+</html>
