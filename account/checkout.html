@@ -122,6 +122,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
+  // Fallback values -- used until (or unless) live values are loaded from
+  // the site_settings table below. Keeping real numbers here means
+  // checkout still works correctly even if that fetch fails.
   const AFRICA_CURRENCY = {
     "Nigeria":      { currency: "NGN", rate: 1600, options: "card, mobilemoney, ussd, banktransfer" },
     "Ghana":        { currency: "GHS", rate: 15,   options: "card, mobilemoney" },
@@ -159,12 +162,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('summary-email').textContent = currentUser.email;
     document.getElementById('summary').style.display = 'block';
 
+    await applyLiveSiteSettings();
     await loadTierFromUrl();
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('page-content').style.display = 'block';
   }
 
+  // Fallback prices -- overwritten by applyLiveSiteSettings() below with
+  // whatever the admin panel's Site Settings tab currently has saved, so
+  // changing a price there actually changes what students are charged.
+  // These hardcoded numbers only matter if that fetch fails.
   const TIER_PRICES = {
     'Beginner': { price: 50, label: 'Beginner Class (Stocks + Forex)' },
     'Intermediate': { price: 100, label: 'Intermediate Class (Beginner + Intermediate, Stocks + Forex)' },
@@ -172,6 +180,39 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'Elite': { price: 1000, label: 'Elite Group (All three levels + Elite, Stocks + Forex)' },
     'Trade Group': { price: 2500, label: 'Trade Group (Everything + Trade Group, Stocks + Forex)' }
   };
+
+  // Reads a site_settings value and, only if it's a real positive number,
+  // passes it to `apply`. A missing, empty, or non-numeric row is silently
+  // skipped -- a bad or partially-saved setting should never be able to
+  // break checkout, it just leaves that one hardcoded fallback in place.
+  function applyNumericSetting(map, key, apply) {
+    const raw = map[key];
+    if (raw === undefined || raw === null || raw === '') return;
+    const n = Number(raw);
+    if (!isFinite(n) || n <= 0) return;
+    apply(n);
+  }
+
+  async function applyLiveSiteSettings() {
+    try {
+      const { data, error } = await supabaseClient.from('site_settings').select('key, value');
+      if (error || !data) return;
+
+      const map = {};
+      data.forEach(function (row) { map[row.key] = row.value; });
+
+      applyNumericSetting(map, 'price_beginner', function (n) { TIER_PRICES['Beginner'].price = n; });
+      applyNumericSetting(map, 'price_intermediate', function (n) { TIER_PRICES['Intermediate'].price = n; });
+      applyNumericSetting(map, 'price_advanced', function (n) { TIER_PRICES['Advanced'].price = n; });
+      applyNumericSetting(map, 'price_elite', function (n) { TIER_PRICES['Elite'].price = n; });
+      applyNumericSetting(map, 'price_trade_group', function (n) { TIER_PRICES['Trade Group'].price = n; });
+
+      applyNumericSetting(map, 'rate_usd_ngn', function (n) { AFRICA_CURRENCY['Nigeria'].rate = n; });
+      applyNumericSetting(map, 'rate_usd_ghs', function (n) { AFRICA_CURRENCY['Ghana'].rate = n; });
+      applyNumericSetting(map, 'rate_usd_kes', function (n) { AFRICA_CURRENCY['Kenya'].rate = n; });
+      applyNumericSetting(map, 'rate_usd_zar', function (n) { AFRICA_CURRENCY['South Africa'].rate = n; });
+    } catch (e) { /* keep the hardcoded fallbacks above */ }
+  }
 
   // Mirrors api/verify-payment.js's TIER_COURSES -- what a tier actually
   // grants. Used to check whether the student (or an admin, on their

@@ -50,6 +50,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --navy-deep:#0b1b33;
@@ -639,31 +640,31 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
         <p class="program-eyebrow">Program 01</p>
         <h3>Beginner Class</h3>
         <p class="program-desc">Foundations of money and markets — zero background required.</p>
-        <p class="program-price">$50</p>
+        <p class="program-price" data-price-key="price_beginner">$50</p>
       </div>
       <div class="program-card">
         <p class="program-eyebrow">Program 02</p>
         <h3>Intermediate Class</h3>
         <p class="program-desc">Strategy, analysis, and how to read instruments like a working investor.</p>
-        <p class="program-price">$100</p>
+        <p class="program-price" data-price-key="price_intermediate">$100</p>
       </div>
       <div class="program-card">
         <p class="program-eyebrow">Program 03</p>
         <h3>Advanced Class</h3>
         <p class="program-desc">Market structure and institutional-grade practice.</p>
-        <p class="program-price">$200</p>
+        <p class="program-price" data-price-key="price_advanced">$200</p>
       </div>
       <div class="program-card featured">
         <p class="program-eyebrow">Program 04</p>
         <h3>Elite Group</h3>
         <p class="program-desc">Direct CEO access and ongoing mentorship.</p>
-        <p class="program-price">$1,000</p>
+        <p class="program-price" data-price-key="price_elite">$1,000</p>
       </div>
       <div class="program-card featured">
         <p class="program-eyebrow">Program 05</p>
         <h3>Trade Group</h3>
         <p class="program-desc">Live trading sessions alongside the CEO himself.</p>
-        <p class="program-price">$2,500</p>
+        <p class="program-price" data-price-key="price_trade_group">$2,500</p>
       </div>
     </div>
 
@@ -768,6 +769,38 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
     links.addEventListener('click', function (e) {
       if (e.target.closest('a')) closeMenu();
     });
+  })();
+
+  // Pull live prices from site_settings (the admin panel's Site Settings
+  // tab) so this page can never show a price that disagrees with what
+  // checkout actually charges. The hardcoded $50/$100/etc. markup above
+  // is the fallback if this fetch fails -- nothing here can break the
+  // page, it only ever replaces text that's already showing.
+  (function () {
+    const priceEls = document.querySelectorAll('[data-price-key]');
+    if (!priceEls.length || typeof supabase === 'undefined') return;
+
+    try {
+      const sb = supabase.createClient(
+        'https://djkctbtxnpdkstvznjlf.supabase.co',
+        'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+      );
+
+      sb.from('site_settings').select('key, value').then(function (res) {
+        const rows = res && res.data;
+        if (!rows) return;
+
+        const map = {};
+        rows.forEach(function (row) { map[row.key] = row.value; });
+
+        priceEls.forEach(function (el) {
+          const raw = map[el.getAttribute('data-price-key')];
+          const n = Number(raw);
+          if (raw === undefined || raw === null || raw === '' || !isFinite(n) || n <= 0) return;
+          el.textContent = '$' + n.toLocaleString();
+        });
+      }).catch(function () { /* keep the hardcoded prices already on the page */ });
+    } catch (e) { /* keep the hardcoded prices already on the page */ }
   })();
 </script>
 

@@ -650,6 +650,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const userId = session.user.id;
     currentUserId = userId;
     checkGlobalChatUnread(userId);
+    applyLiveWhatsAppLinks();
 
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
@@ -853,6 +854,32 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
   };
   const JOIN_PASS_SCORE = 0.8;
+
+  // Overlays live WhatsApp links from the admin panel's Site Settings tab
+  // onto WHATSAPP_CONFIG, so editing a link there actually changes which
+  // group students are sent to. The rules text stays hardcoded above --
+  // there's no admin UI for that yet -- only the link itself is live.
+  // Any missing/empty row is skipped, leaving the hardcoded link above
+  // in place for that one tier.
+  async function applyLiveWhatsAppLinks() {
+    const KEY_TO_TIER = {
+      wa_link_beginner: 'Beginner',
+      wa_link_intermediate: 'Intermediate',
+      wa_link_advanced: 'Advanced',
+      wa_link_elite: 'Elite',
+      wa_link_trade_group: 'Trade Group'
+    };
+    try {
+      const { data, error } = await supabaseClient.from('site_settings').select('key, value');
+      if (error || !data) return;
+      data.forEach(function (row) {
+        const tier = KEY_TO_TIER[row.key];
+        if (tier && WHATSAPP_CONFIG[tier] && row.value) {
+          WHATSAPP_CONFIG[tier].link = row.value;
+        }
+      });
+    } catch (e) { /* keep the hardcoded links above */ }
+  }
 
   function tierTitleFor(key) {
     const t = TIERS.find(function(x) { return x.key === key; });
