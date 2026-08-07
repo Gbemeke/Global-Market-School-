@@ -97,7 +97,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
 
     <button class="pay-btn" id="pay-btn" disabled>Loading order details...</button>
-    <p class="currency-note">Students in Nigeria, Ghana, Kenya, and South Africa are automatically charged their local currency with local payment options. All other countries are charged in USD by card.</p>
+    <p class="currency-note">Students in Nigeria, Ghana, Kenya, and South Africa are automatically charged their local currency with local payment options. All other countries pay in USD by card or bank transfer.</p>
 
     <div class="confirm-panel" id="confirm-panel">
       <h2>Payment Confirmed</h2>
@@ -275,7 +275,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const country = (currentProfile && currentProfile.country) || '';
     let checkoutAmount = selectedPrice;
     let checkoutCurrency = "USD";
-    let checkoutOptions = "card";
+    // Everyone outside the local-currency countries below still pays in
+    // USD (we don't have a verified live exchange rate for every world
+    // currency), but isn't limited to card only anymore -- Flutterwave
+    // settles every currency into the same account regardless, and its
+    // checkout widget automatically hides whichever of these doesn't
+    // apply to the customer's card/bank, so it's safe to offer both.
+    let checkoutOptions = "card, banktransfer, credit";
 
     if (AFRICA_CURRENCY[country]) {
       const local = AFRICA_CURRENCY[country];
