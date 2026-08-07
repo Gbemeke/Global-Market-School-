@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Group Forex Lesson 3: Managing Multiple Concurrent Forex Positions — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/lesson-header-auth.css">
+<link rel="stylesheet" href="../../assets/narrated-lesson.css">
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+.breadcrumb{font-size:13px; color:var(--ink-soft); padding:20px 0 0;}
+.breadcrumb a{text-decoration:none; color:var(--gold);}
+.lesson-head{padding:20px 0 30px; border-bottom:1px solid var(--hair); margin-bottom:30px;}
+.tier-badge{display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); background:var(--ivory); border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;}
+.lesson-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.2vw,36px); color:var(--navy-deep); margin-bottom:12px; line-height:1.15;}
+.lesson-meta{font-size:14px; color:var(--ink-soft); display:flex; gap:16px; flex-wrap:wrap;}
+.recap{background:var(--navy-deep); color:var(--ivory); padding:32px 28px; margin:40px 0 32px;}
+.recap h3{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:16px;}
+.recap ul{list-style:none;}
+.recap li{font-size:15.5px; margin-bottom:12px; padding-left:22px; position:relative; color:rgba(244,239,224,0.85);}
+.recap li::before{content:"—"; position:absolute; left:0; color:var(--gold-bright);}
+.next-lesson{border:1px solid var(--hair); padding:26px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:60px; flex-wrap:wrap;}
+.next-lesson p{font-size:12.5px; color:var(--ink-soft); font-family:'Cinzel', serif; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;}
+.next-lesson h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep);}
+.btn-primary{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; background:var(--gold); color:var(--navy-deep); padding:14px 24px; border:1px solid var(--gold); white-space:nowrap;}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <div id="nav-auth-slot" data-dashboard-href="../../account/dashboard.html">
+      <a href="../../enroll.html" class="nav-cta">Enroll Now</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="breadcrumb"><a href="../../account/dashboard.html">Dashboard</a> / Trade Group — Forex / Lesson 3</p>
+
+  <div class="lesson-head">
+    <span class="tier-badge">Trade Group — Forex — Lesson 3</span>
+    <h1>Managing Multiple Concurrent Forex Positions</h1>
+    <div class="lesson-meta"><span>Lesson 3 of 5</span><span>Narrated presentation — 5 slides</span></div>
+  </div>
+
+  <div id="lesson-root"></div>
+
+  <div class="recap">
+    <h3>Quick Recap</h3>
+    <ul>
+      <li>Live forex positions must be checked for currency correlation continuously, not just at the moment each is opened.</li>
+      <li>Total account leverage across all open positions matters more in fast-moving live conditions than in calm analysis.</li>
+      <li>A live dashboard view of net currency exposure prevents accidental overexposure during an active session.</li>
+      <li>Managing multiple live forex positions well is a direct, practical application of the Elite Forex portfolio lesson.</li>
+    </ul>
+  </div>
+
+  <div class="next-lesson">
+    <div>
+      <p>Next Lesson</p>
+      <h3>Advanced Risk Control During Live Trading</h3>
+    </div>
+    <a href="lesson-4.html" class="btn-primary">Continue &rarr;</a>
+  </div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/lesson-header-auth.js"></script>
+<script src="../../assets/narrated-lesson.js"></script>
+<script>
+const LESSON = {
+  nextHref: 'lesson-4.html',
+  nextLabel: 'Finish → Lesson 4',
+  slides: [
+    {
+      kicker: 'CORRELATION RISK GETS FASTER LIVE',
+      visual:
+        '<div class="nl-stage-title">The Same Risk, Moving Much Faster</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">Analysis</div><div class="l">Checking Correlation Once, Calmly, Before Entry</div></div>' +
+          '<div class="nl-stat"><div class="n">Live Trading</div><div class="l">Correlation Risk Changing in Real Time as Positions Open</div></div>' +
+        '</div>',
+      narration: "You learned to check currency correlation before opening positions in the Elite Forex track. Live trading adds real time pressure to this: as you open several positions during an active session, each new trade needs to be checked against the currency exposure you already hold, live, not just analyzed calmly beforehand as an isolated decision. This is exactly why Trade Group emphasizes real-time position tracking as its own dedicated skill."
+    },
+    {
+      kicker: 'TOTAL LEVERAGE ACROSS ALL OPEN POSITIONS',
+      visual:
+        '<svg viewBox="0 0 480 100" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="10" y="20" font-family="Cinzel, serif" font-size="10" letter-spacing="1.5" fill="#b28e4c">LIVE LEVERAGE CHECK</text>' +
+          '<rect x="10" y="30" width="460" height="20" fill="#eaf3ee"/><text x="18" y="45" font-family="EB Garamond" font-size="12" fill="#1c2333">Position 1: EUR/USD — effective leverage 4:1</text>' +
+          '<rect x="10" y="52" width="460" height="20" fill="#f4efe0"/><text x="18" y="67" font-family="EB Garamond" font-size="12" fill="#1c2333">Position 2: GBP/USD — effective leverage 3:1</text>' +
+          '<rect x="10" y="74" width="460" height="20" fill="#fbf0ee"/><text x="18" y="89" font-family="EB Garamond" font-size="12" fill="#1c2333">Combined effective leverage: 7:1 — check against your limit</text>' +
+        '</svg>',
+      narration: "Building on the effective leverage concept from Advanced Forex, live multi-position trading requires tracking combined effective leverage across every open position simultaneously, not each one in isolation. Two individually reasonable positions can combine into a total account leverage level you'd never accept if it were framed as a single number upfront. Checking this combined total, not just each new trade's leverage alone, is essential live-trading discipline."
+    },
+    {
+      kicker: 'BUILDING A LIVE EXPOSURE VIEW',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>Update It As You Trade</strong>Not just at the start of the session — every time a position opens or closes.</li>' +
+          '<li><strong>Check Net Currency Exposure</strong>The same calculation from Elite Forex, done live and kept current.</li>' +
+          '<li><strong>Check Combined Leverage</strong>Total effective leverage across everything currently open.</li>' +
+        '</ul>',
+      narration: "A practical live habit: maintain a simple, continuously updated view of your net exposure per currency and your combined effective leverage, refreshed every time a position opens or closes during the session — not just calculated once at the start. This turns the Elite Forex portfolio concepts from a pre-session planning exercise into a genuinely live, ongoing discipline, which is precisely what separates Trade Group's real-time application from the earlier tracks' calmer, after-the-fact analysis."
+    },
+    {
+      kicker: 'WHEN TO REDUCE, NOT JUST WHEN TO ADD',
+      visual:
+        '<div class="nl-stage-title">Managing Down Is as Important as Managing Up</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">Exposure Too High</div><div class="l">Reduce an Existing Position Before Adding a New One</div></div>' +
+        '</div>',
+      narration: "If your live exposure view reveals combined risk or leverage is already elevated, the correct response isn't necessarily avoiding new opportunities entirely — it can also mean actively reducing an existing position to make room, if a new setup is genuinely stronger. This is a more advanced, deliberate form of the position management skill from Trade Group Stocks, requiring an honest, real-time comparison between what you already hold and what's newly appearing."
+    },
+    {
+      kicker: 'ONE LESSON LEFT',
+      visual:
+        '<div class="nl-stage-title">Real-Time Portfolio Discipline for Forex</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">3</div><div class="l">Trade Group Forex Lessons Completed</div></div>' +
+          '<div class="nl-stat"><div class="n">Next</div><div class="l">Advanced Risk Control During Live Trading</div></div>' +
+        '</div>',
+      narration: "You now know how to track correlation and combined leverage live across multiple open forex positions, and when reducing an existing position makes more sense than avoiding a new opportunity. The next lesson goes further into advanced risk control techniques specifically built for the speed and pressure of live trading conditions."
+    }
+  ]
+};
+
+NarratedLesson.render(LESSON, '#lesson-root');
+</script>
+
+</body>
+</html>

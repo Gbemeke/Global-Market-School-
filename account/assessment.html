@@ -166,6 +166,46 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         { q: "The primary goal of professional trading, according to this course, is:", options: ["Maximizing profit on every single trade", "Capital preservation — staying in the game long enough for edge to play out", "Trading as frequently as possible", "Using maximum available leverage"], correct: 1 },
         { q: "Revenge trading refers to:", options: ["A disciplined, plan-based re-entry after analysis", "Immediately re-entering the market after a loss to try to win it back, without a real setup", "A hedging strategy used by institutions", "Trading only during high-volatility sessions"], correct: 1 }
       ]
+    },
+    'Elite': {
+      label: 'Elite Group',
+      badge: 'Elite Group — Certification Assessment',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite'],
+      passScore: 0.8,
+      questions: [
+        { q: "A 'liquidity sweep' or stop hunt typically happens when:", options: ["Price randomly spikes with no cause", "Price briefly pushes through an obvious level to fill large institutional orders, then reverses", "A broker manipulates client accounts", "Volume disappears entirely"], correct: 1 },
+        { q: "In a DCF model, what does the discount rate represent?", options: ["The commission charged by the broker", "The return an investor would require to accept the risk of that future cash flow", "A fixed government-mandated rate", "The company's current stock price"], correct: 1 },
+        { q: "Why does terminal value often make up the majority of a DCF's total valuation?", options: ["It never does — it's usually a small piece", "It captures the value of all cash flows beyond the explicit forecast period, indefinitely", "It's a mistake analysts should avoid", "It only applies to bankrupt companies"], correct: 1 },
+        { q: "A covered call strategy involves:", options: ["Buying a put to protect a position", "Selling a call option against stock you already own, to collect premium income", "Selling stock you don't own", "Guaranteeing a profit with no risk"], correct: 1 },
+        { q: "Why do professionals track factor exposure (e.g. growth, value, size) beyond just sector?", options: ["Factors don't actually matter", "Stocks from different sectors can still move together due to shared underlying characteristics", "It's required by regulators", "It only applies to bonds"], correct: 1 },
+        { q: "Why do central bank statements sometimes move currencies more than the rate decision itself?", options: ["Statements never move markets", "The rate decision is often already priced in, so the wording carries the new information", "Only the exact number matters, never the language", "Statements are always ignored by traders"], correct: 1 },
+        { q: "What does 'policy divergence' between two central banks refer to?", options: ["Both banks always doing the exact same thing", "One bank's policy path moving in a different direction than the other's, in the same currency pair", "A type of currency peg", "An illegal trading practice"], correct: 1 },
+        { q: "Why do bond yields and currency values tend to move together?", options: ["They are completely unrelated", "Both are driven by the same underlying interest rate expectations", "Bond yields cause currency crashes directly", "Only in emerging markets"], correct: 1 },
+        { q: "Execution algorithms like TWAP/VWAP are used by institutions primarily to:", options: ["Guarantee a specific profit", "Break large orders into smaller pieces spread over time to minimize market impact", "Avoid all trading fees", "Predict future prices"], correct: 1 },
+        { q: "If you're long EUR/USD, long GBP/USD, and short USD/JPY, your net exposure is best described as:", options: ["Three unrelated, fully diversified trades", "A combined view that is effectively net short the US dollar", "A completely hedged, risk-free position", "Impossible to determine"], correct: 1 },
+        { q: "According to this course, what is the actual primary goal of elite-level trading discipline?", options: ["Maximizing every single trade's profit", "Process over outcome — consistency that compounds over years, not one great trade", "Trading as often as possible", "Avoiding all mentorship"], correct: 1 },
+        { q: "Why does Elite Group emphasize confidentiality so strongly?", options: ["It's just a formality with no real purpose", "It protects an environment where candid, genuinely useful mentorship can happen", "To prevent members from ever discussing trades", "It has nothing to do with mentorship quality"], correct: 1 }
+      ]
+    },
+    'Trade Group': {
+      label: 'Trade Group',
+      badge: 'Trade Group — Certification Assessment',
+      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite', 'trade-group'],
+      passScore: 0.8,
+      questions: [
+        { q: "In live order flow, a large hidden order revealed at the top of the book most often signals:", options: ["A guaranteed reversal", "Genuine institutional interest at that price level worth paying attention to", "A broker error", "Nothing of significance"], correct: 1 },
+        { q: "Why is slippage a bigger real-time concern during live, fast-moving markets?", options: ["It isn't — slippage is only a theoretical concept", "Prices can move meaningfully between when you decide to trade and when the order fills", "Slippage only affects limit orders", "It only matters for forex, never stocks"], correct: 1 },
+        { q: "Scaling into a position means:", options: ["Buying or selling the entire position in a single order", "Entering a position in stages, at multiple price levels, rather than all at once", "Only applicable to options trading", "A type of stop-loss order"], correct: 1 },
+        { q: "Why do disciplined live traders often scale out of winning positions rather than exiting all at once?", options: ["It's always required by brokers", "It locks in partial profit while allowing the remaining position to capture further upside", "It guarantees a bigger profit", "It has no real benefit"], correct: 1 },
+        { q: "Managing a live multi-position portfolio primarily requires watching:", options: ["Only the single largest position", "Combined real-time risk and correlation across all open positions at once", "Nothing — each position is independent", "Only positions that are currently losing"], correct: 1 },
+        { q: "Trading around a high-impact news event without a plan typically results in:", options: ["Consistently better fills than normal", "Wider spreads, erratic price action, and higher slippage risk", "Guaranteed profit due to volatility", "No real difference from normal trading conditions"], correct: 1 },
+        { q: "Why does 'waiting for CEO confirmation' matter in a live trade-along environment?", options: ["It's a purely symbolic formality", "It keeps execution aligned with the shared plan and reduces emotional, independent decisions mid-trade", "It guarantees every trade wins", "It only applies to beginners"], correct: 1 },
+        { q: "Emotional trading during a live session most often leads to:", options: ["More consistent, disciplined results", "Deviating from the plan — chasing losses or exiting winners too early out of fear", "Better risk management automatically", "No measurable effect on outcomes"], correct: 1 },
+        { q: "Overtrading during a live session is best defined as:", options: ["Taking every valid, planned setup that appears", "Taking excessive, low-quality trades out of boredom or impatience rather than genuine signals", "Only trading once per day", "A strategy used by professional desks"], correct: 1 },
+        { q: "What does 'learn before you earn' emphasize in the Trade Group rules?", options: ["Profit should always come before understanding", "Genuine understanding and discipline should come before expecting consistent live-trading profit", "Only theoretical knowledge matters, not practice", "It's unrelated to live trading"], correct: 1 },
+        { q: "Why is risk management described as even more critical in a live, trade-along setting?", options: ["It isn't — live trading is inherently safer", "Real-time decisions under time pressure make it easier to deviate from planned risk if discipline lapses", "Live trading eliminates all real risk", "Risk management only applies to beginners"], correct: 1 },
+        { q: "The core standard Trade Group is built around, according to this course, is:", options: ["Maximizing trade frequency", "Discipline at scale — the same principles from earlier tracks, held under real-time pressure", "Ignoring risk management during live sessions", "Trading independently of any shared plan"], correct: 1 }
+      ]
     }
   };
 

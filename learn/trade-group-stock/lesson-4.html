@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Group Lesson 4: Managing a Live Multi-Position Portfolio — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/lesson-header-auth.css">
+<link rel="stylesheet" href="../../assets/narrated-lesson.css">
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.7;}
+a{color:inherit;}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+header{background:var(--paper); border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:10;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none;}
+.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.nav-cta{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--paper); background:var(--navy-deep); padding:10px 18px; border:1px solid var(--navy-deep);}
+.breadcrumb{font-size:13px; color:var(--ink-soft); padding:20px 0 0;}
+.breadcrumb a{text-decoration:none; color:var(--gold);}
+.lesson-head{padding:20px 0 30px; border-bottom:1px solid var(--hair); margin-bottom:30px;}
+.tier-badge{display:inline-block; font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); background:var(--ivory); border:1px solid var(--gold); padding:6px 12px; margin-bottom:16px;}
+.lesson-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4.2vw,36px); color:var(--navy-deep); margin-bottom:12px; line-height:1.15;}
+.lesson-meta{font-size:14px; color:var(--ink-soft); display:flex; gap:16px; flex-wrap:wrap;}
+.recap{background:var(--navy-deep); color:var(--ivory); padding:32px 28px; margin:40px 0 32px;}
+.recap h3{font-family:'Cinzel', serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:16px;}
+.recap ul{list-style:none;}
+.recap li{font-size:15.5px; margin-bottom:12px; padding-left:22px; position:relative; color:rgba(244,239,224,0.85);}
+.recap li::before{content:"—"; position:absolute; left:0; color:var(--gold-bright);}
+.next-lesson{border:1px solid var(--hair); padding:26px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:60px; flex-wrap:wrap;}
+.next-lesson p{font-size:12.5px; color:var(--ink-soft); font-family:'Cinzel', serif; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px;}
+.next-lesson h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep);}
+.btn-primary{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; background:var(--gold); color:var(--navy-deep); padding:14px 24px; border:1px solid var(--gold); white-space:nowrap;}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand-row">
+    <a href="../../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+    <div id="nav-auth-slot" data-dashboard-href="../../account/dashboard.html">
+      <a href="../../enroll.html" class="nav-cta">Enroll Now</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="breadcrumb"><a href="../../account/dashboard.html">Dashboard</a> / Trade Group — Stocks / Lesson 4</p>
+
+  <div class="lesson-head">
+    <span class="tier-badge">Trade Group — Stocks — Lesson 4</span>
+    <h1>Managing a Live Multi-Position Portfolio</h1>
+    <div class="lesson-meta"><span>Lesson 4 of 5</span><span>Narrated presentation — 5 slides</span></div>
+  </div>
+
+  <div id="lesson-root"></div>
+
+  <div class="recap">
+    <h3>Quick Recap</h3>
+    <ul>
+      <li>Combined open risk across all live positions matters more than any single position's risk in isolation.</li>
+      <li>A simple running log of open positions and total risk prevents losing track during an active session.</li>
+      <li>New positions should be evaluated against your remaining risk budget, not just their own individual merit.</li>
+      <li>Knowing when to stop opening new positions for the session is itself a real, deliberate skill.</li>
+    </ul>
+  </div>
+
+  <div class="next-lesson">
+    <div>
+      <p>Next Lesson</p>
+      <h3>Trading With Institutional Discipline, Live</h3>
+    </div>
+    <a href="lesson-5.html" class="btn-primary">Continue &rarr;</a>
+  </div>
+</div>
+
+<footer>&copy; Global Market School</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/lesson-header-auth.js"></script>
+<script src="../../assets/narrated-lesson.js"></script>
+<script>
+const LESSON = {
+  nextHref: 'lesson-5.html',
+  nextLabel: 'Finish → Lesson 5',
+  slides: [
+    {
+      kicker: 'COMBINED RISK, NOT JUST INDIVIDUAL RISK',
+      visual:
+        '<div class="nl-stage-title">Four Positions, One Total Risk Budget</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">Each Position</div><div class="l">Sized Individually With Discipline</div></div>' +
+          '<div class="nl-stat"><div class="n">All Together</div><div class="l">Must Still Respect Your Total Account Risk Limit</div></div>' +
+        '</div>',
+      narration: "Managing several live positions at once means tracking combined open risk, not just confirming each individual position was sized correctly on its own. Four positions, each properly risking one percent, still add up to four percent of your account genuinely at risk simultaneously — a materially different situation than any single trade in isolation. Live multi-position management means always knowing that combined number, not just trusting that each position looked fine when it was opened."
+    },
+    {
+      kicker: 'KEEPING A LIVE RUNNING LOG',
+      visual:
+        '<svg viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="10" y="20" font-family="Cinzel, serif" font-size="10" letter-spacing="1.5" fill="#b28e4c">OPEN POSITIONS LOG</text>' +
+          '<rect x="10" y="30" width="460" height="20" fill="#eaf3ee"/><text x="18" y="45" font-family="EB Garamond" font-size="12" fill="#1c2333">Stock A — Risk: 1.0% — Stop set — Target set</text>' +
+          '<rect x="10" y="52" width="460" height="20" fill="#f4efe0"/><text x="18" y="67" font-family="EB Garamond" font-size="12" fill="#1c2333">Stock B — Risk: 1.5% — Stop set — Target set</text>' +
+          '<rect x="10" y="74" width="460" height="20" fill="#eaf3ee"/><text x="18" y="89" font-family="EB Garamond" font-size="12" fill="#1c2333">Total Open Risk: 2.5% of account</text>' +
+        '</svg>',
+      narration: "During an active session, keep a simple running log — even a basic note — of every open position, its risk percentage, and its stop and target. This might sound unnecessary when you only have one or two positions open, but during a genuinely active live session with several trades running simultaneously, it's remarkably easy to lose precise track without a written record. This habit alone prevents one of the most common ways live traders accidentally exceed their intended total risk."
+    },
+    {
+      kicker: 'EVALUATING NEW POSITIONS AGAINST REMAINING BUDGET',
+      visual:
+        '<div class="nl-stage-title">A Great Setup Isn\'t Automatically a Trade</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">Remaining Risk Budget</div><div class="l">Determines Whether a New Trade Fits Right Now</div></div>' +
+        '</div>',
+      narration: "A genuinely strong new setup appearing during a session doesn't automatically mean you should take it — it needs to be evaluated against your remaining risk budget, given what's already open. If your existing positions already account for most of your intended total session risk, a new setup, however strong, may need to wait, or the earlier positions may need to be managed down first. This discipline directly prevents the common live-trading mistake of stacking too much simultaneous risk simply because several good opportunities happened to appear close together."
+    },
+    {
+      kicker: 'KNOWING WHEN TO STOP OPENING NEW POSITIONS',
+      visual:
+        '<ul class="nl-bullets">' +
+          '<li><strong>A Real, Deliberate Skill</strong>Recognizing when you\'ve reached your session\'s intended risk limit.</li>' +
+          '<li><strong>Not a Sign of Missing Out</strong>Stopping at your limit protects the account, even if more setups keep appearing.</li>' +
+        '</ul>',
+      narration: "Knowing when to simply stop opening new positions for a session — because your combined risk has reached its intended limit — is a genuine, deliberate skill, not a passive default. It can feel like missing opportunities when more setups keep appearing, but this discipline is exactly what protects the account for the next session, and the one after that. Consistently respecting this limit, session after session, is a defining trait of the traders who sustain a live-trading career."
+    },
+    {
+      kicker: 'ONE LESSON LEFT',
+      visual:
+        '<div class="nl-stage-title">Full Live-Trading Discipline</div>' +
+        '<div class="nl-stat-row">' +
+          '<div class="nl-stat"><div class="n">4</div><div class="l">Trade Group Stock Lessons Completed</div></div>' +
+          '<div class="nl-stat"><div class="n">Next</div><div class="l">Trading With Institutional Discipline, Live</div></div>' +
+        '</div>',
+      narration: "You now understand how to manage combined risk across several live positions, keep a running log, evaluate new setups against your remaining budget, and recognize when to stop opening new trades entirely for the session. The final lesson in this track brings everything from the whole curriculum together into what institutional discipline actually looks like, applied live."
+    }
+  ]
+};
+
+NarratedLesson.render(LESSON, '#lesson-root');
+</script>
+
+</body>
+</html>
