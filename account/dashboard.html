@@ -210,12 +210,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
 .global-chat-fab{
   position:fixed; right:20px; bottom:86px; z-index:60;
-  height:52px; padding:0 22px 0 18px; border-radius:26px; background:var(--gold); border:1.5px solid var(--navy-deep);
+  height:52px; padding:0 22px 0 10px; border-radius:26px; background:var(--gold); border:1.5px solid var(--navy-deep);
   color:var(--navy-deep); font-size:15px; cursor:pointer; box-shadow:0 10px 30px -8px rgba(0,0,0,0.45);
-  display:flex; align-items:center; justify-content:center; gap:8px;
+  display:flex; align-items:center; justify-content:center; gap:9px;
   font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; text-decoration:none;
 }
 .global-chat-fab:hover{background:var(--gold-bright);}
+.global-chat-fab-logo{width:34px; height:34px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1.5px var(--navy-deep);}
 
 .chat-fab-wrap{position:fixed; right:20px; bottom:20px; z-index:60; display:flex; flex-direction:column; align-items:flex-end; gap:12px; pointer-events:none;}
 .chat-fab{
@@ -429,7 +430,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   <button class="join-fab" id="join-fab" aria-label="Join Class WhatsApp Group">&#128241; Join Class</button>
 
-  <a class="global-chat-fab" href="global-chat.html" aria-label="Global Chat">&#128172; Global Chat</a>
+  <a class="global-chat-fab" href="global-chat.html" aria-label="Global Chat">
+    <img src="../assets/images/global-chat-logo.png" alt="" class="global-chat-fab-logo">
+    Global Chat
+  </a>
 
   <div class="chat-fab-wrap">
     <div class="chat-menu" id="chat-menu">

@@ -22,12 +22,13 @@ a{color:inherit;}
 header{background:var(--navy-deep); color:var(--ivory);}
 .brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0; gap:12px; flex-wrap:wrap;}
 .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
-.brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:13px; color:var(--gold);}
+.brand .mark{width:30px;height:30px;border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1.5px var(--gold);}
+.mark-lg{width:44px;height:44px;border-radius:50%; box-shadow:0 0 0 1.5px var(--gold); flex-shrink:0; margin-top:2px;}
 .header-actions{display:flex; align-items:center; gap:14px;}
 .back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
 .logout-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; background:none; border:1px solid var(--gold); color:var(--gold-bright); padding:9px 16px; cursor:pointer;}
 
-.page-head{padding:32px 0 8px;}
+.page-head{padding:32px 0 8px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px;}
 .eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
 .page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,34px); color:var(--navy-deep);}
 .page-head p{color:var(--ink-soft); font-size:14.5px; margin-top:8px;}
@@ -85,7 +86,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 <div id="chat-page" style="display:none;">
   <header>
     <div class="wrap brand-row">
-      <a href="../index.html" class="brand"><span class="mark">G</span>Global Market School</a>
+      <a href="../index.html" class="brand"><img src="../assets/images/global-chat-logo.png" alt="" class="mark">Global Market School</a>
       <div class="header-actions">
         <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
         <button class="logout-btn" id="logout-btn">Log Out</button>
@@ -95,9 +96,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   <div class="wrap">
     <div class="page-head">
-      <p class="eyebrow">Community</p>
-      <h1>Global Chat</h1>
-      <p>Post, share, and reply with other students. Be respectful — posts can be removed by admins.</p>
+      <div>
+        <p class="eyebrow">Community</p>
+        <h1>Global Chat</h1>
+        <p>Post, share, and reply with other students. Be respectful — posts can be removed by admins.</p>
+      </div>
+      <img src="../assets/images/global-chat-logo.png" alt="Global Chat" class="mark-lg">
     </div>
 
     <section>
