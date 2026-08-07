@@ -819,16 +819,38 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   });
 
   // ---- Press-and-hold delegation on the feed (react button + message bubble) ----
+  //
+  // A long-press timer with no drag/scroll check fires no matter what the
+  // finger did in those 450ms -- including scrolling the feed. That let a
+  // slow scroll-while-touching a post pop the context menu open wherever
+  // the finger started, long after the page (and that post) had scrolled
+  // away underneath it -- a stray menu with nothing under it, and (since
+  // it's position:fixed) it stays pinned to that screen spot through any
+  // further scrolling too. Cancel the pending popup the moment the finger
+  // moves like a scroll, and close anything already open the moment an
+  // actual scroll happens, so a popup only ever appears over the post it
+  // belongs to.
 
   let pressTimer = null;
   let pressKind = null;   // 'react' | 'message'
   let pressFired = false;
+  let pressStartX = 0;
+  let pressStartY = 0;
+  const PRESS_MOVE_CANCEL_PX = 10;
+
+  function cancelPress() {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+    pressKind = null;
+  }
 
   document.getElementById('feed').addEventListener('pointerdown', function(e) {
     const reactBtn = e.target.closest('.react-btn');
     if (reactBtn) {
       pressKind = 'react';
       pressFired = false;
+      pressStartX = e.clientX;
+      pressStartY = e.clientY;
       clearTimeout(pressTimer);
       pressTimer = setTimeout(function() {
         pressFired = true;
@@ -841,12 +863,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     if (msgEl) {
       pressKind = 'message';
       pressFired = false;
+      pressStartX = e.clientX;
+      pressStartY = e.clientY;
       const x = e.clientX, y = e.clientY;
       clearTimeout(pressTimer);
       pressTimer = setTimeout(function() {
         pressFired = true;
         openContextMenu(msgEl.getAttribute('data-id'), x, y);
       }, 450);
+    }
+  });
+
+  document.getElementById('feed').addEventListener('pointermove', function(e) {
+    if (!pressTimer) return;
+    if (Math.abs(e.clientX - pressStartX) > PRESS_MOVE_CANCEL_PX ||
+        Math.abs(e.clientY - pressStartY) > PRESS_MOVE_CANCEL_PX) {
+      cancelPress();
     }
   });
 
@@ -862,10 +894,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     pressKind = null;
   });
 
-  document.getElementById('feed').addEventListener('pointercancel', function() {
-    clearTimeout(pressTimer);
-    pressKind = null;
-  });
+  document.getElementById('feed').addEventListener('pointercancel', cancelPress);
+
+  window.addEventListener('scroll', function() {
+    cancelPress();
+    hideReactionPicker();
+    hideContextMenu();
+  }, { passive: true, capture: true });
 
   document.getElementById('new-post-btn').addEventListener('click', async function() {
     const textarea = document.getElementById('new-post-text');
