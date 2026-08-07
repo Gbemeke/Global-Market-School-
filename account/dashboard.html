@@ -208,6 +208,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 @keyframes ticker-scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
 .ticker-note{font-size:11px; color:var(--ink-soft); margin-top:8px; text-align:right;}
 
+.global-chat-fab{
+  position:fixed; right:20px; bottom:86px; z-index:60;
+  height:52px; padding:0 22px 0 18px; border-radius:26px; background:var(--gold); border:1.5px solid var(--navy-deep);
+  color:var(--navy-deep); font-size:15px; cursor:pointer; box-shadow:0 10px 30px -8px rgba(0,0,0,0.45);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; text-decoration:none;
+}
+.global-chat-fab:hover{background:var(--gold-bright);}
+
 .chat-fab-wrap{position:fixed; right:20px; bottom:20px; z-index:60; display:flex; flex-direction:column; align-items:flex-end; gap:12px;}
 .chat-fab{
   height:52px; padding:0 22px 0 18px; border-radius:26px; background:var(--navy-deep); border:1.5px solid var(--gold);
@@ -419,6 +428,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   <button class="join-fab" id="join-fab" aria-label="Join Class WhatsApp Group">&#128241; Join Class</button>
 
+  <a class="global-chat-fab" href="global-chat.html" aria-label="Global Chat">&#128172; Global Chat</a>
+
   <div class="chat-fab-wrap">
     <div class="chat-menu" id="chat-menu">
       <a class="chat-option" href="https://whatsapp.com/channel/0029VbClKaJ0VycEEDOgGX2U" target="_blank" rel="noopener">
@@ -429,9 +440,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       </a>
       <a class="chat-option" href="tel:+2348108764924">
         <span class="chat-option-icon">T</span> Call Us
-      </a>
-      <a class="chat-option" href="global-chat.html">
-        <span class="chat-option-icon">G</span> Global Chat
       </a>
     </div>
     <button class="chat-fab" id="chat-fab" aria-label="Support">&#128172; Support</button>
