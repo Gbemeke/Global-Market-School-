@@ -97,7 +97,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
 
     <button class="pay-btn" id="pay-btn" disabled>Loading order details...</button>
-    <p class="currency-note">Students in Nigeria, Ghana, Kenya, and South Africa are automatically charged their local currency with local payment options. All other countries pay in USD by card or bank transfer.</p>
+    <p class="currency-note">Students in select countries are automatically charged their local currency with local payment options. Everyone else pays in USD by card or bank transfer.</p>
 
     <div class="confirm-panel" id="confirm-panel">
       <h2>Payment Confirmed</h2>
@@ -122,9 +122,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
-  // Fallback values -- used until (or unless) live values are loaded from
-  // the site_settings table below. Keeping real numbers here means
-  // checkout still works correctly even if that fetch fails.
+  // Fallback values -- used until (or unless) live rows are loaded from
+  // the payment_currencies table below. Keeping real numbers here means
+  // checkout still works correctly even if that fetch fails. Admins can
+  // add more countries from the admin panel without any code change --
+  // this object just gets more entries merged into it at load time.
   const AFRICA_CURRENCY = {
     "Nigeria":      { currency: "NGN", rate: 1600, options: "card, mobilemoney, ussd, banktransfer" },
     "Ghana":        { currency: "GHS", rate: 15,   options: "card, mobilemoney" },
@@ -162,7 +164,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('summary-email').textContent = currentUser.email;
     document.getElementById('summary').style.display = 'block';
 
-    await applyLiveSiteSettings();
+    await Promise.all([applyLiveSiteSettings(), applyLivePaymentCurrencies()]);
     await loadTierFromUrl();
 
     document.getElementById('loading').style.display = 'none';
@@ -206,12 +208,33 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       applyNumericSetting(map, 'price_advanced', function (n) { TIER_PRICES['Advanced'].price = n; });
       applyNumericSetting(map, 'price_elite', function (n) { TIER_PRICES['Elite'].price = n; });
       applyNumericSetting(map, 'price_trade_group', function (n) { TIER_PRICES['Trade Group'].price = n; });
-
-      applyNumericSetting(map, 'rate_usd_ngn', function (n) { AFRICA_CURRENCY['Nigeria'].rate = n; });
-      applyNumericSetting(map, 'rate_usd_ghs', function (n) { AFRICA_CURRENCY['Ghana'].rate = n; });
-      applyNumericSetting(map, 'rate_usd_kes', function (n) { AFRICA_CURRENCY['Kenya'].rate = n; });
-      applyNumericSetting(map, 'rate_usd_zar', function (n) { AFRICA_CURRENCY['South Africa'].rate = n; });
     } catch (e) { /* keep the hardcoded fallbacks above */ }
+  }
+
+  // Loads every enabled row from payment_currencies (managed live from
+  // the admin panel) and merges it into AFRICA_CURRENCY, overwriting the
+  // 4 hardcoded fallback entries with current values and adding whatever
+  // extra countries an admin has configured. A malformed or zero/negative
+  // rate on any one row is skipped -- it just won't override (or add)
+  // that particular country, everything else still loads normally.
+  async function applyLivePaymentCurrencies() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('payment_currencies')
+        .select('country, currency, rate, payment_options, enabled')
+        .eq('enabled', true);
+      if (error || !data) return;
+
+      data.forEach(function (row) {
+        const rate = Number(row.rate);
+        if (!row.country || !row.currency || !isFinite(rate) || rate <= 0) return;
+        AFRICA_CURRENCY[row.country] = {
+          currency: row.currency,
+          rate: rate,
+          options: row.payment_options || 'card, banktransfer'
+        };
+      });
+    } catch (e) { /* keep whatever AFRICA_CURRENCY already has */ }
   }
 
   // Mirrors api/verify-payment.js's TIER_COURSES -- what a tier actually

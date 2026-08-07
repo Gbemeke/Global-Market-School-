@@ -63,6 +63,32 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 }
 .setting-row button:hover{background:var(--gold); color:var(--navy-deep);}
 
+.currency-row{display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--hair); padding:12px 14px; flex-wrap:wrap;}
+.currency-row.disabled-row{opacity:0.55;}
+.currency-row .country-name{font-family:'Cinzel', serif; font-size:12px; letter-spacing:0.5px; color:var(--navy-deep); min-width:130px; flex-shrink:0;}
+.currency-row input[type="text"], .currency-row input[type="number"], .add-currency-row input, .add-currency-row select{
+  padding:8px 10px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:var(--paper);
+}
+.currency-row .cur-code{width:70px; flex-shrink:0;}
+.currency-row .cur-rate{width:100px; flex-shrink:0;}
+.currency-row .cur-options{flex:1; min-width:180px;}
+.currency-row .enabled-label{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-soft); flex-shrink:0; white-space:nowrap;}
+.currency-row .save-btn, .add-currency-row button{
+  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:none; padding:9px 12px; cursor:pointer; flex-shrink:0;
+}
+.currency-row .save-btn:hover, .add-currency-row button:hover{background:var(--gold); color:var(--navy-deep);}
+.currency-row .delete-btn{
+  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase;
+  background:none; border:1px solid var(--bad); color:var(--bad); padding:8px 12px; cursor:pointer; flex-shrink:0;
+}
+.currency-row .delete-btn:hover{background:var(--bad); color:#fff;}
+.add-currency-row{display:flex; align-items:center; gap:10px; background:var(--paper); border:1px dashed var(--hair); padding:14px; flex-wrap:wrap; margin-top:4px;}
+.add-currency-row select{min-width:170px;}
+.add-currency-row .cur-code{width:120px;}
+.add-currency-row .cur-rate{width:110px;}
+.add-currency-row .cur-options{flex:1; min-width:180px;}
+
 .withdraw-row{display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid var(--hair); padding:14px 16px; margin-bottom:8px; gap:12px; flex-wrap:wrap;}
 .withdraw-row .info p{font-size:13.5px; color:var(--ink-soft);}
 .withdraw-row .info strong{color:var(--navy-deep);}
@@ -150,8 +176,17 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         <p class="section-title">Course Prices (USD)</p>
         <div class="settings-grid" id="settings-prices"></div>
 
-        <p class="section-title">Exchange Rates (per $1 USD)</p>
-        <div class="settings-grid" id="settings-rates"></div>
+        <p class="section-title">Payment Currencies by Country</p>
+        <p class="admin-only-note">Students in a listed country are charged in that local currency, with the payment options shown, instead of USD. Options are a comma-separated list of Flutterwave payment methods (e.g. "card, mobilemoney, ussd, banktransfer") -- Flutterwave automatically hides any option that doesn't apply to the customer's currency, so it's safe to list more than you're sure of.</p>
+        <div class="settings-grid" id="settings-currencies"></div>
+        <div class="add-currency-row" id="add-currency-row">
+          <select id="add-currency-country"></select>
+          <input type="text" id="add-currency-code" class="cur-code" placeholder="Currency (e.g. UGX)" maxlength="6">
+          <input type="number" id="add-currency-rate" class="cur-rate" placeholder="Rate per $1" min="0" step="any">
+          <input type="text" id="add-currency-options" class="cur-options" value="card, banktransfer" placeholder="Payment options">
+          <button type="button" id="add-currency-btn">Add Country</button>
+        </div>
+        <p class="msg" id="currencies-msg"></p>
 
         <p class="section-title">WhatsApp Group Links</p>
         <div class="settings-grid" id="settings-links"></div>
@@ -207,6 +242,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     await loadOverview();
     await loadStudents();
     await loadSettings();
+    await loadPaymentCurrencies();
     await loadWithdrawals();
     await loadChatMod();
 
@@ -346,7 +382,6 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     (adminSettings || []).forEach(s => adminMap[s.key] = s.value);
 
     const priceKeys = ['price_beginner','price_intermediate','price_advanced','price_elite','price_trade_group'];
-    const rateKeys = ['rate_usd_ngn','rate_usd_ghs','rate_usd_kes','rate_usd_zar'];
     const linkKeys = ['wa_link_beginner','wa_link_intermediate','wa_link_advanced','wa_link_elite','wa_link_trade_group'];
 
     function buildRow(key, table, valueMap) {
@@ -357,7 +392,6 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     }
 
     document.getElementById('settings-prices').innerHTML = priceKeys.map(k => buildRow(k)).join('');
-    document.getElementById('settings-rates').innerHTML = rateKeys.map(k => buildRow(k)).join('');
     document.getElementById('settings-links').innerHTML = linkKeys.map(k => buildRow(k)).join('');
     document.getElementById('settings-broker').innerHTML = buildRow('broker_forex_link');
     document.getElementById('settings-admin-only').innerHTML = buildRow('company_payout_account', 'admin_settings', adminMap);
@@ -373,6 +407,134 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         msg.textContent = error ? 'Could not save ' + key + '.' : key + ' saved successfully.';
       });
     });
+  }
+
+  // Same country list students see on their profile/registration form --
+  // keeping it identical matters, since checkout.html matches on this
+  // exact string against the student's saved profile.country.
+  const PAYMENT_COUNTRIES = [
+    "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan",
+    "Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia",
+    "Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada",
+    "Cape Verde","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia",
+    "Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","DR Congo","Ecuador","Egypt",
+    "El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon",
+    "Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana",
+    "Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel",
+    "Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan",
+    "Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar",
+    "Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco",
+    "Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua",
+    "Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea",
+    "Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Samoa",
+    "Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia",
+    "South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria",
+    "Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan",
+    "Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela",
+    "Vietnam","Yemen","Zambia","Zimbabwe"
+  ];
+
+  async function loadPaymentCurrencies() {
+    const { data: rows, error } = await supabaseClient
+      .from('payment_currencies')
+      .select('*')
+      .order('country');
+
+    const list = document.getElementById('settings-currencies');
+    const msg = document.getElementById('currencies-msg');
+
+    if (error) {
+      list.innerHTML = '<p style="color:var(--ink-soft); font-size:14px;">Could not load payment currencies.</p>';
+      return;
+    }
+
+    const currencies = rows || [];
+
+    list.innerHTML = currencies.length
+      ? currencies.map(function (row) {
+          return '<div class="currency-row' + (row.enabled ? '' : ' disabled-row') + '" data-id="' + row.id + '">' +
+            '<span class="country-name">' + escapeHtml(row.country) + '</span>' +
+            '<input type="text" class="cur-code" value="' + escapeHtml(row.currency) + '" maxlength="6">' +
+            '<input type="number" class="cur-rate" value="' + row.rate + '" min="0" step="any">' +
+            '<input type="text" class="cur-options" value="' + escapeHtml(row.payment_options) + '">' +
+            '<label class="enabled-label"><input type="checkbox" class="cur-enabled"' + (row.enabled ? ' checked' : '') + '> Enabled</label>' +
+            '<button type="button" class="save-btn">Save</button>' +
+            '<button type="button" class="delete-btn">Remove</button>' +
+          '</div>';
+        }).join('')
+      : '<p style="color:var(--ink-soft); font-size:14px;">No countries added yet -- everyone currently pays in USD.</p>';
+
+    list.querySelectorAll('.currency-row').forEach(function (row) {
+      const id = row.getAttribute('data-id');
+
+      row.querySelector('.save-btn').addEventListener('click', async function () {
+        const currency = row.querySelector('.cur-code').value.trim().toUpperCase();
+        const rate = Number(row.querySelector('.cur-rate').value);
+        const payment_options = row.querySelector('.cur-options').value.trim();
+        const enabled = row.querySelector('.cur-enabled').checked;
+
+        if (!currency || !isFinite(rate) || rate <= 0 || !payment_options) {
+          msg.className = 'msg error';
+          msg.textContent = 'Currency, rate, and payment options are all required, and rate must be a positive number.';
+          return;
+        }
+
+        const { error: saveError } = await supabaseClient
+          .from('payment_currencies')
+          .update({ currency: currency, rate: rate, payment_options: payment_options, enabled: enabled, updated_at: new Date().toISOString() })
+          .eq('id', id);
+
+        msg.className = saveError ? 'msg error' : 'msg success';
+        msg.textContent = saveError ? 'Could not save that row.' : 'Saved.';
+        if (!saveError) await loadPaymentCurrencies();
+      });
+
+      row.querySelector('.delete-btn').addEventListener('click', async function () {
+        const { error: delError } = await supabaseClient.from('payment_currencies').delete().eq('id', id);
+        msg.className = delError ? 'msg error' : 'msg success';
+        msg.textContent = delError ? 'Could not remove that country.' : 'Removed.';
+        if (!delError) await loadPaymentCurrencies();
+      });
+    });
+
+    // "Add Country" dropdown only offers countries not already configured
+    const usedCountries = currencies.map(function (r) { return r.country; });
+    const countrySelect = document.getElementById('add-currency-country');
+    countrySelect.innerHTML = PAYMENT_COUNTRIES
+      .filter(function (c) { return usedCountries.indexOf(c) === -1; })
+      .map(function (c) { return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>'; })
+      .join('');
+
+    document.getElementById('add-currency-btn').onclick = async function () {
+      const country = countrySelect.value;
+      const currency = document.getElementById('add-currency-code').value.trim().toUpperCase();
+      const rate = Number(document.getElementById('add-currency-rate').value);
+      const payment_options = document.getElementById('add-currency-options').value.trim() || 'card, banktransfer';
+
+      if (!country) {
+        msg.className = 'msg error';
+        msg.textContent = 'All countries already have a row, or none are available to add.';
+        return;
+      }
+      if (!currency || !isFinite(rate) || rate <= 0) {
+        msg.className = 'msg error';
+        msg.textContent = 'Enter a currency code and a positive exchange rate before adding.';
+        return;
+      }
+
+      const { error: insertError } = await supabaseClient
+        .from('payment_currencies')
+        .insert({ country: country, currency: currency, rate: rate, payment_options: payment_options });
+
+      msg.className = insertError ? 'msg error' : 'msg success';
+      msg.textContent = insertError ? 'Could not add ' + country + '.' : country + ' added.';
+      if (!insertError) {
+        document.getElementById('add-currency-code').value = '';
+        document.getElementById('add-currency-rate').value = '';
+        document.getElementById('add-currency-options').value = 'card, banktransfer';
+        await loadPaymentCurrencies();
+      }
+    };
   }
 
   async function loadWithdrawals() {
