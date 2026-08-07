@@ -20,11 +20,14 @@ body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:v
 a{color:inherit;}
 .wrap{max-width:720px;margin:0 auto;padding:0 24px;}
 header{background:var(--navy-deep); color:var(--ivory);}
-.brand-row{display:flex; align-items:center; justify-content:space-between; padding:20px 0; gap:12px; flex-wrap:wrap;}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:12px; flex-wrap:wrap;}
 .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
 .brand .mark{width:30px;height:30px;border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1.5px var(--gold);}
 .mark-lg{width:44px;height:44px;border-radius:50%; box-shadow:0 0 0 1.5px var(--gold); flex-shrink:0; margin-top:2px;}
-.header-actions{display:flex; align-items:center; gap:14px;}
+.header-actions{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+.online-indicator{display:flex; align-items:center; gap:7px; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ivory); background:rgba(244,239,224,0.08); border:1px solid var(--hair); padding:6px 12px; border-radius:20px;}
+.online-dot{width:8px; height:8px; border-radius:50%; background:#3fbf6f; box-shadow:0 0 6px #3fbf6f; flex-shrink:0; animation:online-pulse 2s ease-in-out infinite;}
+@keyframes online-pulse{0%,100%{opacity:1;} 50%{opacity:0.45;}}
 .back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
 .logout-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; background:none; border:1px solid var(--gold); color:var(--gold-bright); padding:9px 16px; cursor:pointer;}
 
@@ -40,7 +43,14 @@ section{padding:24px 0;}
   width:100%; min-height:70px; padding:12px 14px; font-family:'EB Garamond', serif; font-size:15px;
   border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical;
 }
-.composer-actions{display:flex; justify-content:flex-end; margin-top:10px;}
+.composer-toolbar{display:flex; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid var(--hair); flex-wrap:wrap;}
+.media-btn{display:flex; align-items:center; gap:7px; background:none; border:1px solid var(--hair); padding:8px 14px; cursor:pointer; font-family:'EB Garamond', serif; font-size:13.5px; color:var(--ink-soft);}
+.media-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
+.media-preview{margin-top:12px; position:relative; display:inline-block;}
+.media-preview img, .media-preview video{max-width:240px; max-height:180px; border:1px solid var(--hair); display:block; background:#000;}
+.media-remove{position:absolute; top:-9px; right:-9px; width:22px; height:22px; border-radius:50%; background:var(--bad); color:#fff; border:none; cursor:pointer; font-size:13px; line-height:1;}
+.composer-actions{display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:10px;}
+.upload-progress{font-size:12.5px; color:var(--ink-soft);}
 .post-btn{
   font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
   background:var(--navy-deep); color:var(--ivory); border:none; padding:11px 22px; cursor:pointer;
@@ -53,17 +63,34 @@ section{padding:24px 0;}
 .post-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
 .post-author-row{display:flex; align-items:center; gap:9px;}
 .post-avatar{
-  width:28px; height:28px; border-radius:50%; border:1px solid var(--gold); background:var(--navy-deep);
-  color:var(--gold-bright); font-family:'Cinzel', serif; font-size:11px; font-weight:600;
+  width:34px; height:34px; border-radius:50%; border:1px solid var(--gold); background:var(--navy-deep);
+  color:var(--gold-bright); font-family:'Cinzel', serif; font-size:12.5px; font-weight:600;
   display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
 }
+.post.reply .post-avatar{width:28px; height:28px; font-size:11px;}
 .post-avatar img{width:100%; height:100%; object-fit:cover;}
 .post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
 .post-time{font-size:12px; color:var(--ink-soft);}
-.post-content{margin-top:8px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
-.post-actions{display:flex; gap:16px; margin-top:10px;}
-.post-action-link{background:none; border:none; padding:0; cursor:pointer; font-size:12.5px; color:var(--gold); font-family:'Cinzel', serif; letter-spacing:0.5px;}
-.post-action-link.delete{color:var(--bad);}
+.post-content{margin-top:10px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+
+.post-media{margin-top:12px; border:1px solid var(--hair); background:#000; overflow:hidden;}
+.post-media img, .post-media video{width:100%; max-height:440px; object-fit:contain; display:block; background:#000;}
+
+.engagement-summary{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12.5px; color:var(--ink-soft);}
+.likes-summary{display:flex; align-items:center; gap:6px;}
+.like-badge-icon{width:17px; height:17px; border-radius:50%; background:var(--gold); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0;}
+.counts-summary{display:flex; gap:12px;}
+.counts-summary span{cursor:default;}
+
+.post-actions-bar{display:flex; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); margin-top:10px;}
+.action-btn{
+  flex:1; display:flex; align-items:center; justify-content:center; gap:7px; background:none; border:none;
+  padding:9px 0; cursor:pointer; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);
+}
+.action-btn:hover{background:var(--paper);}
+.action-btn.liked{color:var(--gold);}
+.post-actions{display:flex; gap:16px; margin-top:8px;}
+.post-action-link.delete{background:none; border:none; padding:0; cursor:pointer; font-size:12px; color:var(--bad); font-family:'Cinzel', serif; letter-spacing:0.5px;}
 
 .replies{margin-top:14px; padding-left:18px; border-left:2px solid var(--hair); display:flex; flex-direction:column; gap:12px;}
 .reply-box{display:none; margin-top:12px;}
@@ -77,6 +104,9 @@ section{padding:24px 0;}
 .empty-note{text-align:center; color:var(--ink-soft); font-size:14px; padding:32px 0;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
 footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
+
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:80; opacity:0; pointer-events:none; transition:opacity .25s ease;}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
@@ -88,6 +118,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <div class="wrap brand-row">
       <a href="../index.html" class="brand"><img src="../assets/images/global-chat-logo.png" alt="" class="mark">Global Market School</a>
       <div class="header-actions">
+        <span class="online-indicator"><span class="online-dot"></span><span id="online-count">1</span> Online</span>
         <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
         <button class="logout-btn" id="logout-btn">Log Out</button>
       </div>
@@ -107,7 +138,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <section>
       <div class="composer">
         <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
+
+        <div class="media-preview" id="composer-media-preview" style="display:none;"></div>
+
+        <div class="composer-toolbar">
+          <button type="button" class="media-btn" id="attach-image-btn">&#128200; Chart / Photo</button>
+          <button type="button" class="media-btn" id="attach-video-btn">&#127909; Video</button>
+          <input type="file" id="composer-image-input" accept="image/*" style="display:none;">
+          <input type="file" id="composer-video-input" accept="video/*" style="display:none;">
+        </div>
+
         <div class="composer-actions">
+          <span class="upload-progress" id="upload-progress" style="display:none;">Uploading…</span>
           <button class="post-btn" id="new-post-btn">Post</button>
         </div>
         <p class="msg" id="composer-msg" style="display:none;"></p>
@@ -123,6 +165,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   <footer>&copy; 2026 Global Market School Ltd.</footer>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
   const supabaseClient = supabase.createClient(
     'https://djkctbtxnpdkstvznjlf.supabase.co',
@@ -134,6 +178,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentUserAvatarUrl = null;
   let currentIsAdmin = false;
   let refreshTimer = null;
+  let presenceChannel = null;
+
+  // Composer attachment state (image and video are mutually exclusive per post)
+  let composerFile = null;
+  let composerFileType = null; // 'image' | 'video'
+
+  const MAX_IMAGE_BYTES = 6 * 1024 * 1024;   // 6MB
+  const MAX_VIDEO_BYTES = 40 * 1024 * 1024;  // 40MB
+
+  function showToast(text) {
+    const toast = document.getElementById('toast');
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function() { toast.classList.remove('show'); }, 2200);
+  }
+
+  function formatCount(n) {
+    n = n || 0;
+    if (n < 1000) return String(n);
+    if (n < 1000000) return (n / 1000).toFixed(n % 1000 >= 100 ? 1 : 0).replace(/\.0$/, '') + 'K';
+    return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
 
   function timeAgo(isoString) {
     const diffMs = Date.now() - new Date(isoString).getTime();
@@ -157,10 +224,99 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     return currentIsAdmin || post.user_id === currentUserId;
   }
 
-  function renderPost(post, isReply) {
+  // ---- Composer media attachment ----
+
+  function clearComposerMedia() {
+    composerFile = null;
+    composerFileType = null;
+    document.getElementById('composer-image-input').value = '';
+    document.getElementById('composer-video-input').value = '';
+    const preview = document.getElementById('composer-media-preview');
+    preview.style.display = 'none';
+    preview.innerHTML = '';
+  }
+
+  function renderComposerPreview() {
+    const preview = document.getElementById('composer-media-preview');
+    const url = URL.createObjectURL(composerFile);
+    const mediaTag = composerFileType === 'video'
+      ? '<video src="' + url + '" controls></video>'
+      : '<img src="' + url + '" alt="">';
+    preview.innerHTML = mediaTag + '<button type="button" class="media-remove" id="composer-media-remove">&times;</button>';
+    preview.style.display = 'block';
+    document.getElementById('composer-media-remove').addEventListener('click', clearComposerMedia);
+  }
+
+  document.getElementById('attach-image-btn').addEventListener('click', function() {
+    document.getElementById('composer-image-input').click();
+  });
+  document.getElementById('attach-video-btn').addEventListener('click', function() {
+    document.getElementById('composer-video-input').click();
+  });
+
+  document.getElementById('composer-image-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > MAX_IMAGE_BYTES) {
+      showToast('Image must be under 6MB.');
+      e.target.value = '';
+      return;
+    }
+    composerFile = file;
+    composerFileType = 'image';
+    renderComposerPreview();
+  });
+
+  document.getElementById('composer-video-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > MAX_VIDEO_BYTES) {
+      showToast('Video must be under 40MB.');
+      e.target.value = '';
+      return;
+    }
+    composerFile = file;
+    composerFileType = 'video';
+    renderComposerPreview();
+  });
+
+  async function uploadComposerMedia() {
+    if (!composerFile) return { image_url: null, video_url: null };
+
+    const ext = (composerFile.name.split('.').pop() || (composerFileType === 'video' ? 'mp4' : 'jpg')).toLowerCase();
+    const path = currentUserId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('chat-media')
+      .upload(path, composerFile, { cacheControl: '3600' });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabaseClient.storage.from('chat-media').getPublicUrl(path);
+    return composerFileType === 'video'
+      ? { image_url: null, video_url: urlData.publicUrl }
+      : { image_url: urlData.publicUrl, video_url: null };
+  }
+
+  // ---- Feed rendering ----
+
+  function renderPost(post, isReply, likesByPost, sharesByPost, repliesByParent) {
     const avatarInner = post.author_avatar_url
       ? '<img src="' + escapeHtml(post.author_avatar_url) + '" alt="">'
       : escapeHtml((post.author_name || 'A').charAt(0).toUpperCase());
+
+    const likeRows = likesByPost[post.id] || [];
+    const likeCount = likeRows.length;
+    const iLiked = likeRows.some(function(r) { return r.user_id === currentUserId; });
+    const commentCount = isReply ? 0 : ((repliesByParent[post.id] || []).length);
+    const shareCount = isReply ? 0 : ((sharesByPost[post.id] || []).length);
+
+    let mediaHtml = '';
+    if (post.image_url) {
+      mediaHtml = '<div class="post-media"><img src="' + escapeHtml(post.image_url) + '" alt="Shared chart or photo" loading="lazy"></div>';
+    } else if (post.video_url) {
+      mediaHtml = '<div class="post-media"><video src="' + escapeHtml(post.video_url) + '" controls playsinline></video></div>';
+    }
 
     const el = document.createElement('div');
     el.className = isReply ? 'post reply' : 'post';
@@ -171,8 +327,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
       '</div>' +
       '<p class="post-content">' + escapeHtml(post.content) + '</p>' +
+      mediaHtml +
+      (!isReply ?
+        '<div class="engagement-summary">' +
+          '<span class="likes-summary">' + (likeCount ? '<span class="like-badge-icon">&#128077;</span>' + formatCount(likeCount) : '') + '</span>' +
+          '<span class="counts-summary">' +
+            (commentCount ? '<span>' + formatCount(commentCount) + ' Comment' + (commentCount === 1 ? '' : 's') + '</span>' : '') +
+            (shareCount ? '<span>' + formatCount(shareCount) + ' Share' + (shareCount === 1 ? '' : 's') + '</span>' : '') +
+          '</span>' +
+        '</div>' +
+        '<div class="post-actions-bar">' +
+          '<button class="action-btn like-toggle' + (iLiked ? ' liked' : '') + '" data-id="' + post.id + '" data-liked="' + iLiked + '">&#128077; Like</button>' +
+          '<button class="action-btn reply-toggle" data-id="' + post.id + '">&#128172; Comment</button>' +
+          '<button class="action-btn share-btn" data-id="' + post.id + '">&#8599; Share</button>' +
+        '</div>'
+      : '') +
       '<div class="post-actions">' +
-        (!isReply ? '<button class="post-action-link reply-toggle" data-id="' + post.id + '">Reply</button>' : '') +
         (canDelete(post) ? '<button class="post-action-link delete" data-id="' + post.id + '">Delete</button>' : '') +
       '</div>';
 
@@ -181,8 +351,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       replyBox.className = 'reply-box';
       replyBox.id = 'reply-box-' + post.id;
       replyBox.innerHTML =
-        '<textarea placeholder="Write a reply..." maxlength="2000"></textarea>' +
-        '<div class="composer-actions"><button class="post-btn reply-submit" data-id="' + post.id + '">Reply</button></div>';
+        '<textarea placeholder="Write a comment..." maxlength="2000"></textarea>' +
+        '<div class="composer-actions"><button class="post-btn reply-submit" data-id="' + post.id + '">Comment</button></div>';
       el.appendChild(replyBox);
 
       const repliesWrap = document.createElement('div');
@@ -205,6 +375,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       return;
     }
 
+    const [{ data: likes }, { data: shares }] = await Promise.all([
+      supabaseClient.from('global_chat_likes').select('post_id, user_id'),
+      supabaseClient.from('global_chat_shares').select('post_id, user_id')
+    ]);
+
+    const likesByPost = {};
+    (likes || []).forEach(function(r) {
+      likesByPost[r.post_id] = likesByPost[r.post_id] || [];
+      likesByPost[r.post_id].push(r);
+    });
+    const sharesByPost = {};
+    (shares || []).forEach(function(r) {
+      sharesByPost[r.post_id] = sharesByPost[r.post_id] || [];
+      sharesByPost[r.post_id].push(r);
+    });
+
     const feed = document.getElementById('feed');
     const emptyNote = document.getElementById('empty-note');
     const openReplyBoxes = new Set(
@@ -224,13 +410,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     emptyNote.style.display = topLevel.length ? 'none' : 'block';
 
     topLevel.forEach(function(post) {
-      const el = renderPost(post, false);
+      const el = renderPost(post, false, likesByPost, sharesByPost, repliesByParent);
       feed.appendChild(el);
 
       const repliesWrap = el.querySelector('#replies-' + post.id);
       const replies = (repliesByParent[post.id] || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       replies.forEach(function(reply) {
-        repliesWrap.appendChild(renderPost(reply, true));
+        repliesWrap.appendChild(renderPost(reply, true, likesByPost, sharesByPost, repliesByParent));
       });
 
       if (openReplyBoxes.has('reply-box-' + post.id)) {
@@ -274,6 +460,41 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       });
     });
 
+    document.querySelectorAll('.like-toggle').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const postId = btn.getAttribute('data-id');
+        const alreadyLiked = btn.getAttribute('data-liked') === 'true';
+        btn.disabled = true;
+
+        if (alreadyLiked) {
+          await supabaseClient.from('global_chat_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
+        } else {
+          await supabaseClient.from('global_chat_likes').insert({ post_id: postId, user_id: currentUserId });
+        }
+
+        btn.disabled = false;
+        await loadFeed();
+      });
+    });
+
+    document.querySelectorAll('.share-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const postId = btn.getAttribute('data-id');
+        btn.disabled = true;
+        await supabaseClient.from('global_chat_shares').insert({ post_id: postId, user_id: currentUserId });
+        btn.disabled = false;
+
+        try {
+          const link = window.location.origin + window.location.pathname + '#post-' + postId;
+          await navigator.clipboard.writeText(link);
+          showToast('Link copied — share it with your class!');
+        } catch (e) {
+          showToast('Shared!');
+        }
+        await loadFeed();
+      });
+    });
+
     document.querySelectorAll('.post-action-link.delete').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         if (!confirm('Delete this post?')) return;
@@ -287,32 +508,66 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const textarea = document.getElementById('new-post-text');
     const content = textarea.value.trim();
     const msg = document.getElementById('composer-msg');
-    if (!content) return;
+    if (!content && !composerFile) return;
 
     const btn = document.getElementById('new-post-btn');
+    const progress = document.getElementById('upload-progress');
     btn.disabled = true;
-    const { error } = await supabaseClient.from('global_chat_posts').insert({
-      user_id: currentUserId,
-      author_name: currentUserName,
-      author_avatar_url: currentUserAvatarUrl,
-      content: content
-    });
-    btn.disabled = false;
+    msg.style.display = 'none';
 
-    if (error) {
+    try {
+      let media = { image_url: null, video_url: null };
+      if (composerFile) {
+        progress.style.display = 'inline';
+        media = await uploadComposerMedia();
+        progress.style.display = 'none';
+      }
+
+      const { error } = await supabaseClient.from('global_chat_posts').insert({
+        user_id: currentUserId,
+        author_name: currentUserName,
+        author_avatar_url: currentUserAvatarUrl,
+        content: content,
+        image_url: media.image_url,
+        video_url: media.video_url
+      });
+
+      if (error) throw error;
+
+      textarea.value = '';
+      clearComposerMedia();
+      await loadFeed();
+    } catch (e) {
+      progress.style.display = 'none';
       msg.style.display = 'block';
       msg.textContent = 'Could not post. Please try again.';
-    } else {
-      textarea.value = '';
-      msg.style.display = 'none';
-      await loadFeed();
     }
+
+    btn.disabled = false;
   });
 
   document.getElementById('logout-btn').addEventListener('click', async function() {
     await supabaseClient.auth.signOut();
     window.location.href = '../index.html';
   });
+
+  function startPresence() {
+    presenceChannel = supabaseClient.channel('global-chat-online', {
+      config: { presence: { key: currentUserId } }
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, function() {
+        const state = presenceChannel.presenceState();
+        const count = Object.keys(state).length || 1;
+        document.getElementById('online-count').textContent = count;
+      })
+      .subscribe(async function(status) {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString(), name: currentUserName });
+        }
+      });
+  }
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -336,6 +591,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
 
     await loadFeed();
+    startPresence();
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('chat-page').style.display = 'block';
