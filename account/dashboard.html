@@ -258,6 +258,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .join-fab:hover{background:#2f6249;}
 
+/* On narrow screens the tier cards run edge-to-edge, so these three
+   fixed buttons sit directly on top of card content (lesson links,
+   enrollment badges) at almost any scroll position -- confirmed by
+   actually rendering the page, not just reading the CSS. Fading them
+   out while actively scrolling (and back in once scrolling settles or
+   reverses) keeps them available without permanently blocking taps on
+   whatever's underneath. Desktop has enough side margin that this
+   never happens there, but applying it everywhere is harmless. */
+.join-fab, .global-chat-fab, .chat-fab-wrap{transition:opacity .25s ease, transform .25s ease;}
+.join-fab.fab-hidden, .global-chat-fab.fab-hidden, .chat-fab-wrap.fab-hidden{
+  opacity:0; transform:translateY(16px) scale(0.94); pointer-events:none;
+}
+.chat-fab-wrap.fab-hidden .chat-fab, .chat-fab-wrap.fab-hidden .chat-menu.open{pointer-events:none;}
+
 .join-panel{
   position:fixed; top:0; left:0; height:100%; width:min(420px, 92vw); background:var(--paper);
   border-right:1px solid var(--gold); box-shadow:24px 0 60px -20px rgba(0,0,0,0.4);
@@ -296,6 +310,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .join-request-btn:hover{background:var(--gold-bright);}
 .join-request-btn.deemed{background:#ddd8c8; color:#8a8474; border-color:#ddd8c8; cursor:not-allowed; pointer-events:none;}
 .join-req-note{font-size:12px; color:var(--ink-soft); margin-top:10px; text-align:center;}
+
+.modal-overlay{position:fixed; inset:0; background:rgba(11,27,51,0.55); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff; max-width:400px; width:100%; padding:24px; border:1px solid var(--hair); box-shadow:0 20px 60px -10px rgba(0,0,0,0.5);}
+.modal-title{font-family:'Cinzel', serif; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:12px;}
+.modal-message{font-size:15px; color:var(--ink); margin-bottom:14px;}
+.modal-box textarea, .modal-box input[type="text"]{width:100%; min-height:44px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14.5px; border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical; margin-bottom:14px;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px;}
+.modal-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 18px; cursor:pointer; border:1px solid var(--hair); background:none; color:var(--ink-soft);}
+.modal-btn.cancel:hover{border-color:var(--gold); color:var(--navy-deep);}
+.modal-btn.confirm{background:var(--navy-deep); color:var(--ivory); border-color:var(--navy-deep);}
+.modal-btn.confirm:hover{background:var(--gold); color:var(--navy-deep); border-color:var(--gold);}
+.modal-btn.confirm.danger{background:var(--bad); border-color:var(--bad);}
+.modal-btn.confirm.danger:hover{background:#a8483a; border-color:#a8483a;}
 </style>
 </head>
 <body>
@@ -460,6 +488,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   <footer>&copy; 2026 Global Market School Ltd.</footer>
 </div>
 
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <p class="modal-title" id="modal-title"></p>
+    <p class="modal-message" id="modal-message"></p>
+    <input type="text" id="modal-input" style="display:none;">
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="modal-cancel">Cancel</button>
+      <button type="button" class="modal-btn confirm" id="modal-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const supabaseClient = supabase.createClient(
     'https://djkctbtxnpdkstvznjlf.supabase.co',
@@ -482,6 +522,52 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const html = currentAvatarUrl ? '<img src="' + currentAvatarUrl + '" alt="">' : currentInitial;
     document.getElementById('profile-btn').innerHTML = html;
     document.getElementById('avatar-preview').innerHTML = html;
+  }
+
+  // Custom confirm/prompt dialog — replaces the browser's native confirm()/
+  // prompt(), which shows an unbranded "globalmarketschool.com says" bar.
+  // Resolves to: `true` for a plain confirm, the typed string for a prompt
+  // (showInput:true), or `null` if the user cancelled or tapped outside.
+  function showModal(opts) {
+    return new Promise(function (resolve) {
+      const overlay = document.getElementById('modal-overlay');
+      const input = document.getElementById('modal-input');
+      const confirmBtn = document.getElementById('modal-confirm');
+      const cancelBtn = document.getElementById('modal-cancel');
+
+      document.getElementById('modal-title').textContent = opts.title || '';
+      document.getElementById('modal-message').textContent = opts.message || '';
+
+      if (opts.showInput) {
+        input.style.display = 'block';
+        input.placeholder = opts.inputPlaceholder || '';
+        input.value = opts.inputValue || '';
+      } else {
+        input.style.display = 'none';
+        input.value = '';
+      }
+
+      confirmBtn.textContent = opts.confirmLabel || 'OK';
+      confirmBtn.className = 'modal-btn confirm' + (opts.danger ? ' danger' : '');
+
+      function cleanup(result) {
+        overlay.classList.remove('show');
+        confirmBtn.removeEventListener('click', onConfirmClick);
+        cancelBtn.removeEventListener('click', onCancelClick);
+        overlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onConfirmClick() { cleanup(opts.showInput ? input.value : true); }
+      function onCancelClick() { cleanup(null); }
+      function onOverlayClick(e) { if (e.target === overlay) cleanup(null); }
+
+      confirmBtn.addEventListener('click', onConfirmClick);
+      cancelBtn.addEventListener('click', onCancelClick);
+      overlay.addEventListener('click', onOverlayClick);
+
+      overlay.classList.add('show');
+      if (opts.showInput) input.focus();
+    });
   }
 
   const COUNTRIES = [
@@ -650,7 +736,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const userId = session.user.id;
     currentUserId = userId;
     checkGlobalChatUnread(userId);
-    applyLiveWhatsAppLinks();
 
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
@@ -695,6 +780,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     grid.innerHTML = '';
     unlockedTierKeys = [];
 
+    // Wait for live prices/links before rendering a single card, so
+    // nobody ever sees a price here that disagrees with what checkout
+    // actually charges (the same TIERS.price values were previously
+    // hardcoded and never touched an admin's edit in Site Settings).
+    await applyLiveSiteSettings();
+
     TIERS.forEach(function(tier) {
       const unlocked = tier.requiredCourses.every(k => unlockedKeys.includes(k));
       if (unlocked) unlockedTierKeys.push(tier.key);
@@ -727,6 +818,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       grid.appendChild(card);
     });
 
+    // Nothing to join yet -- the button would only ever tell a brand-new
+    // student "you need to be enrolled first," so don't clutter their
+    // screen with it until they actually have a class to join.
+    document.getElementById('join-fab').style.display = unlockedTierKeys.length ? '' : 'none';
+
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
       .select('commission_amount, paid_out, currency')
@@ -756,10 +852,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       return;
     }
 
-    const payoutDetails = prompt(
-      'Available balance: $' + availableBalance.toFixed(2) + '\n\n' +
-      'Enter your payout details (bank account or mobile money number):'
-    );
+    const payoutDetails = await showModal({
+      title: 'Withdraw Earnings',
+      message: 'Available balance: $' + availableBalance.toFixed(2) + '. Enter your payout details (bank account or mobile money number):',
+      showInput: true,
+      inputPlaceholder: 'e.g. Bank name, account number',
+      confirmLabel: 'Submit Request'
+    });
 
     if (!payoutDetails) return;
 
@@ -861,24 +960,39 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // there's no admin UI for that yet -- only the link itself is live.
   // Any missing/empty row is skipped, leaving the hardcoded link above
   // in place for that one tier.
-  async function applyLiveWhatsAppLinks() {
-    const KEY_TO_TIER = {
+  async function applyLiveSiteSettings() {
+    const LINK_KEY_TO_TIER = {
       wa_link_beginner: 'Beginner',
       wa_link_intermediate: 'Intermediate',
       wa_link_advanced: 'Advanced',
       wa_link_elite: 'Elite',
       wa_link_trade_group: 'Trade Group'
     };
+    const PRICE_KEY_TO_TIER = {
+      price_beginner: 'Beginner',
+      price_intermediate: 'Intermediate',
+      price_advanced: 'Advanced',
+      price_elite: 'Elite',
+      price_trade_group: 'Trade Group'
+    };
     try {
       const { data, error } = await supabaseClient.from('site_settings').select('key, value');
       if (error || !data) return;
       data.forEach(function (row) {
-        const tier = KEY_TO_TIER[row.key];
-        if (tier && WHATSAPP_CONFIG[tier] && row.value) {
-          WHATSAPP_CONFIG[tier].link = row.value;
+        const linkTier = LINK_KEY_TO_TIER[row.key];
+        if (linkTier && WHATSAPP_CONFIG[linkTier] && row.value) {
+          WHATSAPP_CONFIG[linkTier].link = row.value;
+        }
+        const priceTier = PRICE_KEY_TO_TIER[row.key];
+        if (priceTier) {
+          const n = Number(row.value);
+          if (isFinite(n) && n > 0) {
+            const t = TIERS.find(function (x) { return x.key === priceTier; });
+            if (t) t.price = n;
+          }
         }
       });
-    } catch (e) { /* keep the hardcoded links above */ }
+    } catch (e) { /* keep the hardcoded prices/links above */ }
   }
 
   function tierTitleFor(key) {
@@ -1177,7 +1291,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   });
 
   document.getElementById('mfa-disable-btn').addEventListener('click', async function() {
-    if (!confirm('Turn off two-factor authentication for your account?')) return;
+    const ok = await showModal({
+      title: 'Disable Two-Factor Authentication',
+      message: 'Turn off two-factor authentication for your account? This makes your account easier to access, but less secure.',
+      confirmLabel: 'Disable 2FA',
+      danger: true
+    });
+    if (!ok) return;
 
     const msg = document.getElementById('mfa-msg');
     msg.style.display = 'none';
@@ -1247,6 +1367,34 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   loadMarketTicker();
   setInterval(loadMarketTicker, 5 * 60 * 1000);
+
+  // ---- Floating buttons: fade out while actively scrolling ----
+  // (see the .fab-hidden CSS comment for why this exists)
+  (function () {
+    const targets = [
+      document.getElementById('join-fab'),
+      document.querySelector('.global-chat-fab'),
+      document.querySelector('.chat-fab-wrap')
+    ].filter(Boolean);
+    if (!targets.length) return;
+
+    let lastY = window.scrollY;
+    let settleTimer = null;
+
+    function setHidden(hidden) {
+      targets.forEach(function (el) { el.classList.toggle('fab-hidden', hidden); });
+    }
+
+    window.addEventListener('scroll', function () {
+      const y = window.scrollY;
+      if (y > lastY + 4) setHidden(true);       // scrolling down -> get out of the way
+      else if (y < lastY - 4) setHidden(false);  // scrolling up -> show again
+      lastY = y;
+
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(function () { setHidden(false); }, 700); // reveal once scrolling stops
+    }, { passive: true });
+  })();
 
   init();
 </script>
