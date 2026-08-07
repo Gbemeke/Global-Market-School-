@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://checkout.flutterwave.com/v3.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --navy-deep:#0b1b33;
@@ -109,6 +110,12 @@ main{padding:56px 0 90px;}
 .field input:focus, .field select:focus{
   outline:none; border-color:var(--gold);
 }
+.phone-row{display:flex; gap:8px;}
+.phone-code{
+  flex-shrink:0; padding:13px 14px; border:1px solid var(--hair); background:var(--paper);
+  font-family:'Cinzel', serif; font-size:15px; color:var(--navy-deep); min-width:68px; text-align:center;
+}
+.phone-row input{flex:1;}
 .row-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
 @media (max-width:520px){.row-2{grid-template-columns:1fr;}}
 
@@ -217,28 +224,28 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
               <span class="tier-price">$100</span>
             </label>
 
-            <label class="tier" data-price="150">
+            <label class="tier" data-price="200">
               <div class="tier-info">
                 <input type="radio" name="tier" value="Advanced">
                 <div><h3>Advanced Class</h3><p>Market structure and institutional practice</p></div>
               </div>
-              <span class="tier-price">$150</span>
+              <span class="tier-price">$200</span>
             </label>
 
-            <label class="tier" data-price="500">
+            <label class="tier" data-price="1000">
               <div class="tier-info">
                 <input type="radio" name="tier" value="Elite">
                 <div><h3>Elite Group</h3><p>Direct CEO access and mentorship</p></div>
               </div>
-              <span class="tier-price">$500</span>
+              <span class="tier-price">$1,000</span>
             </label>
 
-            <label class="tier" data-price="2000">
+            <label class="tier" data-price="2500">
               <div class="tier-info">
                 <input type="radio" name="tier" value="Trade Group">
                 <div><h3>Trade Group</h3><p>Live trading sessions with the CEO</p></div>
               </div>
-              <span class="tier-price">$2,000</span>
+              <span class="tier-price">$2,500</span>
             </label>
           </div>
 
@@ -247,31 +254,21 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
             <label for="full-name">Full Name</label>
             <input type="text" id="full-name" required autocomplete="name">
           </div>
-          <div class="row-2">
-            <div class="field">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" required autocomplete="email">
-            </div>
-            <div class="field">
-              <label for="phone">Phone Number</label>
-              <input type="tel" id="phone" required autocomplete="tel">
-            </div>
+          <div class="field">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" required autocomplete="email">
           </div>
           <div class="field">
             <label for="country">Country</label>
-            <select id="country" required>
-              <option value="">Select your country</option>
-              <option>Nigeria</option>
-              <option>Ghana</option>
-              <option>Kenya</option>
-              <option>South Africa</option>
-              <option>United Kingdom</option>
-              <option>United States</option>
-              <option>India</option>
-              <option>United Arab Emirates</option>
-              <option>Other</option>
-            </select>
-            <p class="fine-print" style="margin-top:8px;">Students in Nigeria, Ghana, Kenya, and South Africa are automatically charged their local currency, with mobile money and other local payment options available. All other countries are charged in USD by card.</p>
+            <select id="country" required></select>
+          </div>
+          <div class="field">
+            <label for="phone">Phone Number</label>
+            <div class="phone-row">
+              <span class="phone-code" id="phone-code">+ &mdash;</span>
+              <input type="tel" id="phone" required autocomplete="tel" placeholder="Number without country code">
+            </div>
+            <p class="fine-print" style="margin-top:8px;">Students in select countries are automatically charged their local currency, with mobile money and other local payment options available. Everyone else pays in USD by card or bank transfer.</p>
           </div>
 
           <button type="submit" class="pay-btn" id="pay-btn" disabled>Select a course to continue</button>
@@ -330,6 +327,106 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 </footer>
 
 <script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  // Same list (and dial codes) used at account registration -- keeping
+  // these identical matters, since AFRICA_CURRENCY below matches on
+  // exact strings from this same list.
+  const COUNTRIES = [
+    ["Afghanistan","93"],["Albania","355"],["Algeria","213"],["Andorra","376"],["Angola","244"],
+    ["Argentina","54"],["Armenia","374"],["Australia","61"],["Austria","43"],["Azerbaijan","994"],
+    ["Bahamas","1"],["Bahrain","973"],["Bangladesh","880"],["Barbados","1"],["Belarus","375"],
+    ["Belgium","32"],["Belize","501"],["Benin","229"],["Bhutan","975"],["Bolivia","591"],
+    ["Bosnia and Herzegovina","387"],["Botswana","267"],["Brazil","55"],["Brunei","673"],["Bulgaria","359"],
+    ["Burkina Faso","226"],["Burundi","257"],["Cambodia","855"],["Cameroon","237"],["Canada","1"],
+    ["Cape Verde","238"],["Central African Republic","236"],["Chad","235"],["Chile","56"],["China","86"],
+    ["Colombia","57"],["Comoros","269"],["Congo","242"],["Costa Rica","506"],["Croatia","385"],
+    ["Cuba","53"],["Cyprus","357"],["Czech Republic","420"],["Denmark","45"],["Djibouti","253"],
+    ["Dominica","1"],["Dominican Republic","1"],["DR Congo","243"],["Ecuador","593"],["Egypt","20"],
+    ["El Salvador","503"],["Equatorial Guinea","240"],["Eritrea","291"],["Estonia","372"],["Eswatini","268"],
+    ["Ethiopia","251"],["Fiji","679"],["Finland","358"],["France","33"],["Gabon","241"],
+    ["Gambia","220"],["Georgia","995"],["Germany","49"],["Ghana","233"],["Greece","30"],
+    ["Grenada","1"],["Guatemala","502"],["Guinea","224"],["Guinea-Bissau","245"],["Guyana","592"],
+    ["Haiti","509"],["Honduras","504"],["Hungary","36"],["Iceland","354"],["India","91"],
+    ["Indonesia","62"],["Iran","98"],["Iraq","964"],["Ireland","353"],["Israel","972"],
+    ["Italy","39"],["Ivory Coast","225"],["Jamaica","1"],["Japan","81"],["Jordan","962"],
+    ["Kazakhstan","7"],["Kenya","254"],["Kiribati","686"],["Kuwait","965"],["Kyrgyzstan","996"],
+    ["Laos","856"],["Latvia","371"],["Lebanon","961"],["Lesotho","266"],["Liberia","231"],
+    ["Libya","218"],["Liechtenstein","423"],["Lithuania","370"],["Luxembourg","352"],["Madagascar","261"],
+    ["Malawi","265"],["Malaysia","60"],["Maldives","960"],["Mali","223"],["Malta","356"],
+    ["Mauritania","222"],["Mauritius","230"],["Mexico","52"],["Moldova","373"],["Monaco","377"],
+    ["Mongolia","976"],["Montenegro","382"],["Morocco","212"],["Mozambique","258"],["Myanmar","95"],
+    ["Namibia","264"],["Nepal","977"],["Netherlands","31"],["New Zealand","64"],["Nicaragua","505"],
+    ["Niger","227"],["Nigeria","234"],["North Korea","850"],["North Macedonia","389"],["Norway","47"],
+    ["Oman","968"],["Pakistan","92"],["Palau","680"],["Panama","507"],["Papua New Guinea","675"],
+    ["Paraguay","595"],["Peru","51"],["Philippines","63"],["Poland","48"],["Portugal","351"],
+    ["Qatar","974"],["Romania","40"],["Russia","7"],["Rwanda","250"],["Samoa","685"],
+    ["Saudi Arabia","966"],["Senegal","221"],["Serbia","381"],["Seychelles","248"],["Sierra Leone","232"],
+    ["Singapore","65"],["Slovakia","421"],["Slovenia","386"],["Solomon Islands","677"],["Somalia","252"],
+    ["South Africa","27"],["South Korea","82"],["South Sudan","211"],["Spain","34"],["Sri Lanka","94"],
+    ["Sudan","249"],["Suriname","597"],["Sweden","46"],["Switzerland","41"],["Syria","963"],
+    ["Taiwan","886"],["Tajikistan","992"],["Tanzania","255"],["Thailand","66"],["Togo","228"],
+    ["Tonga","676"],["Trinidad and Tobago","1"],["Tunisia","216"],["Turkey","90"],["Turkmenistan","993"],
+    ["Uganda","256"],["Ukraine","380"],["United Arab Emirates","971"],["United Kingdom","44"],["United States","1"],
+    ["Uruguay","598"],["Uzbekistan","998"],["Vanuatu","678"],["Vatican City","379"],["Venezuela","58"],
+    ["Vietnam","84"],["Yemen","967"],["Zambia","260"],["Zimbabwe","263"]
+  ];
+
+  function populateCountryDropdown() {
+    const select = document.getElementById('country');
+    select.innerHTML = '<option value="">Select your country</option>';
+    COUNTRIES.forEach(function (c) {
+      const opt = document.createElement('option');
+      opt.value = c[0];
+      opt.textContent = c[0];
+      select.appendChild(opt);
+    });
+  }
+
+  function updatePhoneCode() {
+    const countryName = document.getElementById('country').value;
+    const match = COUNTRIES.find(function (c) { return c[0] === countryName; });
+    document.getElementById('phone-code').textContent = match ? ('+' + match[1]) : '+ —';
+  }
+
+  populateCountryDropdown();
+  document.getElementById('country').addEventListener('change', updatePhoneCode);
+
+  // Fallback values -- overwritten below with whatever the admin panel's
+  // Payment Currencies section currently has saved, so an admin editing
+  // a rate there actually changes what a guest is charged here too.
+  // Keeping real numbers here means this page still works correctly
+  // even if that fetch fails.
+  const AFRICA_CURRENCY = {
+    "Nigeria":      { currency: "NGN", rate: 1600, options: "card, mobilemoney, ussd, banktransfer" },
+    "Ghana":        { currency: "GHS", rate: 15,   options: "card, mobilemoney" },
+    "Kenya":        { currency: "KES", rate: 130,  options: "card, mobilemoney" },
+    "South Africa": { currency: "ZAR", rate: 18,   options: "card, mobilemoney, banktransfer" },
+  };
+
+  (async function applyLivePaymentCurrencies() {
+    try {
+      const { data, error } = await supabaseClient
+        .from('payment_currencies')
+        .select('country, currency, rate, payment_options, enabled')
+        .eq('enabled', true);
+      if (error || !data) return;
+
+      data.forEach(function (row) {
+        const rate = Number(row.rate);
+        if (!row.country || !row.currency || !isFinite(rate) || rate <= 0) return;
+        AFRICA_CURRENCY[row.country] = {
+          currency: row.currency,
+          rate: rate,
+          options: row.payment_options || 'card, banktransfer'
+        };
+      });
+    } catch (e) { /* keep whatever AFRICA_CURRENCY already has */ }
+  })();
+
   // WhatsApp group links per tier — replace placeholders with real invite links.
   const WA_LINKS = {
     "Beginner": "https://chat.whatsapp.com/GTqdXlYwskf6f6X7GEPnJf?s=cl&p=a&ilr=1&amv=0",
@@ -365,22 +462,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     if(!selectedTier){ return; }
 
-    // Approximate exchange rates, USD → local currency. These move
-    // over time — update the numbers below occasionally to stay
-    // accurate (search e.g. "USD to GHS" for the current rate).
-    // Each African country here gets its local currency plus easy
-    // local payment methods (mobile money, USSD, bank transfer).
-    // Everyone outside Africa pays in USD by card, kept simple.
-    const AFRICA_CURRENCY = {
-      "Nigeria":      { currency: "NGN", rate: 1600, options: "card, mobilemoney, ussd, banktransfer" },
-      "Ghana":        { currency: "GHS", rate: 15,   options: "card, mobilemoney" },
-      "Kenya":        { currency: "KES", rate: 130,  options: "card, mobilemoney" },
-      "South Africa": { currency: "ZAR", rate: 18,   options: "card, mobilemoney, banktransfer" },
-    };
-
     let checkoutAmount = selectedPrice;
     let checkoutCurrency = "USD";
-    let checkoutOptions = "card";
+    // Everyone outside the local-currency countries below still pays in
+    // USD, but isn't limited to card only -- Flutterwave settles every
+    // currency into the same account regardless, and automatically
+    // hides whichever of these doesn't apply to the customer's card.
+    let checkoutOptions = "card, banktransfer, credit";
 
     if (AFRICA_CURRENCY[country]) {
       const local = AFRICA_CURRENCY[country];
