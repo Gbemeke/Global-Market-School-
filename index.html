@@ -65,7 +65,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{overflow-x:hidden; max-width:100%;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth; scroll-padding-top:90px;}
 body{
   font-family:'EB Garamond', Georgia, serif;
   background:var(--paper);
@@ -87,6 +87,7 @@ header{
 nav{
   display:flex; align-items:center; justify-content:space-between;
   padding:20px 0;
+  position:relative;
 }
 .brand{
   display:flex; align-items:center; gap:10px;
@@ -122,14 +123,44 @@ nav{
 .nav-login{
   font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1.5px; text-transform:uppercase;
   text-decoration:none; color:var(--navy-deep); border-bottom:1px solid transparent; padding:4px 0;
+  white-space:nowrap;
 }
 .nav-login:hover{color:var(--gold); border-color:var(--gold);}
-.nav-toggle{display:none;}
+.nav-login-mobile{display:none;}
+
+.nav-toggle{
+  display:none; background:none; border:none; cursor:pointer;
+  width:30px; height:26px; padding:0; position:relative; flex-shrink:0;
+}
+.nav-toggle span{
+  position:absolute; left:0; right:0; height:2px; background:var(--navy-deep);
+  transition:transform .2s ease, opacity .2s ease;
+}
+.nav-toggle span:nth-child(1){top:2px;}
+.nav-toggle span:nth-child(2){top:12px;}
+.nav-toggle span:nth-child(3){top:22px;}
+.nav-toggle.open span:nth-child(1){transform:translateY(10px) rotate(45deg);}
+.nav-toggle.open span:nth-child(2){opacity:0;}
+.nav-toggle.open span:nth-child(3){transform:translateY(-10px) rotate(-45deg);}
 
 @media (max-width:860px){
   .nav-links{display:none;}
   .nav-cta{padding:9px 16px; font-size:10.5px;}
-  .nav-login{font-size:10.5px;}
+  .nav-login{display:none;}
+  .nav-toggle{display:block; order:2;}
+  .nav-actions{order:3;}
+  .nav-links.mobile-open{
+    display:flex; flex-direction:column; gap:0; list-style:none;
+    position:absolute; top:100%; left:0; right:0; z-index:40;
+    background:var(--paper); border-bottom:1px solid var(--hair);
+    box-shadow:0 16px 30px -14px rgba(0,0,0,0.25);
+    padding:6px 24px 14px;
+  }
+  .nav-links.mobile-open li{width:100%;}
+  .nav-links.mobile-open a{
+    display:block; padding:15px 0; border-bottom:1px solid var(--hair); font-size:17px;
+  }
+  .nav-login-mobile{display:list-item;}
 }
 
 /* ---------- HERO ---------- */
@@ -290,7 +321,11 @@ section{padding:96px 0;}
   gap:28px;
   padding:26px 0;
   border-bottom:1px solid var(--hair);
+  text-decoration:none; color:inherit;
+  transition:padding-left .15s ease;
 }
+.lesson:hover{padding-left:8px;}
+.lesson:hover h3{color:var(--gold-bright);}
 .lesson .num{
   font-family:'Cormorant Garamond', serif; font-style:italic;
   font-size:34px; color:var(--gold-bright); font-weight:500;
@@ -315,6 +350,9 @@ section{padding:96px 0;}
   display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
 }
 .curriculum-cta p{font-size:16px; color:rgba(244,239,224,0.75); max-width:44ch;}
+/* .curriculum-cta is reused inside #programs, which has a light background —
+   the ivory text above is only legible on the dark #curriculum section. */
+.programs .curriculum-cta p{color:var(--ink-soft);}
 @media (max-width:600px){.curriculum-cta{flex-direction:column; align-items:flex-start;}}
 
 /* ---------- PROGRAMS ---------- */
@@ -432,12 +470,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
   <div class="wrap">
     <nav>
       <a href="#" class="brand"><span class="mark">G</span>Global Market School</a>
-      <ul class="nav-links">
+      <ul class="nav-links" id="nav-links">
         <li><a href="#curriculum">Learn</a></li>
         <li><a href="#programs">Programs</a></li>
         <li><a href="#why">Why Us</a></li>
         <li><a href="#founder">About</a></li>
+        <li class="nav-login-mobile"><a href="account/login.html">Log In</a></li>
       </ul>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
       <div class="nav-actions">
         <a href="account/login.html" class="nav-login">Log In</a>
         <a href="account/register.html" class="nav-cta">Register</a>
@@ -453,7 +495,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
       <h1>Master money and markets, <em>from your first lesson to the trading floor.</em></h1>
       <p class="lede">A structured path from zero background to serious trader — five programs, real institutional rigor, and direct mentorship for those ready to go further.</p>
       <div class="hero-ctas">
-        <a href="#curriculum" class="btn-primary">Begin With Lesson 1</a>
+        <a href="learn/beginner/lesson-1.html" class="btn-primary">Begin With Lesson 1</a>
         <a href="#why" class="btn-ghost">Why Global Market School</a>
       </div>
       <div class="trust-line">
@@ -550,31 +592,31 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
       <p>Start at Lesson One regardless of experience. This is the first of five programs — see the full range below.</p>
     </div>
     <div class="lessons">
-      <div class="lesson">
+      <a href="learn/beginner/lesson-1.html" class="lesson">
         <p class="num">01</p>
         <div><h3>What Money Actually Is</h3><p>Where value comes from, and why markets exist in the first place.</p></div>
         <p class="tag">15 min read</p>
-      </div>
-      <div class="lesson">
+      </a>
+      <a href="learn/beginner/lesson-2.html" class="lesson">
         <p class="num">02</p>
         <div><h3>Markets 101</h3><p>Stocks, bonds, and funds explained without the textbook density.</p></div>
         <p class="tag">18 min read</p>
-      </div>
-      <div class="lesson">
+      </a>
+      <a href="learn/beginner/lesson-3.html" class="lesson">
         <p class="num">03</p>
         <div><h3>How Trading Actually Works</h3><p>Exchanges, brokers, orders, and how a price is set.</p></div>
         <p class="tag">20 min read</p>
-      </div>
-      <div class="lesson">
+      </a>
+      <a href="learn/beginner/lesson-4.html" class="lesson">
         <p class="num">04</p>
         <div><h3>Risk &amp; Diversifying</h3><p>The single idea that protects every investor, beginner or not.</p></div>
         <p class="tag">16 min read</p>
-      </div>
-      <div class="lesson">
+      </a>
+      <a href="learn/beginner/lesson-5.html" class="lesson">
         <p class="num">05</p>
         <div><h3>Becoming a Confident Investor</h3><p>Putting it together, and where to go deeper next.</p></div>
         <p class="tag">14 min read</p>
-      </div>
+      </a>
     </div>
 
     <div class="curriculum-cta">
@@ -703,6 +745,30 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
       navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
     });
   }
+
+  (function () {
+    const toggle = document.getElementById('nav-toggle');
+    const links = document.getElementById('nav-links');
+    if (!toggle || !links) return;
+
+    function closeMenu() {
+      toggle.classList.remove('open');
+      links.classList.remove('mobile-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function () {
+      const isOpen = links.classList.toggle('mobile-open');
+      toggle.classList.toggle('open', isOpen);
+      toggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    // Tapping a link inside the menu should close it, not leave it open
+    // underneath whatever section it just scrolled to.
+    links.addEventListener('click', function (e) {
+      if (e.target.closest('a')) closeMenu();
+    });
+  })();
 </script>
 
 </body>
