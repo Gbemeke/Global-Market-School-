@@ -114,14 +114,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:95; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88vw; text-align:center;}
 .toast.show{opacity:1;}
 
-.reaction-picker{position:fixed; display:none; align-items:center; gap:2px; background:#fff; border:1px solid var(--hair); border-radius:30px; padding:6px 8px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;}
+.reaction-picker{
+  position:fixed; display:none; align-items:center; gap:2px; background:#fff; border:1px solid var(--hair); border-radius:30px; padding:6px 8px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+}
 .reaction-picker.show{display:flex;}
-.reaction-picker button{background:none; border:none; font-size:23px; cursor:pointer; padding:3px 5px; line-height:1; transition:transform .12s ease;}
+.reaction-picker button{background:none; border:none; font-size:23px; cursor:pointer; padding:3px 5px; line-height:1; transition:transform .12s ease; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
 .reaction-picker button:hover{transform:scale(1.3) translateY(-2px);}
 
-.context-menu{position:fixed; display:none; flex-direction:column; background:#fff; border:1px solid var(--hair); min-width:160px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;}
+.context-menu{
+  position:fixed; display:none; flex-direction:column; background:#fff; border:1px solid var(--hair); min-width:160px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+}
 .context-menu.show{display:flex;}
-.context-menu button{background:none; border:none; text-align:left; padding:12px 18px; font-family:'EB Garamond', serif; font-size:14.5px; color:var(--ink); cursor:pointer; border-bottom:1px solid var(--hair);}
+.context-menu button{background:none; border:none; text-align:left; padding:12px 18px; font-family:'EB Garamond', serif; font-size:14.5px; color:var(--ink); cursor:pointer; border-bottom:1px solid var(--hair); touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
 .context-menu button:last-child{border-bottom:none;}
 .context-menu button:hover{background:var(--paper);}
 .context-menu button.danger{color:var(--bad);}
@@ -133,7 +139,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .modal-message{font-size:15px; color:var(--ink); margin-bottom:14px;}
 .modal-box textarea{width:100%; min-height:70px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14.5px; border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical; margin-bottom:14px;}
 .modal-actions{display:flex; justify-content:flex-end; gap:10px;}
-.modal-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 18px; cursor:pointer; border:1px solid var(--hair); background:none; color:var(--ink-soft);}
+.modal-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 18px; cursor:pointer; border:1px solid var(--hair); background:none; color:var(--ink-soft); touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
 .modal-btn.cancel:hover{border-color:var(--gold); color:var(--navy-deep);}
 .modal-btn.confirm{background:var(--navy-deep); color:var(--ivory); border-color:var(--navy-deep);}
 .modal-btn.confirm:hover{background:var(--gold); color:var(--navy-deep); border-color:var(--gold);}
@@ -675,6 +681,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }
 
   function openReactionPicker(btn) {
+    hideContextMenu();
     const picker = document.getElementById('reaction-picker');
     const postId = btn.getAttribute('data-id');
     const current = btn.getAttribute('data-reaction') || '';
@@ -739,6 +746,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }
 
   function openContextMenu(postId, x, y) {
+    hideReactionPicker();
     const post = postsById[postId];
     if (!post) return;
     const menu = document.getElementById('context-menu');
