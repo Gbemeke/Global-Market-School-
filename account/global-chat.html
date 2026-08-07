@@ -125,6 +125,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .context-menu button:last-child{border-bottom:none;}
 .context-menu button:hover{background:var(--paper);}
 .context-menu button.danger{color:var(--bad);}
+
+.modal-overlay{position:fixed; inset:0; background:rgba(11,27,51,0.55); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff; max-width:400px; width:100%; padding:24px; border:1px solid var(--hair); box-shadow:0 20px 60px -10px rgba(0,0,0,0.5);}
+.modal-title{font-family:'Cinzel', serif; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:12px;}
+.modal-message{font-size:15px; color:var(--ink); margin-bottom:14px;}
+.modal-box textarea{width:100%; min-height:70px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14.5px; border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical; margin-bottom:14px;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px;}
+.modal-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 18px; cursor:pointer; border:1px solid var(--hair); background:none; color:var(--ink-soft);}
+.modal-btn.cancel:hover{border-color:var(--gold); color:var(--navy-deep);}
+.modal-btn.confirm{background:var(--navy-deep); color:var(--ivory); border-color:var(--navy-deep);}
+.modal-btn.confirm:hover{background:var(--gold); color:var(--navy-deep); border-color:var(--gold);}
+.modal-btn.confirm.danger{background:var(--bad); border-color:var(--bad);}
+.modal-btn.confirm.danger:hover{background:#a8483a; border-color:#a8483a;}
 </style>
 </head>
 <body>
@@ -187,6 +201,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 <div class="reaction-picker" id="reaction-picker"></div>
 <div class="context-menu" id="context-menu"></div>
 
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <p class="modal-title" id="modal-title"></p>
+    <p class="modal-message" id="modal-message"></p>
+    <textarea id="modal-input" style="display:none;"></textarea>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="modal-cancel">Cancel</button>
+      <button type="button" class="modal-btn confirm" id="modal-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const supabaseClient = supabase.createClient(
     'https://djkctbtxnpdkstvznjlf.supabase.co',
@@ -232,6 +258,52 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     toast.classList.add('show');
     clearTimeout(showToast._t);
     showToast._t = setTimeout(function() { toast.classList.remove('show'); }, 2400);
+  }
+
+  // Custom confirm/prompt dialog — replaces the browser's native confirm()/
+  // prompt(), which shows an unbranded "globalmarketschool.com says" bar.
+  // Resolves to: `true` for a plain confirm, the typed string for a prompt
+  // (showInput:true), or `null` if the user cancelled or tapped outside.
+  function showModal(opts) {
+    return new Promise(function(resolve) {
+      const overlay = document.getElementById('modal-overlay');
+      const input = document.getElementById('modal-input');
+      const confirmBtn = document.getElementById('modal-confirm');
+      const cancelBtn = document.getElementById('modal-cancel');
+
+      document.getElementById('modal-title').textContent = opts.title || '';
+      document.getElementById('modal-message').textContent = opts.message || '';
+
+      if (opts.showInput) {
+        input.style.display = 'block';
+        input.placeholder = opts.inputPlaceholder || '';
+        input.value = opts.inputValue || '';
+      } else {
+        input.style.display = 'none';
+        input.value = '';
+      }
+
+      confirmBtn.textContent = opts.confirmLabel || 'OK';
+      confirmBtn.className = 'modal-btn confirm' + (opts.danger ? ' danger' : '');
+
+      function cleanup(result) {
+        overlay.classList.remove('show');
+        confirmBtn.removeEventListener('click', onConfirmClick);
+        cancelBtn.removeEventListener('click', onCancelClick);
+        overlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onConfirmClick() { cleanup(opts.showInput ? input.value : true); }
+      function onCancelClick() { cleanup(null); }
+      function onOverlayClick(e) { if (e.target === overlay) cleanup(null); }
+
+      confirmBtn.addEventListener('click', onConfirmClick);
+      cancelBtn.addEventListener('click', onCancelClick);
+      overlay.addEventListener('click', onOverlayClick);
+
+      overlay.classList.add('show');
+      if (opts.showInput) input.focus();
+    });
   }
 
   function formatCount(n) {
@@ -540,7 +612,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         const original = postsById[postId];
         if (!original) return;
 
-        const caption = window.prompt('Add a comment to your repost (optional):', '');
+        const caption = await showModal({
+          title: 'Repost',
+          message: 'Add a comment to your repost (optional):',
+          showInput: true,
+          inputPlaceholder: 'Say something about this...',
+          confirmLabel: 'Repost'
+        });
         if (caption === null) return; // cancelled
 
         btn.disabled = true;
@@ -580,6 +658,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   function hideReactionPicker() {
     document.getElementById('reaction-picker').classList.remove('show');
     document.removeEventListener('pointerdown', hideReactionPickerOnOutsideClick, true);
+    document.removeEventListener('click', hideReactionPickerOnOutsideClick, true);
   }
 
   function hideReactionPickerOnOutsideClick(e) {
@@ -610,7 +689,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     picker.style.top = top + 'px';
     picker.classList.add('show');
 
-    setTimeout(function() { document.addEventListener('pointerdown', hideReactionPickerOnOutsideClick, true); }, 0);
+    setTimeout(function() {
+      document.addEventListener('pointerdown', hideReactionPickerOnOutsideClick, true);
+      document.addEventListener('click', hideReactionPickerOnOutsideClick, true);
+    }, 0);
   }
 
   document.getElementById('reaction-picker').addEventListener('click', function(e) {
@@ -640,6 +722,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   function hideContextMenu() {
     document.getElementById('context-menu').classList.remove('show');
     document.removeEventListener('pointerdown', hideContextMenuOnOutsideClick, true);
+    document.removeEventListener('click', hideContextMenuOnOutsideClick, true);
   }
 
   function hideContextMenuOnOutsideClick(e) {
@@ -669,7 +752,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     menu.style.top = top + 'px';
     menu.classList.add('show');
 
-    setTimeout(function() { document.addEventListener('pointerdown', hideContextMenuOnOutsideClick, true); }, 0);
+    setTimeout(function() {
+      document.addEventListener('pointerdown', hideContextMenuOnOutsideClick, true);
+      document.addEventListener('click', hideContextMenuOnOutsideClick, true);
+    }, 0);
   }
 
   document.getElementById('context-menu').addEventListener('click', async function(e) {
@@ -704,7 +790,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         showToast('Reported to admins. Thank you.');
       }
     } else if (action === 'delete') {
-      if (!confirm('Delete this message?')) return;
+      const ok = await showModal({
+        title: 'Delete Message',
+        message: 'Delete this message? This cannot be undone.',
+        confirmLabel: 'Delete',
+        danger: true
+      });
+      if (!ok) return;
       const { error } = await supabaseClient.from('global_chat_posts').delete().eq('id', postId);
       if (!error) await loadFeed();
     }
