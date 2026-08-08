@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdrawal — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
+a{color:inherit;}
+.wrap{max-width:600px;margin:0 auto;padding:0 24px;}
+header{background:var(--navy-deep); border-bottom:1px solid var(--hair);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding-top:22px; padding-bottom:22px; flex-wrap:wrap; gap:8px 12px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:28px;height:28px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:8.7px; color:var(--gold); letter-spacing:-0.2px;}
+.back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
+
+.page-head{padding:36px 0 8px;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,32px); color:var(--navy-deep);}
+.page-head p{font-size:15px; color:var(--ink-soft); margin-top:8px;}
+
+main{padding:28px 0 60px;}
+
+.balance-box{background:#fff; border:1px solid var(--hair); padding:22px 24px; margin-bottom:24px;}
+.balance-box p:first-child{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
+.balance-box p:last-child{font-family:'Cormorant Garamond', serif; font-size:30px; color:var(--navy-deep);}
+
+.name-note{background:#fbf0ee; border:1px solid rgba(138,59,46,0.3); border-left:3px solid var(--bad); padding:16px 18px; margin-bottom:24px; font-size:14px; color:var(--ink);}
+.name-note strong{color:var(--bad); font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:6px;}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px;}
+.field input{width:100%; padding:12px 14px; font-family:'EB Garamond', serif; font-size:16px; border:1px solid var(--hair); background:#fff; color:var(--ink);}
+.field input:focus{outline:none; border-color:var(--gold);}
+.field input:read-only{background:var(--paper); color:var(--ink-soft);}
+.field-hint{font-size:12px; color:var(--ink-soft); margin-top:6px;}
+
+.payout-btn{width:100%; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:17px; cursor:pointer; margin-top:8px;}
+.payout-btn:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.payout-btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+.msg{font-size:14px; padding:14px 16px; margin-top:16px; border-left:3px solid; display:none;}
+.msg.error{background:#fbf0ee; border-color:var(--bad); color:var(--bad); display:block;}
+.msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
+
+.no-balance-panel{text-align:center; padding:60px 20px; border:1px solid var(--hair); background:#fff;}
+.no-balance-panel h2{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; color:var(--navy-deep); margin-bottom:12px;}
+.no-balance-panel p{color:var(--ink-soft); margin-bottom:24px; font-size:15px;}
+.no-balance-panel a{display:inline-block; font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; background:var(--gold); color:var(--navy-deep); padding:14px 28px; text-decoration:none;}
+
+.loading{text-align:center; padding:60px 0; color:var(--ink-soft);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Loading...</div>
+
+<div id="page-content" style="display:none;">
+<header>
+  <div class="wrap brand-row">
+    <a href="../index.html" class="brand"><span class="mark">GMS</span>Global Market School</a>
+    <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <p class="eyebrow">Referral Program</p>
+    <h1>Request Withdrawal</h1>
+    <p>Cash out your referral earnings to your bank account or mobile money.</p>
+  </div>
+
+  <main>
+    <div id="has-balance-view" style="display:none;">
+      <div class="balance-box">
+        <p>Available Balance</p>
+        <p id="balance-amount">$0.00</p>
+      </div>
+
+      <div class="name-note">
+        <strong>Important</strong>
+        You can only be paid into a bank account (or mobile money number) that matches the full name on your Global Market School registration. Requests with a different name cannot be processed.
+      </div>
+
+      <form id="withdrawal-form">
+        <div class="field">
+          <label>Bank / Mobile Money Provider</label>
+          <input type="text" id="bank-name" required placeholder="e.g. GTBank, MTN Mobile Money">
+        </div>
+        <div class="field">
+          <label>Account Number</label>
+          <input type="text" id="account-number" required placeholder="Account or mobile money number">
+        </div>
+        <div class="field">
+          <label>Account Name</label>
+          <input type="text" id="account-name" required placeholder="Must match your registration name">
+          <p class="field-hint" id="account-name-hint" style="display:none;">Prefilled from your registration and locked -- contact support if this needs correcting.</p>
+        </div>
+        <button type="submit" class="payout-btn" id="payout-btn">Payout</button>
+      </form>
+
+      <p class="msg" id="withdrawal-msg"></p>
+    </div>
+
+    <div class="no-balance-panel" id="no-balance-view" style="display:none;">
+      <h2>No Earnings Available</h2>
+      <p>You don't have any referral earnings ready to withdraw yet. Share your referral link from your dashboard to start earning.</p>
+      <a href="dashboard.html">Back to Dashboard</a>
+    </div>
+  </main>
+</div>
+
+<footer>&copy; 2026 Global Market School Ltd.</footer>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  const CURRENCY_SYMBOLS = { USD: '$', NGN: '₦', GHS: '₵', KES: 'KSh ', ZAR: 'R ' };
+  function formatAmount(currency, amount) {
+    const num = Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const symbol = CURRENCY_SYMBOLS[currency];
+    return symbol ? (symbol + num) : ((currency || '') + ' ' + num);
+  }
+
+  let currentUserId = null;
+  let bestCurrency = null;
+  let bestAmount = 0;
+
+  async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentUserId = session.user.id;
+
+    const { data: earnings } = await supabaseClient
+      .from('referral_earnings')
+      .select('commission_amount, currency')
+      .eq('referrer_id', currentUserId)
+      .eq('paid_out', false)
+      .is('withdrawal_request_id', null);
+
+    const byCurrency = {};
+    (earnings || []).forEach(function (e) {
+      byCurrency[e.currency] = (byCurrency[e.currency] || 0) + Number(e.commission_amount);
+    });
+
+    const best = Object.entries(byCurrency).sort(function (a, b) { return b[1] - a[1]; })[0];
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+
+    if (!best || best[1] <= 0) {
+      document.getElementById('no-balance-view').style.display = 'block';
+      return;
+    }
+
+    bestCurrency = best[0];
+    bestAmount = best[1];
+    document.getElementById('balance-amount').textContent = formatAmount(bestCurrency, bestAmount);
+    document.getElementById('has-balance-view').style.display = 'block';
+
+    // Payouts only go to an account matching the student's own
+    // registered name -- prefilling and locking the field (rather than
+    // just telling them what to type) is what actually enforces that,
+    // not just a note they could ignore. Left editable only if we don't
+    // have a name on file yet, so nobody gets stuck unable to submit.
+    const { data: profile } = await supabaseClient.from('profiles').select('full_name').eq('id', currentUserId).single();
+    if (profile && profile.full_name) {
+      const nameField = document.getElementById('account-name');
+      nameField.value = profile.full_name;
+      nameField.readOnly = true;
+      document.getElementById('account-name-hint').style.display = 'block';
+    }
+  }
+
+  document.getElementById('withdrawal-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('payout-btn');
+    const msg = document.getElementById('withdrawal-msg');
+    msg.className = 'msg';
+    msg.textContent = '';
+
+    const bankName = document.getElementById('bank-name').value.trim();
+    const accountNumber = document.getElementById('account-number').value.trim();
+    const accountName = document.getElementById('account-name').value.trim();
+
+    if (!bankName || !accountNumber || !accountName) {
+      msg.className = 'msg error';
+      msg.textContent = 'Please fill in all fields.';
+      return;
+    }
+
+    const payoutDetails = 'Bank/Provider: ' + bankName + ' | Account: ' + accountNumber + ' | Name: ' + accountName;
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    const { error } = await supabaseClient.rpc('request_referral_withdrawal', {
+      p_currency: bestCurrency,
+      p_payout_details: payoutDetails
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Payout';
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = error.message && error.message.indexOf('No unclaimed earnings') !== -1
+        ? 'That balance was just claimed by another request. Please refresh and try again.'
+        : 'Could not submit request. Please try again or contact support.';
+    } else {
+      msg.className = 'msg success';
+      msg.textContent = 'Withdrawal request placed. Payment processes within 24–48 hrs.';
+      document.getElementById('withdrawal-form').style.display = 'none';
+    }
+  });
+
+  init();
+</script>
+
+</body>
+</html>

@@ -525,14 +525,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         </div>
         <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 5% commission whenever someone you refer completes a paid enrollment.</p>
         <div class="earnings-stat">
-          <div><p>Total Referrals</p><p id="referral-count">0</p></div>
+          <div><p>Referrals</p><p id="referral-count">0</p></div>
+          <div><p>Earning</p><p id="referral-earning">$0</p></div>
         </div>
-        <div id="currency-balances"></div>
         <div class="earnings-actions">
-          <button type="button" class="earnings-btn" id="payout-btn">Payout</button>
+          <a href="withdrawal.html" class="earnings-btn" id="withdrawal-btn">Withdrawal</a>
           <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
         </div>
-        <p class="msg" id="earnings-msg"></p>
       </div>
     </section>
 
@@ -938,10 +937,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // actually triggers a withdrawal. Keeping this purely a read-out means
   // there's exactly one place a student clicks to request a payout instead
   // of a different button appearing per currency they happen to have.
+  // Referrals tile is a plain count of every commission ever earned;
+  // Earning is the lifetime total of whichever currency the student has
+  // the most of (almost always just one currency in practice -- summing
+  // different currencies together would be meaningless). Actually
+  // requesting a withdrawal now lives on its own page (withdrawal.html),
+  // linked from the button next to this box -- this function is purely
+  // a read-out.
   async function loadReferralBalances(userId) {
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
-      .select('commission_amount, paid_out, currency, withdrawal_request_id')
+      .select('commission_amount, currency')
       .eq('referrer_id', userId);
 
     const rows = earnings || [];
@@ -949,101 +955,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const byCurrency = {};
     rows.forEach(function(e) {
-      if (!byCurrency[e.currency]) byCurrency[e.currency] = { available: 0, pending: 0 };
-      if (e.paid_out) return; // already settled -- not shown as owed in either bucket
-      if (e.withdrawal_request_id) byCurrency[e.currency].pending += Number(e.commission_amount);
-      else byCurrency[e.currency].available += Number(e.commission_amount);
-    });
-
-    const container = document.getElementById('currency-balances');
-    const currencies = Object.keys(byCurrency).filter(function(c) {
-      return byCurrency[c].available > 0 || byCurrency[c].pending > 0;
-    });
-
-    if (!currencies.length) {
-      container.innerHTML = '<p class="no-earnings-note">No earnings yet — share your link above to start earning.</p>';
-      return;
-    }
-
-    container.innerHTML = currencies.map(function(cur) {
-      const bal = byCurrency[cur];
-      const availableHtml = bal.available > 0
-        ? '<p class="cbr-amount">' + escapeHtml(cur) + ' ' + bal.available.toFixed(2) + ' available</p>'
-        : '';
-      const pendingHtml = bal.pending > 0
-        ? '<p class="cbr-pending">' + escapeHtml(cur) + ' ' + bal.pending.toFixed(2) + ' held for review</p>'
-        : '';
-      return '<div class="currency-balance-row" data-currency="' + escapeHtml(cur) + '">' + availableHtml + pendingHtml + '</div>';
-    }).join('');
-  }
-
-  // Single Payout button (always visible, next to Invest in a Course) --
-  // reads the freshest balance at click time rather than trusting
-  // whatever loadReferralBalances last rendered, picks whichever
-  // currency has the most available if the student happens to have more
-  // than one, and always ends with the same honest processing-time
-  // message: the RPC may settle the request internally right away, but
-  // there's no automated payout API behind it yet -- an admin still
-  // moves the actual money by hand, so promising anything faster than
-  // 24-48 hrs here would be overselling it.
-  document.getElementById('payout-btn').addEventListener('click', async function() {
-    const btn = this;
-    const msg = document.getElementById('earnings-msg');
-    msg.className = 'msg';
-    msg.textContent = '';
-
-    const { data: earnings } = await supabaseClient
-      .from('referral_earnings')
-      .select('commission_amount, currency')
-      .eq('referrer_id', currentUserId)
-      .eq('paid_out', false)
-      .is('withdrawal_request_id', null);
-
-    const byCurrency = {};
-    (earnings || []).forEach(function(e) {
       byCurrency[e.currency] = (byCurrency[e.currency] || 0) + Number(e.commission_amount);
     });
 
     const best = Object.entries(byCurrency).sort(function(a, b) { return b[1] - a[1]; })[0];
-
-    if (!best || best[1] <= 0) {
-      msg.className = 'msg error';
-      msg.textContent = 'You have no earnings available to withdraw yet.';
-      return;
-    }
-
-    const currency = best[0];
-    const amount = best[1].toFixed(2);
-
-    const payoutDetails = await showModal({
-      title: 'Payout — ' + currency + ' ' + amount,
-      message: 'Enter your payout account details (bank name and account number, or mobile money number). This must match the name on your registration.',
-      showInput: true,
-      inputPlaceholder: 'e.g. Bank name, account number',
-      confirmLabel: 'Request Payout'
-    });
-
-    if (!payoutDetails) return;
-
-    btn.disabled = true;
-    const { error } = await supabaseClient.rpc('request_referral_withdrawal', {
-      p_currency: currency,
-      p_payout_details: payoutDetails
-    });
-    btn.disabled = false;
-
-    if (error) {
-      msg.className = 'msg error';
-      msg.textContent = error.message && error.message.indexOf('No unclaimed earnings') !== -1
-        ? 'That balance was just claimed by another request. Please try again.'
-        : 'Could not submit request. Please try again or contact support.';
-    } else {
-      msg.className = 'msg success';
-      msg.textContent = 'Withdrawal request placed. Payment processes within 24–48 hrs.';
-    }
-
-    await loadReferralBalances(currentUserId);
-  });
+    document.getElementById('referral-earning').textContent = best ? formatTickerAmount(best[0], best[1]) : '$0';
+  }
 
   document.getElementById('copy-referral').addEventListener('click', function() {
     const input = document.getElementById('referral-link');
