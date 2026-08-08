@@ -161,6 +161,27 @@ section{padding:24px 0;}
 
 .empty-note{text-align:center; color:var(--ink-soft); font-size:14px; padding:32px 0;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
+
+.rules-gate{display:none;}
+.rules-gate-box{max-width:480px; margin:56px auto; padding:0 24px;}
+.rules-gate-brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); text-decoration:none; margin-bottom:26px;}
+.rules-gate-brand img{width:30px; height:30px; border-radius:50%; box-shadow:0 0 0 1.5px var(--gold);}
+.rules-gate-card{background:#fff; border:1px solid var(--hair); padding:28px;}
+.rules-gate-card h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; color:var(--navy-deep); margin-bottom:12px;}
+.rules-gate-card p{font-size:14.5px; color:var(--ink-soft); margin-bottom:16px;}
+.rules-list{list-style:none;}
+.rules-list li{font-size:14.5px; color:var(--ink); padding:9px 0; border-bottom:1px solid var(--hair); display:flex; gap:10px;}
+.rules-list li:last-child{border-bottom:none; margin-bottom:16px;}
+.rules-list li span{color:var(--gold); flex-shrink:0;}
+.rules-gate-link{font-size:13px; color:var(--gold); text-decoration:underline;}
+.rules-checkbox-row{display:flex; align-items:flex-start; gap:10px; margin:20px 0; font-size:13.5px; color:var(--ink-soft); cursor:pointer;}
+.rules-checkbox-row input{margin-top:3px; flex-shrink:0;}
+.rules-continue-btn{
+  width:100%; font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:none; padding:13px 0; cursor:pointer;
+}
+.rules-continue-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.rules-continue-btn:disabled{opacity:0.5; cursor:not-allowed;}
 footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
 
 .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:95; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88vw; text-align:center;}
@@ -213,6 +234,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
 <div id="loading" class="loading">Loading Global Chat...</div>
 
+<div id="rules-gate" class="rules-gate">
+  <div class="rules-gate-box">
+    <a href="../index.html" class="rules-gate-brand"><img src="../assets/images/global-chat-logo.png" alt="">Global Market School</a>
+    <div class="rules-gate-card">
+      <h1>Before you jump in&hellip;</h1>
+      <p>Global Chat is a space for students to encourage each other and talk markets. A quick summary of the rules:</p>
+      <ul class="rules-list">
+        <li><span>&#8226;</span> Be respectful &mdash; no harassment or personal attacks.</li>
+        <li><span>&#8226;</span> This isn't a signals group &mdash; nothing posted here is financial advice.</li>
+        <li><span>&#8226;</span> No soliciting money, paid signals, or unrelated schemes.</li>
+        <li><span>&#8226;</span> Keep it on-topic, and respect other students' privacy.</li>
+        <li><span>&#8226;</span> Admins may remove posts and, for repeated violations, restrict access.</li>
+      </ul>
+      <p><a href="../legal/community-guidelines.html" target="_blank" rel="noopener" class="rules-gate-link">Read the full Community Guidelines &rarr;</a></p>
+      <label class="rules-checkbox-row">
+        <input type="checkbox" id="rules-agree-checkbox">
+        <span>I've read and agree to follow the Global Chat Community Guidelines.</span>
+      </label>
+      <button type="button" class="rules-continue-btn" id="rules-agree-btn" disabled>Agree &amp; Continue</button>
+    </div>
+  </div>
+</div>
+
 <div id="chat-page" style="display:none;">
   <header>
     <div class="wrap brand-row">
@@ -230,7 +274,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <div>
         <p class="eyebrow">Community</p>
         <h1>Global Chat</h1>
-        <p>Post, react, and reply with other students. Long-press a message for more options. Be respectful — posts can be removed by admins.</p>
+        <p>Post, react, and reply with other students. Long-press a message for more options. Be respectful — posts can be removed by admins. Read our <a href="../legal/community-guidelines.html" target="_blank" rel="noopener" style="color:var(--gold); text-decoration:underline;">Community Guidelines</a>.</p>
       </div>
       <img src="../assets/images/global-chat-logo.png" alt="Global Chat" class="mark-lg">
     </div>
@@ -1186,7 +1230,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('full_name, is_admin, avatar_url')
+      .select('full_name, is_admin, avatar_url, chat_rules_accepted_at')
       .eq('id', currentUserId)
       .single();
 
@@ -1196,15 +1240,53 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       currentUserAvatarUrl = profile.avatar_url || null;
     }
 
+    document.getElementById('loading').style.display = 'none';
+
+    // First-time visitors (or anyone whose acceptance somehow didn't
+    // save) see the rules gate instead of the feed. Nothing loads or
+    // renders behind it until they've actually agreed.
+    if (!profile || !profile.chat_rules_accepted_at) {
+      document.getElementById('rules-gate').style.display = 'block';
+      return;
+    }
+
+    await enterChat();
+  }
+
+  async function enterChat() {
     await loadFeed();
     startPresence();
     markChatAsSeen();
 
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('rules-gate').style.display = 'none';
     document.getElementById('chat-page').style.display = 'block';
 
     refreshTimer = setInterval(function() { loadFeed(); markChatAsSeen(); }, 20000);
   }
+
+  document.getElementById('rules-agree-checkbox').addEventListener('change', function(e) {
+    document.getElementById('rules-agree-btn').disabled = !e.target.checked;
+  });
+
+  document.getElementById('rules-agree-btn').addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Please wait…';
+
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({ chat_rules_accepted_at: new Date().toISOString() })
+      .eq('id', currentUserId);
+
+    if (error) {
+      showToast('Could not save your agreement. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Agree & Continue';
+      return;
+    }
+
+    await enterChat();
+  });
 
   init();
 </script>
