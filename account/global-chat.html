@@ -831,73 +831,81 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // actual scroll happens, so a popup only ever appears over the post it
   // belongs to.
 
-  let pressTimer = null;
-  let pressKind = null;   // 'react' | 'message'
-  let pressFired = false;
-  let pressStartX = 0;
-  let pressStartY = 0;
+  // Keyed by pointerId rather than shared module-level variables: a
+  // single global timer meant any second touch landing before the first
+  // one lifted (two fingers, or one brushing the edge of the screen while
+  // holding the phone) could have its pointerup cancel a timer that
+  // actually belonged to a completely different finger -- dropping or
+  // corrupting whichever press lost the race. Each active touch now owns
+  // its own independent state, so overlapping presses can't touch each
+  // other's timers.
+  const activePresses = new Map(); // pointerId -> { timer, kind, fired, startX, startY }
   const PRESS_MOVE_CANCEL_PX = 10;
 
-  function cancelPress() {
-    clearTimeout(pressTimer);
-    pressTimer = null;
-    pressKind = null;
+  function cancelPress(pointerId) {
+    const p = activePresses.get(pointerId);
+    if (p) clearTimeout(p.timer);
+    activePresses.delete(pointerId);
+  }
+
+  function cancelAllPresses() {
+    activePresses.forEach(function(p) { clearTimeout(p.timer); });
+    activePresses.clear();
   }
 
   document.getElementById('feed').addEventListener('pointerdown', function(e) {
     const reactBtn = e.target.closest('.react-btn');
     if (reactBtn) {
-      pressKind = 'react';
-      pressFired = false;
-      pressStartX = e.clientX;
-      pressStartY = e.clientY;
-      clearTimeout(pressTimer);
-      pressTimer = setTimeout(function() {
-        pressFired = true;
+      cancelPress(e.pointerId);
+      const timer = setTimeout(function() {
+        const p = activePresses.get(e.pointerId);
+        if (p) p.fired = true;
         openReactionPicker(reactBtn);
       }, 450);
+      activePresses.set(e.pointerId, { timer: timer, kind: 'react', fired: false, startX: e.clientX, startY: e.clientY });
       return;
     }
 
     const msgEl = e.target.closest('.msg-target');
     if (msgEl) {
-      pressKind = 'message';
-      pressFired = false;
-      pressStartX = e.clientX;
-      pressStartY = e.clientY;
+      cancelPress(e.pointerId);
       const x = e.clientX, y = e.clientY;
-      clearTimeout(pressTimer);
-      pressTimer = setTimeout(function() {
-        pressFired = true;
+      const timer = setTimeout(function() {
+        const p = activePresses.get(e.pointerId);
+        if (p) p.fired = true;
         openContextMenu(msgEl.getAttribute('data-id'), x, y);
       }, 450);
+      activePresses.set(e.pointerId, { timer: timer, kind: 'message', fired: false, startX: x, startY: y });
     }
   });
 
   document.getElementById('feed').addEventListener('pointermove', function(e) {
-    if (!pressTimer) return;
-    if (Math.abs(e.clientX - pressStartX) > PRESS_MOVE_CANCEL_PX ||
-        Math.abs(e.clientY - pressStartY) > PRESS_MOVE_CANCEL_PX) {
-      cancelPress();
+    const p = activePresses.get(e.pointerId);
+    if (!p) return;
+    if (Math.abs(e.clientX - p.startX) > PRESS_MOVE_CANCEL_PX ||
+        Math.abs(e.clientY - p.startY) > PRESS_MOVE_CANCEL_PX) {
+      cancelPress(e.pointerId);
     }
   });
 
   document.getElementById('feed').addEventListener('pointerup', function(e) {
+    const p = activePresses.get(e.pointerId);
     const reactBtn = e.target.closest('.react-btn');
-    clearTimeout(pressTimer);
-    if (reactBtn && pressKind === 'react' && !pressFired) {
+    cancelPress(e.pointerId);
+    if (p && reactBtn && p.kind === 'react' && !p.fired) {
       const postId = reactBtn.getAttribute('data-id');
       const current = reactBtn.getAttribute('data-reaction') || '';
       if (current) removeReaction(postId);
       else setReaction(postId, 'like');
     }
-    pressKind = null;
   });
 
-  document.getElementById('feed').addEventListener('pointercancel', cancelPress);
+  document.getElementById('feed').addEventListener('pointercancel', function(e) {
+    cancelPress(e.pointerId);
+  });
 
   window.addEventListener('scroll', function() {
-    cancelPress();
+    cancelAllPresses();
     hideReactionPicker();
     hideContextMenu();
   }, { passive: true, capture: true });
