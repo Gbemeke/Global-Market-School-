@@ -650,10 +650,15 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       list.appendChild(row);
     });
 
+    // Routed through settle_withdrawal_request() rather than a direct
+    // .update() -- the RPC also flips paid_out on exactly the
+    // referral_earnings rows this request claimed, atomically. A plain
+    // status update here would leave those earnings marked unpaid
+    // forever, letting the same commission be claimed again later.
     document.querySelectorAll('.mark-paid-btn').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         const msg = document.getElementById('withdrawals-msg');
-        const { error } = await supabaseClient.from('withdrawal_requests').update({ status: 'paid' }).eq('id', btn.getAttribute('data-id'));
+        const { error } = await supabaseClient.rpc('settle_withdrawal_request', { p_request_id: btn.getAttribute('data-id'), p_status: 'paid' });
         if (error) {
           msg.className = 'msg error';
           msg.textContent = 'Could not update status.';
@@ -667,9 +672,15 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
     document.querySelectorAll('.divert-btn').forEach(function(btn) {
       btn.addEventListener('click', async function() {
-        if (!confirm('Divert this withdrawal to the company account instead of paying the student directly?')) return;
+        const ok = await showConfirm({
+          title: 'Divert Withdrawal',
+          message: 'Divert this withdrawal to the company account instead of paying the student directly?',
+          confirmLabel: 'Divert',
+          danger: true
+        });
+        if (!ok) return;
         const msg = document.getElementById('withdrawals-msg');
-        const { error } = await supabaseClient.from('withdrawal_requests').update({ status: 'diverted' }).eq('id', btn.getAttribute('data-id'));
+        const { error } = await supabaseClient.rpc('settle_withdrawal_request', { p_request_id: btn.getAttribute('data-id'), p_status: 'diverted' });
         if (error) {
           msg.className = 'msg error';
           msg.textContent = 'Could not divert withdrawal.';
