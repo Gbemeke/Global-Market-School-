@@ -76,8 +76,9 @@ section{padding:24px 0;}
   color:var(--navy-deep); background:var(--gold-bright); border-radius:3px; padding:2px 5px; margin-left:6px; vertical-align:1px;
 }
 .verified-badge{
-  display:inline-block; font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:0.8px; text-transform:uppercase;
-  color:#fff; background:var(--good); border-radius:3px; padding:2px 5px; margin-left:6px; vertical-align:1px;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:14px; height:14px; border-radius:50%; background:#1d9bf0; color:#fff;
+  font-size:9px; font-weight:700; margin-left:5px; vertical-align:-1px; flex-shrink:0;
 }
 .post-time{font-size:12px; color:var(--ink-soft);}
 .post-content{margin-top:10px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
@@ -488,15 +489,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // author's own admin status -- it's what makes "look for the badge"
   // in the Community Guidelines an actual, checkable thing rather than
   // just words. Nobody can add it to their own post after the fact.
-  // Admin outranks Verified when someone happens to be both -- no need
-  // to show two badges for one person, and staff status is the
-  // stronger claim. Verified is set automatically from actually having
-  // paid for a course (see currentIsVerified in init()), never a manual
-  // toggle, so it can't drift out of date or be granted by mistake.
+  // Verified (a small circular checkmark, X/Twitter-style) and Admin
+  // (the gold text box) aren't mutually exclusive -- they're separate
+  // facts about an account (paid for a course vs. is staff), so both
+  // render when both are true, checkmark first. Verified is set
+  // automatically from actually having paid for a course (see
+  // currentIsVerified in init()), never a manual toggle, so it can't
+  // drift out of date or be granted by mistake.
   function authorBadgeHtml(post) {
-    if (post.author_is_admin) return '<span class="admin-badge">Admin</span>';
-    if (post.author_is_verified) return '<span class="verified-badge">&#10003; Verified</span>';
-    return '';
+    let html = '';
+    if (post.author_is_verified) html += '<span class="verified-badge" title="Verified — paid student">&#10003;</span>';
+    if (post.author_is_admin) html += '<span class="admin-badge">Admin</span>';
+    return html;
   }
 
   // ---- Composer media attachment ----
