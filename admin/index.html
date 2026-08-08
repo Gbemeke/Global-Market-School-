@@ -105,14 +105,34 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 .chat-mod-row .info p:first-child strong{margin-right:8px;}
 .chat-mod-row .info p:last-child{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
 .chat-mod-row .reply-tag{font-family:'Cinzel', serif; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold); padding:2px 6px; margin-right:6px;}
+.chat-mod-row .row-actions{display:flex; gap:8px; flex-wrap:wrap; flex-shrink:0;}
 .delete-post-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:9px 14px; cursor:pointer; flex-shrink:0;}
+.dismiss-report-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:none; border:1px solid var(--hair); color:var(--ink-soft); padding:9px 14px; cursor:pointer; flex-shrink:0;}
+.dismiss-report-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
+.ban-author-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:none; border:1px solid var(--bad); color:var(--bad); padding:9px 14px; cursor:pointer; flex-shrink:0;}
+.ban-author-btn:hover{background:var(--bad); color:#fff;}
+.ban-author-btn.is-banned{background:var(--bad); color:#fff;}
+.report-count-pill{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; background:#fbf0ee; color:var(--bad); border:1px solid rgba(138,59,46,0.3); padding:3px 9px; margin-right:8px; white-space:normal;}
+.report-reporters{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
 .disable-mfa-btn{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:0.5px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:7px 10px; cursor:pointer; white-space:nowrap;}
 .disable-mfa-btn:disabled{opacity:0.5; cursor:not-allowed;}
+.ban-check{accent-color:var(--bad);}
 
 .loading{text-align:center; padding:100px 0; color:var(--ink-soft);}
 .msg{font-size:13.5px; padding:10px 12px; margin-top:10px; border-left:3px solid; display:none;}
 .msg.success{background:#eaf3ee; border-color:var(--good); color:var(--good); display:block;}
 .msg.error{background:#fbf0ee; border-color:var(--bad); color:var(--bad); display:block;}
+
+.modal-overlay{display:none; position:fixed; inset:0; background:rgba(11,27,51,0.55); z-index:200; align-items:center; justify-content:center; padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff; max-width:400px; width:100%; padding:24px; border-top:3px solid var(--gold);}
+.modal-title{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:19px; color:var(--navy-deep); margin-bottom:8px;}
+.modal-message{font-size:14px; color:var(--ink-soft); margin-bottom:18px;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px;}
+.modal-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; border:none; padding:10px 16px; cursor:pointer;}
+.modal-btn.cancel{background:none; border:1px solid var(--hair); color:var(--ink-soft);}
+.modal-btn.confirm{background:var(--navy-deep); color:var(--ivory);}
+.modal-btn.confirm.danger{background:var(--bad); color:#fff;}
 </style>
 </head>
 <body>
@@ -161,7 +181,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
           <table id="students-table">
             <thead>
               <tr>
-                <th>Name</th><th>Email</th><th>Country</th><th>Admin</th>
+                <th>Name</th><th>Email</th><th>Country</th><th>Admin</th><th>Chat Ban</th>
                 <th>Beg-Stk</th><th>Beg-Fx</th><th>Int-Stk</th><th>Int-Fx</th>
                 <th>Adv-Stk</th><th>Adv-Fx</th><th>Elite</th><th>Trade Grp</th><th>2FA</th>
               </tr>
@@ -207,13 +227,29 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       </div>
 
       <div class="tab-panel" id="tab-chat">
-        <p class="section-title">Global Chat — Moderation</p>
+        <p class="section-title">Reported Posts</p>
+        <p class="admin-only-note">Posts students have flagged, grouped by post with newest report first. Dismissing clears all reports on a post without deleting it. Banning an author blocks them from posting, commenting, reacting, and reposting in Global Chat only -- it does not touch their course access or login.</p>
+        <div id="chat-reports-list"></div>
+        <p class="msg" id="chat-reports-msg"></p>
+
+        <p class="section-title">All Posts — Moderation</p>
         <p class="admin-only-note">All posts and replies, newest first. Deleting a top-level post also deletes its replies.</p>
         <div id="chat-mod-list"></div>
         <p class="msg" id="chat-mod-msg"></p>
       </div>
 
     </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <p class="modal-title" id="modal-title"></p>
+    <p class="modal-message" id="modal-message"></p>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="modal-cancel">Cancel</button>
+      <button type="button" class="modal-btn confirm" id="modal-confirm">OK</button>
+    </div>
   </div>
 </div>
 
@@ -227,6 +263,37 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
   let allProfiles = [];
   let allCourseAccess = [];
+
+  // Replaces the browser's native confirm(), which shows an unbranded
+  // "says" bar. Resolves true if confirmed, null if cancelled/dismissed.
+  function showConfirm(opts) {
+    return new Promise(function(resolve) {
+      const overlay = document.getElementById('modal-overlay');
+      const confirmBtn = document.getElementById('modal-confirm');
+      const cancelBtn = document.getElementById('modal-cancel');
+
+      document.getElementById('modal-title').textContent = opts.title || '';
+      document.getElementById('modal-message').textContent = opts.message || '';
+      confirmBtn.textContent = opts.confirmLabel || 'OK';
+      confirmBtn.className = 'modal-btn confirm' + (opts.danger ? ' danger' : '');
+
+      function cleanup(result) {
+        overlay.classList.remove('show');
+        confirmBtn.removeEventListener('click', onConfirmClick);
+        cancelBtn.removeEventListener('click', onCancelClick);
+        overlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onConfirmClick() { cleanup(true); }
+      function onCancelClick() { cleanup(null); }
+      function onOverlayClick(e) { if (e.target === overlay) cleanup(null); }
+
+      confirmBtn.addEventListener('click', onConfirmClick);
+      cancelBtn.addEventListener('click', onCancelClick);
+      overlay.addEventListener('click', onOverlayClick);
+      overlay.classList.add('show');
+    });
+  }
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -244,6 +311,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     await loadSettings();
     await loadPaymentCurrencies();
     await loadWithdrawals();
+    await loadChatReports();
     await loadChatMod();
 
     document.getElementById('loading').style.display = 'none';
@@ -296,6 +364,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       const row = document.createElement('tr');
       let cells = '<td>' + escapeHtml(p.full_name || '—') + '</td><td>' + escapeHtml(p.email || '—') + '</td><td>' + escapeHtml(p.country || '—') + '</td>';
       cells += '<td><input type="checkbox" class="course-check admin-check" data-user="' + p.id + '" data-field="admin" ' + (p.is_admin ? 'checked' : '') + '></td>';
+      cells += '<td><input type="checkbox" class="course-check ban-check" data-user="' + p.id + '" data-field="chat_banned" ' + (p.chat_banned ? 'checked' : '') + '></td>';
 
       COURSE_KEYS.forEach(function(key) {
         const record = accessList.find(a => a.user_id === p.id && a.course_key === key);
@@ -355,6 +424,19 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         const { error } = await supabaseClient.from('profiles').update({ is_admin: cb.checked }).eq('id', cb.getAttribute('data-user'));
         msg.className = error ? 'msg error' : 'msg success';
         msg.textContent = error ? 'Could not update admin status.' : 'Admin status updated.';
+      });
+    });
+
+    document.querySelectorAll('.course-check[data-field="chat_banned"]').forEach(function(cb) {
+      cb.addEventListener('change', async function() {
+        const msg = document.getElementById('students-msg');
+        const { error } = await supabaseClient.from('profiles').update({ chat_banned: cb.checked }).eq('id', cb.getAttribute('data-user'));
+        msg.className = error ? 'msg error' : 'msg success';
+        msg.textContent = error ? 'Could not update Global Chat ban status.' : (cb.checked ? 'Student restricted from Global Chat.' : 'Global Chat restriction lifted.');
+        if (!error) {
+          const p = allProfiles.find(function(x) { return x.id === cb.getAttribute('data-user'); });
+          if (p) p.chat_banned = cb.checked;
+        }
       });
     });
 
@@ -606,6 +688,147 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     return div.innerHTML;
   }
 
+  // Toggles profiles.chat_banned for one user_id and refreshes both
+  // chat panels (a ban set from a report row should immediately show
+  // up in the moderation list too, and vice versa).
+  async function toggleChatBan(userId, nextBanned) {
+    const { error } = await supabaseClient.from('profiles').update({ chat_banned: nextBanned }).eq('id', userId);
+    if (!error) {
+      const p = allProfiles.find(function(x) { return x.id === userId; });
+      if (p) p.chat_banned = nextBanned;
+      await loadChatReports();
+      await loadChatMod();
+    }
+    return error;
+  }
+
+  function isUserBanned(userId) {
+    const p = allProfiles.find(function(x) { return x.id === userId; });
+    return !!(p && p.chat_banned);
+  }
+
+  function banButtonHtml(userId) {
+    const banned = isUserBanned(userId);
+    return '<button class="ban-author-btn' + (banned ? ' is-banned' : '') + '" data-user="' + userId + '" data-banned="' + (banned ? '1' : '0') + '">' +
+      (banned ? 'Unban Author' : 'Ban Author') + '</button>';
+  }
+
+  function wireBanButtons(container, msgEl) {
+    container.querySelectorAll('.ban-author-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const userId = btn.getAttribute('data-user');
+        const currentlyBanned = btn.getAttribute('data-banned') === '1';
+        if (!currentlyBanned) {
+          const ok = await showConfirm({
+            title: 'Restrict from Global Chat',
+            message: 'Block this student from posting, commenting, reacting, and reposting in Global Chat? Their course access and login are not affected.',
+            confirmLabel: 'Restrict',
+            danger: true
+          });
+          if (!ok) return;
+        }
+        const error = await toggleChatBan(userId, !currentlyBanned);
+        msgEl.className = error ? 'msg error' : 'msg success';
+        msgEl.textContent = error ? 'Could not update Global Chat restriction.' : (currentlyBanned ? 'Restriction lifted.' : 'Student restricted from Global Chat.');
+      });
+    });
+  }
+
+  async function loadChatReports() {
+    const { data: reports } = await supabaseClient
+      .from('global_chat_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const list = document.getElementById('chat-reports-list');
+    const msg = document.getElementById('chat-reports-msg');
+    list.innerHTML = '';
+
+    if (!reports || !reports.length) {
+      list.innerHTML = '<p style="color:var(--ink-soft); font-size:14px;">No open reports.</p>';
+      return;
+    }
+
+    const postIds = Array.from(new Set(reports.map(function(r) { return r.post_id; })));
+    const reporterIds = Array.from(new Set(reports.map(function(r) { return r.reporter_id; })));
+
+    const { data: posts } = await supabaseClient.from('global_chat_posts').select('*').in('id', postIds);
+    const { data: reporters } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', reporterIds);
+
+    const postsById = {};
+    (posts || []).forEach(function(p) { postsById[p.id] = p; });
+    const reportersById = {};
+    (reporters || []).forEach(function(r) { reportersById[r.id] = r; });
+
+    // Group reports by the post they're about, most-recently-reported post first.
+    const grouped = [];
+    const groupIndex = {};
+    reports.forEach(function(r) {
+      if (!(r.post_id in groupIndex)) {
+        groupIndex[r.post_id] = grouped.length;
+        grouped.push({ postId: r.post_id, reports: [] });
+      }
+      grouped[groupIndex[r.post_id]].reports.push(r);
+    });
+
+    grouped.forEach(function(g) {
+      const post = postsById[g.postId];
+      const reporterNames = g.reports.map(function(r) {
+        const rp = reportersById[r.reporter_id];
+        return escapeHtml((rp && (rp.full_name || rp.email)) || 'Unknown');
+      }).join(', ');
+
+      const row = document.createElement('div');
+      row.className = 'chat-mod-row';
+
+      const bodyHtml = post
+        ? '<p><span class="report-count-pill">' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') + '</span>' +
+            (post.parent_id ? '<span class="reply-tag">Reply</span>' : '') +
+            '<strong>' + escapeHtml(post.author_name) + '</strong> ' + escapeHtml(post.content || '(no text)') + '</p>' +
+          '<p>Posted ' + new Date(post.created_at).toLocaleString() + '</p>' +
+          '<p class="report-reporters">Reported by: ' + reporterNames + '</p>'
+        : '<p><span class="report-count-pill">' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') + '</span><em>This post was already deleted.</em></p>' +
+          '<p class="report-reporters">Reported by: ' + reporterNames + '</p>';
+
+      const actionsHtml =
+        '<div class="row-actions">' +
+        (post ? '<button class="delete-post-btn" data-id="' + post.id + '">Delete Post</button>' : '') +
+        (post ? banButtonHtml(post.user_id) : '') +
+        '<button class="dismiss-report-btn" data-post-id="' + g.postId + '">Dismiss</button>' +
+        '</div>';
+
+      row.innerHTML = '<div class="info">' + bodyHtml + '</div>' + actionsHtml;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll('.delete-post-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const ok = await showConfirm({
+          title: 'Delete Post',
+          message: 'Delete this post? Replies to it (if any) will also be deleted.',
+          confirmLabel: 'Delete',
+          danger: true
+        });
+        if (!ok) return;
+        const { error } = await supabaseClient.from('global_chat_posts').delete().eq('id', btn.getAttribute('data-id'));
+        msg.className = error ? 'msg error' : 'msg success';
+        msg.textContent = error ? 'Could not delete post.' : 'Post deleted.';
+        if (!error) { await loadChatReports(); await loadChatMod(); }
+      });
+    });
+
+    list.querySelectorAll('.dismiss-report-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const { error } = await supabaseClient.from('global_chat_reports').delete().eq('post_id', btn.getAttribute('data-post-id'));
+        msg.className = error ? 'msg error' : 'msg success';
+        msg.textContent = error ? 'Could not dismiss reports.' : 'Reports dismissed.';
+        if (!error) await loadChatReports();
+      });
+    });
+
+    wireBanButtons(list, msg);
+  }
+
   async function loadChatMod() {
     const { data: posts } = await supabaseClient
       .from('global_chat_posts')
@@ -613,6 +836,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       .order('created_at', { ascending: false });
 
     const list = document.getElementById('chat-mod-list');
+    const msg = document.getElementById('chat-mod-msg');
     list.innerHTML = '';
 
     if (!posts || !posts.length) {
@@ -628,14 +852,22 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
           '<p>' + (p.parent_id ? '<span class="reply-tag">Reply</span>' : '') + '<strong>' + escapeHtml(p.author_name) + '</strong> ' + escapeHtml(p.content) + '</p>' +
           '<p>' + new Date(p.created_at).toLocaleString() + '</p>' +
         '</div>' +
-        '<button class="delete-post-btn" data-id="' + p.id + '">Delete</button>';
+        '<div class="row-actions">' +
+          '<button class="delete-post-btn" data-id="' + p.id + '">Delete</button>' +
+          banButtonHtml(p.user_id) +
+        '</div>';
       list.appendChild(row);
     });
 
-    document.querySelectorAll('.delete-post-btn').forEach(function(btn) {
+    list.querySelectorAll('.delete-post-btn').forEach(function(btn) {
       btn.addEventListener('click', async function() {
-        if (!confirm('Delete this post? Replies to it (if any) will also be deleted.')) return;
-        const msg = document.getElementById('chat-mod-msg');
+        const ok = await showConfirm({
+          title: 'Delete Post',
+          message: 'Delete this post? Replies to it (if any) will also be deleted.',
+          confirmLabel: 'Delete',
+          danger: true
+        });
+        if (!ok) return;
         const { error } = await supabaseClient.from('global_chat_posts').delete().eq('id', btn.getAttribute('data-id'));
         if (error) {
           msg.className = 'msg error';
@@ -643,10 +875,13 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         } else {
           msg.className = 'msg success';
           msg.textContent = 'Post deleted.';
+          await loadChatReports();
           loadChatMod();
         }
       });
     });
+
+    wireBanButtons(list, msg);
   }
 
   document.querySelectorAll('.tab-btn').forEach(function(btn) {

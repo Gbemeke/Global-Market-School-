@@ -38,6 +38,7 @@ header{background:var(--navy-deep); color:var(--ivory);}
 
 section{padding:24px 0;}
 
+.ban-banner{background:#fbf0ee; border:1px solid rgba(138,59,46,0.3); border-left:3px solid var(--bad); color:var(--bad); font-size:13.5px; padding:14px 16px; margin-bottom:16px;}
 .composer{background:#fff; border:1px solid var(--hair); padding:18px;}
 .composer textarea{
   width:100%; min-height:70px; padding:12px 14px; font-family:'EB Garamond', serif; font-size:15px;
@@ -46,6 +47,8 @@ section{padding:24px 0;}
 .composer-toolbar{display:flex; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid var(--hair); flex-wrap:wrap;}
 .media-btn{display:flex; align-items:center; gap:7px; background:none; border:1px solid var(--hair); padding:8px 14px; cursor:pointer; font-family:'EB Garamond', serif; font-size:13.5px; color:var(--ink-soft);}
 .media-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
+.media-btn:disabled{opacity:0.5; cursor:not-allowed;}
+.composer textarea:disabled{opacity:0.6; cursor:not-allowed;}
 .media-preview{margin-top:12px; position:relative; display:inline-block;}
 .media-preview img, .media-preview video{max-width:240px; max-height:180px; border:1px solid var(--hair); display:block; background:#000;}
 .media-remove{position:absolute; top:-9px; right:-9px; width:22px; height:22px; border-radius:50%; background:var(--bad); color:#fff; border:none; cursor:pointer; font-size:13px; line-height:1;}
@@ -291,6 +294,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
 
     <section>
+      <div class="ban-banner" id="ban-banner" style="display:none;">
+        You've been restricted from posting, commenting, reacting, and reposting in Global Chat by an admin. You can still read posts. Contact support if you think this is a mistake.
+      </div>
       <div class="composer">
         <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
 
@@ -386,6 +392,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentUserAvatarUrl = null;
   let currentIsAdmin = false;
   let currentIsVerified = false;
+  let currentIsBanned = false;
   let refreshTimer = null;
   let presenceChannel = null;
 
@@ -484,6 +491,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   function canDelete(post) {
     return currentIsAdmin || post.user_id === currentUserId;
+  }
+
+  // Set by an admin in the admin panel (profiles.chat_banned) when a
+  // student needs to be restricted from Global Chat -- their course
+  // access and account are untouched, they just can't write here.
+  // This is the single backstop every write action below checks first,
+  // so it still holds even if someone reaches an action a hidden/disabled
+  // button was meant to prevent.
+  function blockedByBan() {
+    if (!currentIsBanned) return false;
+    showToast("You've been restricted from posting in Global Chat by an admin.");
+    return true;
   }
 
   // Real staff posts carry this, set once at insert time from the
@@ -818,6 +837,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     document.querySelectorAll('.comment-submit').forEach(function(btn) {
       btn.addEventListener('click', async function() {
+        if (blockedByBan()) return;
         const parentId = btn.getAttribute('data-id');
         const box = document.getElementById('reply-box-' + parentId);
         const textarea = box.querySelector('textarea');
@@ -845,6 +865,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     document.querySelectorAll('.share-btn').forEach(function(btn) {
       btn.addEventListener('click', async function() {
+        if (blockedByBan()) return;
         const postId = btn.getAttribute('data-id');
         const original = postsById[postId];
         if (!original) return;
@@ -920,6 +941,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // ---- Reactions: quick tap toggles Like, long-press opens the emoji picker ----
 
   async function setReaction(postId, type) {
+    if (blockedByBan()) return;
     await supabaseClient.from('global_chat_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
     await supabaseClient.from('global_chat_likes').insert({ post_id: postId, user_id: currentUserId, reaction: type });
     await loadFeed();
@@ -1195,6 +1217,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }, { passive: true, capture: true });
 
   document.getElementById('new-post-btn').addEventListener('click', async function() {
+    if (blockedByBan()) return;
     const textarea = document.getElementById('new-post-text');
     const content = textarea.value.trim();
     const msg = document.getElementById('composer-msg');
@@ -1281,7 +1304,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('full_name, is_admin, avatar_url, chat_rules_accepted_at')
+      .select('full_name, is_admin, avatar_url, chat_rules_accepted_at, chat_banned')
       .eq('id', currentUserId)
       .single();
 
@@ -1289,6 +1312,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       currentUserName = profile.full_name || 'Student';
       currentIsAdmin = !!profile.is_admin;
       currentUserAvatarUrl = profile.avatar_url || null;
+      currentIsBanned = !!profile.chat_banned;
     }
 
     // Verified = has actually paid for at least one course. Set
@@ -1317,6 +1341,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }
 
   async function enterChat() {
+    if (currentIsBanned) {
+      document.getElementById('ban-banner').style.display = 'block';
+      const composerText = document.getElementById('new-post-text');
+      composerText.disabled = true;
+      composerText.placeholder = 'You cannot post while restricted from Global Chat.';
+      document.getElementById('new-post-btn').disabled = true;
+      document.getElementById('attach-image-btn').disabled = true;
+      document.getElementById('attach-video-btn').disabled = true;
+    }
+
     await loadFeed();
     startPresence();
     markChatAsSeen();
