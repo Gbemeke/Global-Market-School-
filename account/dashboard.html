@@ -214,6 +214,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 @keyframes ticker-scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
 .ticker-note{font-size:11px; color:var(--ink-soft); margin-top:8px; text-align:right;}
 
+.payout-led-box{
+  background:#04140a; border:1px solid #1d5c3a; overflow:hidden; position:relative;
+  padding:14px 0; display:flex; align-items:center; margin-bottom:16px;
+}
+.payout-led-label{
+  flex-shrink:0; display:flex; align-items:center; gap:6px; padding:0 16px;
+  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#4ee08a; border-right:1px solid rgba(78,224,138,0.3);
+}
+.payout-led-label .dot{width:7px; height:7px; border-radius:50%; background:#4ee08a; box-shadow:0 0 6px #4ee08a; animation:ticker-pulse 1.4s ease-in-out infinite;}
+.payout-led-viewport{overflow:hidden; flex:1;}
+.payout-led-track{display:inline-flex; gap:44px; white-space:nowrap; animation:ticker-scroll 22s linear infinite; padding-left:24px;}
+.payout-led-item{
+  font-family:'Courier New', monospace; font-size:19px; font-weight:700; letter-spacing:1px; color:#4ee08a;
+  text-shadow:0 0 8px rgba(78,224,138,0.65), 0 0 2px rgba(78,224,138,0.9);
+}
+
 .global-chat-fab{
   position:fixed; right:20px; bottom:86px; z-index:60;
   height:52px; padding:0 22px 0 10px; border-radius:26px; background:var(--gold); border:1.5px solid var(--navy-deep);
@@ -470,21 +486,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
 
     <section style="padding-bottom:8px;">
-      <p class="section-title">Live Market Watch</p>
-      <div class="ticker-box">
-        <span class="ticker-live"><span class="dot"></span>LIVE</span>
-        <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading market data&hellip;</div></div>
-      </div>
-      <p class="ticker-note">Forex reference rates via the European Central Bank. Updated daily, not tick-by-tick.</p>
-    </section>
-
-    <section>
-      <p class="section-title">Your Courses</p>
-      <div class="tier-grid" id="tier-grid"></div>
-    </section>
-
-    <section>
       <p class="section-title">Referral Program</p>
+      <div class="payout-led-box" id="payout-led-box" style="display:none;">
+        <span class="payout-led-label"><span class="dot"></span>Payouts</span>
+        <div class="payout-led-viewport"><div class="payout-led-track" id="payout-led-track"></div></div>
+      </div>
       <div class="referral-box">
         <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment. Find your link under your profile (top right).</p>
         <div class="earnings-stat">
@@ -496,6 +502,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
         </div>
       </div>
+    </section>
+
+    <section style="padding-bottom:8px;">
+      <p class="section-title">Live Market Watch</p>
+      <div class="ticker-box">
+        <span class="ticker-live"><span class="dot"></span>LIVE</span>
+        <div class="ticker-viewport"><div class="ticker-track" id="ticker-track">Loading market data&hellip;</div></div>
+      </div>
+      <p class="ticker-note">Forex reference rates via the European Central Bank. Updated daily, not tick-by-tick.</p>
+    </section>
+
+    <section>
+      <p class="section-title">Your Courses</p>
+      <div class="tier-grid" id="tier-grid"></div>
     </section>
 
   </div>
@@ -1456,6 +1476,38 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   loadMarketTicker();
   setInterval(loadMarketTicker, 5 * 60 * 1000);
+
+  // Real settled payouts only -- get_recent_referral_payouts() returns
+  // just the amount and currency of paid_out=true rows, nothing that
+  // identifies who earned or who was referred, so it's safe to show
+  // to any logged-in student, not just admins. Hidden entirely rather
+  // than showing a fabricated example when there's genuinely nothing
+  // paid out yet.
+  async function loadPayoutTicker() {
+    const box = document.getElementById('payout-led-box');
+    const track = document.getElementById('payout-led-track');
+    try {
+      const { data, error } = await supabaseClient.rpc('get_recent_referral_payouts', { p_limit: 20 });
+      if (error || !data || !data.length) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const itemsHtml = data.map(function (p) {
+        const amount = Number(p.commission_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return '<span class="payout-led-item">' + escapeHtml(p.currency) + ' ' + amount + ' PAID</span>';
+      }).join('');
+
+      // Duplicated so the CSS marquee (translateX(-50%)) loops seamlessly
+      track.innerHTML = itemsHtml + itemsHtml;
+      box.style.display = 'flex';
+    } catch (e) {
+      box.style.display = 'none';
+    }
+  }
+
+  loadPayoutTicker();
+  setInterval(loadPayoutTicker, 3 * 60 * 1000);
 
   // ---- Floating buttons: fade out while actively scrolling ----
   // (see the .fab-hidden CSS comment for why this exists)
