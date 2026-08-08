@@ -69,6 +69,7 @@ section{padding:24px 0;}
   display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
 }
 .post-avatar img{width:100%; height:100%; object-fit:cover;}
+.admin-avatar-mark{font-size:0.62em; letter-spacing:0.2px;}
 .post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
 .admin-badge{
   display:inline-block; font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:0.8px; text-transform:uppercase;
@@ -365,10 +366,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     return entity.author_is_admin ? ADMIN_DISPLAY_NAME : (entity.author_name || 'Student');
   }
   function displayAuthorAvatarHtml(entity) {
-    if (!entity.author_is_admin && entity.author_avatar_url) {
+    if (entity.author_is_admin) {
+      return '<span class="admin-avatar-mark">GMS</span>';
+    }
+    if (entity.author_avatar_url) {
       return '<img src="' + escapeHtml(entity.author_avatar_url) + '" alt="">';
     }
-    return escapeHtml(displayAuthorName(entity).charAt(0).toUpperCase());
+    return escapeHtml((entity.author_name || 'Student').charAt(0).toUpperCase());
   }
 
   function reactionMeta(key) {
