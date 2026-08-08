@@ -180,9 +180,10 @@ section{padding:24px 0;}
 .rules-gate-card h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; color:var(--navy-deep); margin-bottom:12px;}
 .rules-gate-card p{font-size:14.5px; color:var(--ink-soft); margin-bottom:16px;}
 .rules-list{list-style:none;}
-.rules-list li{font-size:14.5px; color:var(--ink); padding:9px 0; border-bottom:1px solid var(--hair); display:flex; gap:10px;}
+.rules-list li{font-size:14.5px; color:var(--ink); padding:9px 0; border-bottom:1px solid var(--hair); display:flex; gap:10px; align-items:flex-start;}
 .rules-list li:last-child{border-bottom:none; margin-bottom:16px;}
-.rules-list li span{color:var(--gold); flex-shrink:0;}
+.rules-list li .bullet-dot{color:var(--gold); flex-shrink:0;}
+.rules-list li .bullet-text{min-width:0;}
 .rules-gate-link{font-size:13px; color:var(--gold); text-decoration:underline;}
 .rules-checkbox-row{display:flex; align-items:flex-start; gap:10px; margin:20px 0; font-size:13.5px; color:var(--ink-soft); cursor:pointer;}
 .rules-checkbox-row input{margin-top:3px; flex-shrink:0;}
@@ -251,11 +252,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <h1>Before you jump in&hellip;</h1>
       <p>Global Chat is a space for students to encourage each other and talk markets. A few things worth knowing first:</p>
       <ul class="rules-list">
-        <li><span>&#8226;</span> We'll never DM you for money, your password, or a login code &mdash; anything official comes through your dashboard or email.</li>
-        <li><span>&#8226;</span> Nothing posted here &mdash; by us or by other students &mdash; is financial advice or a guaranteed return.</li>
-        <li><span>&#8226;</span> Turn on Two-Factor Authentication in your dashboard for extra account protection.</li>
-        <li><span>&#8226;</span> If someone in chat promises you a return and you send them money, that's between you and them &mdash; not us. Report it.</li>
-        <li><span>&#8226;</span> Be respectful, keep it on-topic, and only trust the <span class="admin-badge">Admin</span> badge as proof someone's really staff.</li>
+        <li><span class="bullet-dot">&#8226;</span><span class="bullet-text">We'll never DM you for money, your password, or a login code &mdash; anything official comes through your dashboard or email.</span></li>
+        <li><span class="bullet-dot">&#8226;</span><span class="bullet-text">Nothing posted here &mdash; by us or by other students &mdash; is financial advice or a guaranteed return.</span></li>
+        <li><span class="bullet-dot">&#8226;</span><span class="bullet-text">Turn on Two-Factor Authentication in your dashboard for extra account protection.</span></li>
+        <li><span class="bullet-dot">&#8226;</span><span class="bullet-text">If someone in chat promises you a return and you send them money, that's between you and them &mdash; not us. Report it.</span></li>
+        <li><span class="bullet-dot">&#8226;</span><span class="bullet-text">Be respectful, keep it on-topic, and only trust the <span class="admin-badge">Admin</span> badge as proof someone's really staff.</span></li>
       </ul>
       <p><a href="../legal/community-guidelines.html" target="_blank" rel="noopener" class="rules-gate-link">Read the full Community Guidelines &rarr;</a></p>
       <label class="rules-checkbox-row">
