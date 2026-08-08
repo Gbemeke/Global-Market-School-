@@ -228,13 +228,13 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         <p class="msg" id="settings-msg"></p>
 
         <p class="section-title">Payout Ticker (Dashboard)</p>
-        <p class="admin-only-note">The colorful banner at the very top of every student's dashboard, before they scroll. Demo mode scrolls the figures below on repeat. Switch to Real once genuine payouts start coming in -- it will then show actual settled referral commissions instead (amounts only, never who earned them).</p>
+        <p class="admin-only-note">The colorful banner at the very top of every student's dashboard, before they scroll. Display Mode picks which table below feeds it. Real Amounts works exactly like Demo Amounts (type figures in yourself) -- leave it blank and Real mode will instead show genuine settled referral payouts automatically (amounts only, never who earned them).</p>
         <div class="settings-grid">
           <div class="setting-row">
             <label>Display Mode</label>
             <select id="payout-ticker-mode" style="flex:1; padding:8px 10px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:var(--paper);">
-              <option value="demo">Demo -- example figures</option>
-              <option value="real">Real -- live settled payouts</option>
+              <option value="demo">Demo table</option>
+              <option value="real">Real table</option>
             </select>
           </div>
           <div class="setting-row">
@@ -248,6 +248,18 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
           <div class="setting-row">
             <label>Demo Label</label>
             <input type="text" id="payout-ticker-label" placeholder="Referral Earnings Payout">
+          </div>
+          <div class="setting-row">
+            <label>Real Amounts</label>
+            <input type="text" id="payout-ticker-real-amounts" placeholder="Leave blank to show genuine payouts automatically">
+          </div>
+          <div class="setting-row">
+            <label>Real Currency</label>
+            <input type="text" id="payout-ticker-real-currency" placeholder="USD" style="max-width:140px;">
+          </div>
+          <div class="setting-row">
+            <label>Real Label</label>
+            <input type="text" id="payout-ticker-real-label" placeholder="Referral Earnings Payout">
             <button type="button" id="payout-ticker-save-btn">Save</button>
           </div>
         </div>
@@ -540,6 +552,9 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     document.getElementById('payout-ticker-amounts').value = map.payout_ticker_demo_amounts || '';
     document.getElementById('payout-ticker-currency').value = map.payout_ticker_demo_currency || 'USD';
     document.getElementById('payout-ticker-label').value = map.payout_ticker_demo_label || 'Referral Earnings Payout';
+    document.getElementById('payout-ticker-real-amounts').value = map.payout_ticker_real_amounts || '';
+    document.getElementById('payout-ticker-real-currency').value = map.payout_ticker_real_currency || 'USD';
+    document.getElementById('payout-ticker-real-label').value = map.payout_ticker_real_label || 'Referral Earnings Payout';
 
     document.getElementById('payout-ticker-save-btn').addEventListener('click', async function() {
       const msg = document.getElementById('payout-ticker-msg');
@@ -547,7 +562,10 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         { key: 'payout_ticker_mode', value: document.getElementById('payout-ticker-mode').value },
         { key: 'payout_ticker_demo_amounts', value: document.getElementById('payout-ticker-amounts').value.trim() },
         { key: 'payout_ticker_demo_currency', value: document.getElementById('payout-ticker-currency').value.trim().toUpperCase() || 'USD' },
-        { key: 'payout_ticker_demo_label', value: document.getElementById('payout-ticker-label').value.trim() || 'Referral Earnings Payout' }
+        { key: 'payout_ticker_demo_label', value: document.getElementById('payout-ticker-label').value.trim() || 'Referral Earnings Payout' },
+        { key: 'payout_ticker_real_amounts', value: document.getElementById('payout-ticker-real-amounts').value.trim() },
+        { key: 'payout_ticker_real_currency', value: document.getElementById('payout-ticker-real-currency').value.trim().toUpperCase() || 'USD' },
+        { key: 'payout_ticker_real_label', value: document.getElementById('payout-ticker-real-label').value.trim() || 'Referral Earnings Payout' }
       ];
 
       const results = await Promise.all(updates.map(function(u) {
