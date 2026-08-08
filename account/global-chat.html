@@ -128,21 +128,36 @@ section{padding:24px 0;}
 .post.reply .reply-box{margin-left:14px;}
 
 /* A comment box tucked inside a thread reads as part of that thread,
-   not a second call to action -- so unlike the big "POST" button on
-   the composer up top, its submit sits small and inline right next
-   to the input instead of as its own full-size block underneath,
-   the way Facebook keeps its comment box compact. */
-.reply-box{display:none; margin-top:12px; align-items:flex-end; gap:8px;}
-.reply-box.open{display:flex;}
-.reply-box textarea{
-  flex:1; min-width:0; min-height:38px; padding:9px 12px; font-family:'EB Garamond', serif; font-size:14px;
-  border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical;
+   not a second call to action -- one rounded pill carrying the input,
+   an emoji quick-pick, and the submit together, the way Facebook's
+   own comment bar reads as a single compact control rather than a
+   textarea with a big separate button underneath. */
+.reply-box{display:none; margin-top:12px;}
+.reply-box.open{display:block;}
+.reply-input-row{
+  display:flex; align-items:center; gap:4px; background:var(--paper);
+  border:1px solid var(--hair); border-radius:20px; padding:4px 6px 4px 16px;
 }
-.reply-box .composer-actions{margin-top:0;}
-.reply-box .post-btn{
-  background:none; color:var(--navy-deep); border:1px solid var(--gold); padding:8px 14px; font-size:10px;
+.reply-input-row textarea{
+  flex:1; min-width:0; height:34px; padding:7px 0; border:none; background:none; resize:none;
+  font-family:'EB Garamond', serif; font-size:14px; color:var(--ink); outline:none;
 }
-.reply-box .post-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.emoji-toggle-btn{
+  background:none; border:none; font-size:18px; line-height:1; padding:5px; cursor:pointer; flex-shrink:0;
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+.reply-input-row .post-btn{
+  background:none; color:var(--navy-deep); border:1px solid var(--gold); border-radius:14px;
+  padding:7px 14px; font-size:10px; flex-shrink:0;
+}
+.reply-input-row .post-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.emoji-quickpicker{display:none; flex-wrap:wrap; gap:2px; margin:6px 0 0 14px;}
+.emoji-quickpicker.open{display:flex;}
+.emoji-quickpicker button{
+  background:none; border:none; font-size:19px; line-height:1; padding:4px; cursor:pointer;
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+.emoji-quickpicker button:hover{transform:scale(1.2);}
 
 .empty-note{text-align:center; color:var(--ink-soft); font-size:14px; padding:32px 0;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
@@ -282,6 +297,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     { key: 'sad',   emoji: '\u{1F622}', label: 'Sad' },
     { key: 'angry', emoji: '\u{1F621}', label: 'Angry' }
   ];
+  // A quick-insert row for the comment box's emoji button -- not a full
+  // emoji keyboard (that's a much bigger, separate build), just the
+  // handful someone reaching for that button while commenting is
+  // actually likely to want.
+  const QUICK_EMOJI = ['\u{1F44D}', '\u{2764}\u{FE0F}', '\u{1F602}', '\u{1F62E}', '\u{1F622}', '\u{1F64F}', '\u{1F525}', '\u{1F389}'];
+
   function reactionMeta(key) {
     return REACTIONS.filter(function(r) { return r.key === key; })[0] || REACTIONS[0];
   }
@@ -579,8 +600,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     replyBox.className = 'reply-box';
     replyBox.id = 'reply-box-' + post.id;
     replyBox.innerHTML =
-      '<textarea placeholder="' + (depth > 0 ? 'Write a reply...' : 'Write a comment...') + '" maxlength="2000"></textarea>' +
-      '<div class="composer-actions"><button class="post-btn comment-submit" data-id="' + post.id + '" disabled>' + (depth > 0 ? 'Reply' : 'Comment') + '</button></div>';
+      '<div class="reply-input-row">' +
+        '<textarea placeholder="' + (depth > 0 ? 'Write a reply...' : 'Add a comment...') + '" maxlength="2000"></textarea>' +
+        '<button type="button" class="emoji-toggle-btn" aria-label="Add emoji">\u{1F60A}</button>' +
+        '<button class="post-btn comment-submit" data-id="' + post.id + '" disabled>' + (depth > 0 ? 'Reply' : 'Comment') + '</button>' +
+      '</div>' +
+      '<div class="emoji-quickpicker">' +
+        QUICK_EMOJI.map(function(e) { return '<button type="button" data-emoji="' + e + '">' + e + '</button>'; }).join('') +
+      '</div>';
+
     // Facebook's own comment submit stays disabled until there's
     // actually something to post, rather than sitting there active
     // with nothing typed.
@@ -589,6 +617,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     replyTextarea.addEventListener('input', function() {
       replySubmitBtn.disabled = !replyTextarea.value.trim();
     });
+
+    // Tapping the smiley toggles a small quick-pick row rather than a
+    // floating popup -- it's plain flow content inside the (already
+    // toggled open/closed) reply box, so there's no separate
+    // position/dismiss logic to get wrong.
+    const quickPicker = replyBox.querySelector('.emoji-quickpicker');
+    replyBox.querySelector('.emoji-toggle-btn').addEventListener('click', function() {
+      quickPicker.classList.toggle('open');
+    });
+    quickPicker.querySelectorAll('button[data-emoji]').forEach(function(emojiBtn) {
+      emojiBtn.addEventListener('click', function() {
+        replyTextarea.value += emojiBtn.getAttribute('data-emoji');
+        replyTextarea.dispatchEvent(new Event('input'));
+        quickPicker.classList.remove('open');
+        replyTextarea.focus();
+      });
+    });
+
     el.appendChild(replyBox);
 
     const childWrap = document.createElement('div');
@@ -844,6 +890,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     box.classList.add('open');
     const ta = box.querySelector('textarea');
     ta.value = ta.value ? (ta.value + '\n' + text) : text;
+    ta.dispatchEvent(new Event('input')); // updates the submit button's disabled state
     ta.focus();
   }
 
