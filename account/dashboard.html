@@ -242,7 +242,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .payout-hero-inner{padding:8px 16px 6px; text-align:center;}
 .payout-hero-label{font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:6px;}
 .payout-hero-viewport{overflow:hidden;}
-.payout-hero-track{display:inline-flex; gap:40px; white-space:nowrap; animation:ticker-scroll 24s linear infinite;}
+.payout-hero-track{display:inline-flex; gap:40px; white-space:nowrap; animation:ticker-scroll 70s linear infinite;}
 .payout-hero-item{font-family:'Courier New', monospace; font-size:19px; font-weight:700; letter-spacing:1px;}
 .payout-hero-item:nth-child(5n+1){color:#4ee08a; text-shadow:0 0 8px rgba(78,224,138,0.6);}
 .payout-hero-item:nth-child(5n+2){color:#4ea8e0; text-shadow:0 0 8px rgba(78,168,224,0.6);}
@@ -1511,12 +1511,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   setInterval(loadMarketTicker, 5 * 60 * 1000);
 
   // Admin-controlled: Site Settings > Payout Ticker decides whether this
-  // banner shows the admin's own example figures (payout_ticker_mode =
-  // 'demo', for a young platform with little real activity yet) or
-  // genuine settled payouts (mode = 'real', via
-  // get_recent_referral_payouts(), which returns only amount + currency
-  // -- nothing that identifies who earned or who was referred).
-  const DEMO_REPEAT = 5; // repeats the admin's figure set so the track feels long and active, not a short thin loop
+  // banner shows the admin's own Demo figures (payout_ticker_mode =
+  // 'demo') or the Real figures (mode = 'real'). Real mode shows the
+  // admin's own typed-in Real Amounts when they've entered any -- same
+  // as Demo, just a separate list -- and only falls back to genuinely
+  // settled payouts (via get_recent_referral_payouts(), amount +
+  // currency only, nothing that identifies who earned or was referred)
+  // when the admin hasn't typed anything into Real Amounts yet.
+  const TICKER_REPEAT = 5; // repeats the figure set so the track feels long and active, not a short thin loop
+  const CURRENCY_SYMBOLS = { USD: '$', NGN: '₦', GHS: '₵', KES: 'KSh ', ZAR: 'R ' };
+
+  function formatTickerAmount(currency, amount) {
+    const num = Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const symbol = CURRENCY_SYMBOLS[currency];
+    return symbol ? (symbol + num) : (escapeHtml(currency || '') + ' ' + num);
+  }
+
+  function parseAmountList(raw, currency) {
+    return (raw || '')
+      .split(',')
+      .map(function (s) { return Number(s.trim()); })
+      .filter(function (n) { return isFinite(n) && n > 0; })
+      .map(function (n) { return { commission_amount: n, currency: currency }; });
+  }
 
   async function loadPayoutTicker() {
     const hero = document.getElementById('payout-hero');
@@ -1527,7 +1544,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       const { data: rows } = await supabaseClient
         .from('site_settings')
         .select('key, value')
-        .in('key', ['payout_ticker_mode', 'payout_ticker_demo_amounts', 'payout_ticker_demo_currency', 'payout_ticker_demo_label']);
+        .in('key', [
+          'payout_ticker_mode',
+          'payout_ticker_demo_amounts', 'payout_ticker_demo_currency', 'payout_ticker_demo_label',
+          'payout_ticker_real_amounts', 'payout_ticker_real_currency', 'payout_ticker_real_label'
+        ]);
 
       const map = {};
       (rows || []).forEach(function (r) { map[r.key] = r.value; });
@@ -1536,25 +1557,25 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       let items = [];
 
       if (mode === 'demo') {
-        const currency = (map.payout_ticker_demo_currency || 'USD').trim();
-        const parsed = (map.payout_ticker_demo_amounts || '')
-          .split(',')
-          .map(function (s) { return Number(s.trim()); })
-          .filter(function (n) { return isFinite(n) && n > 0; })
-          .map(function (n) { return { commission_amount: n, currency: currency }; });
-        for (let i = 0; i < DEMO_REPEAT; i++) items = items.concat(parsed);
+        const parsed = parseAmountList(map.payout_ticker_demo_amounts, (map.payout_ticker_demo_currency || 'USD').trim());
+        for (let i = 0; i < TICKER_REPEAT; i++) items = items.concat(parsed);
         label.textContent = map.payout_ticker_demo_label || 'Referral Earnings Payout';
       } else {
-        const { data } = await supabaseClient.rpc('get_recent_referral_payouts', { p_limit: 20 });
-        items = data || [];
-        label.textContent = 'Referral Earnings Payout';
+        const manual = parseAmountList(map.payout_ticker_real_amounts, (map.payout_ticker_real_currency || 'USD').trim());
+        label.textContent = map.payout_ticker_real_label || 'Referral Earnings Payout';
+
+        if (manual.length) {
+          for (let i = 0; i < TICKER_REPEAT; i++) items = items.concat(manual);
+        } else {
+          const { data } = await supabaseClient.rpc('get_recent_referral_payouts', { p_limit: 20 });
+          items = data || [];
+        }
       }
 
       if (!items.length) {
         if (mode === 'real') {
           // Admin has genuinely switched this on -- show it, just with an
           // honest placeholder instead of looking broken/empty.
-          label.textContent = 'Referral Earnings Payout';
           track.innerHTML = '<span class="payout-hero-item">Be the first to earn a payout!</span>';
           hero.style.display = 'block';
         } else {
@@ -1564,8 +1585,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       }
 
       const itemsHtml = items.map(function (p) {
-        const amount = Number(p.commission_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        return '<span class="payout-hero-item">' + escapeHtml(p.currency) + ' ' + amount + ' PAID</span>';
+        return '<span class="payout-hero-item">' + formatTickerAmount(p.currency, p.commission_amount) + ' PAID</span>';
       }).join('');
 
       // Duplicated so the CSS marquee (translateX(-50%)) loops seamlessly
