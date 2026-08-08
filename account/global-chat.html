@@ -74,6 +74,10 @@ section{padding:24px 0;}
   display:inline-block; font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:0.8px; text-transform:uppercase;
   color:var(--navy-deep); background:var(--gold-bright); border-radius:3px; padding:2px 5px; margin-left:6px; vertical-align:1px;
 }
+.verified-badge{
+  display:inline-block; font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:0.8px; text-transform:uppercase;
+  color:#fff; background:var(--good); border-radius:3px; padding:2px 5px; margin-left:6px; vertical-align:1px;
+}
 .post-time{font-size:12px; color:var(--ink-soft);}
 .post-content{margin-top:10px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
 .repost-tag{display:flex; align-items:center; gap:6px; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
@@ -359,6 +363,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentUserName = 'Student';
   let currentUserAvatarUrl = null;
   let currentIsAdmin = false;
+  let currentIsVerified = false;
   let refreshTimer = null;
   let presenceChannel = null;
 
@@ -463,8 +468,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // author's own admin status -- it's what makes "look for the badge"
   // in the Community Guidelines an actual, checkable thing rather than
   // just words. Nobody can add it to their own post after the fact.
-  function adminBadgeHtml(isAdmin) {
-    return isAdmin ? '<span class="admin-badge">Admin</span>' : '';
+  // Admin outranks Verified when someone happens to be both -- no need
+  // to show two badges for one person, and staff status is the
+  // stronger claim. Verified is set automatically from actually having
+  // paid for a course (see currentIsVerified in init()), never a manual
+  // toggle, so it can't drift out of date or be granted by mistake.
+  function authorBadgeHtml(post) {
+    if (post.author_is_admin) return '<span class="admin-badge">Admin</span>';
+    if (post.author_is_verified) return '<span class="verified-badge">&#10003; Verified</span>';
+    return '';
   }
 
   // ---- Composer media attachment ----
@@ -585,7 +597,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="quoted-post">' +
             '<div class="post-head">' +
               '<span class="post-author-row"><span class="post-avatar">' + oAvatar + '</span>' +
-              '<span class="post-author">' + escapeHtml(original.author_name) + '</span>' + adminBadgeHtml(original.author_is_admin) + '</span>' +
+              '<span class="post-author">' + escapeHtml(original.author_name) + '</span>' + authorBadgeHtml(original) + '</span>' +
               '<span class="post-time">' + timeAgo(original.created_at) + '</span>' +
             '</div>' +
             '<p class="quoted-content">' + escapeHtml(original.content) + '</p>' +
@@ -614,7 +626,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="msg-target" data-id="' + post.id + '">' +
             '<div class="reply-bubble">' +
               (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
-              '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + adminBadgeHtml(post.author_is_admin) +
+              '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + authorBadgeHtml(post) +
               (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
             '</div>' +
             mediaHtml + quoteHtml +
@@ -632,7 +644,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
           '<div class="post-head">' +
             '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
-            '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + adminBadgeHtml(post.author_is_admin) + '</span>' +
+            '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + authorBadgeHtml(post) + '</span>' +
             '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
           '</div>' +
           (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
@@ -797,6 +809,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           author_name: currentUserName,
           author_avatar_url: currentUserAvatarUrl,
           author_is_admin: currentIsAdmin,
+          author_is_verified: currentIsVerified,
           parent_id: parentId,
           content: content
         });
@@ -836,6 +849,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
             author_name: currentUserName,
             author_avatar_url: currentUserAvatarUrl,
             author_is_admin: currentIsAdmin,
+            author_is_verified: currentIsVerified,
             content: (caption || '').trim(),
             shared_post_id: postId
           });
@@ -1183,6 +1197,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         author_name: currentUserName,
         author_avatar_url: currentUserAvatarUrl,
         author_is_admin: currentIsAdmin,
+        author_is_verified: currentIsVerified,
         content: content,
         image_url: media.image_url,
         video_url: media.video_url
@@ -1254,6 +1269,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       currentIsAdmin = !!profile.is_admin;
       currentUserAvatarUrl = profile.avatar_url || null;
     }
+
+    // Verified = has actually paid for at least one course. Set
+    // automatically from course_access, not a toggle anyone has to
+    // remember to flip -- it can't drift out of date and it can't be
+    // granted by mistake.
+    const { data: accessRows } = await supabaseClient
+      .from('course_access')
+      .select('id')
+      .eq('user_id', currentUserId)
+      .eq('has_access', true)
+      .limit(1);
+    currentIsVerified = !!(accessRows && accessRows.length);
 
     document.getElementById('loading').style.display = 'none';
 
