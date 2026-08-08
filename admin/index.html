@@ -94,10 +94,14 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 .withdraw-row .info strong{color:var(--navy-deep);}
 .status-pill{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:5px 10px;}
 .status-pill.pending{background:#fff3e0; color:#a6650a;}
+.status-pill.held{background:#fbf0ee; color:var(--bad);}
 .status-pill.paid{background:#eaf3ee; color:var(--good);}
 .status-pill.diverted{background:#f4e6ea; color:var(--bad);}
 .mark-paid-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--good); color:#fff; border:none; padding:9px 14px; cursor:pointer;}
 .divert-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:9px 14px; cursor:pointer;}
+.reset-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:none; border:1px solid var(--hair); color:var(--ink-soft); padding:9px 14px; cursor:pointer;}
+.reset-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
+.withdraw-row .flag-reason{font-size:12px; color:var(--bad); margin-top:4px;}
 .admin-only-note{font-size:11.5px; color:var(--ink-soft); margin:-6px 0 10px;}
 
 .chat-mod-row{background:#fff; border:1px solid var(--hair); padding:14px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;}
@@ -217,6 +221,10 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         <p class="section-title">Company Payout Account (Admin Only)</p>
         <p class="admin-only-note">Not shown to students. Used as the payout destination when a withdrawal is diverted from a user.</p>
         <div class="settings-grid" id="settings-admin-only"></div>
+
+        <p class="section-title">Referral Withdrawal Auto-Hold Rules</p>
+        <p class="admin-only-note">Referral withdrawals settle instantly by default -- no admin click needed. A request is held for manual review instead only when one of these trips. Regardless of the outcome, any withdrawal (instant-paid or held) can still be pulled back with Reset on the Withdrawals tab.</p>
+        <div class="settings-grid" id="settings-referral-hold"></div>
         <p class="msg" id="settings-msg"></p>
       </div>
 
@@ -465,10 +473,16 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
     const priceKeys = ['price_beginner','price_intermediate','price_advanced','price_elite','price_trade_group'];
     const linkKeys = ['wa_link_beginner','wa_link_intermediate','wa_link_advanced','wa_link_elite','wa_link_trade_group'];
+    const referralHoldKeys = [
+      ['referral_hold_new_account_days', 'Hold if referrer account is younger than (days)'],
+      ['referral_hold_velocity_count', 'Hold if this many commissions land within the velocity window'],
+      ['referral_hold_velocity_hours', 'Velocity window (hours)'],
+      ['referral_hold_batch_count', 'Hold if a single withdrawal covers this many commissions']
+    ];
 
-    function buildRow(key, table, valueMap) {
+    function buildRow(key, table, valueMap, label) {
       valueMap = valueMap || map;
-      return '<div class="setting-row"><label>' + key + '</label>' +
+      return '<div class="setting-row"><label>' + (label || key) + '</label>' +
         '<input type="text" id="setting-' + key + '" value="' + (valueMap[key] || '') + '">' +
         '<button data-key="' + key + '" data-table="' + (table || 'site_settings') + '">Save</button></div>';
     }
@@ -477,6 +491,9 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     document.getElementById('settings-links').innerHTML = linkKeys.map(k => buildRow(k)).join('');
     document.getElementById('settings-broker').innerHTML = buildRow('broker_forex_link');
     document.getElementById('settings-admin-only').innerHTML = buildRow('company_payout_account', 'admin_settings', adminMap);
+    document.getElementById('settings-referral-hold').innerHTML = referralHoldKeys.map(function(pair) {
+      return buildRow(pair[0], 'site_settings', map, pair[1]);
+    }).join('');
 
     document.querySelectorAll('.setting-row button').forEach(function(btn) {
       btn.addEventListener('click', async function() {
@@ -635,17 +652,20 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
     requests.forEach(function(r) {
       const studentName = (r.profiles && r.profiles.full_name) || (r.profiles && r.profiles.email) || 'Unknown';
+      const needsAction = r.status === 'pending' || r.status === 'held';
       const row = document.createElement('div');
       row.className = 'withdraw-row';
       row.innerHTML =
         '<div class="info">' +
           '<p><strong>' + escapeHtml(studentName) + '</strong> — ' + escapeHtml(r.currency) + ' ' + Number(r.amount).toLocaleString() + '</p>' +
           '<p>' + escapeHtml(r.payout_details || 'No details provided') + '</p>' +
+          (r.flag_reason ? '<p class="flag-reason">' + escapeHtml(r.flag_reason) + '</p>' : '') +
         '</div>' +
         '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
           '<span class="status-pill ' + r.status + '">' + (r.status === 'diverted' ? 'diverted to company' : r.status) + '</span>' +
-          (r.status === 'pending' ? '<button class="mark-paid-btn" data-id="' + r.id + '">Mark as Paid</button>' : '') +
-          (r.status === 'pending' ? '<button class="divert-btn" data-id="' + r.id + '">Divert to Company</button>' : '') +
+          (needsAction ? '<button class="mark-paid-btn" data-id="' + r.id + '">Mark as Paid</button>' : '') +
+          (needsAction ? '<button class="divert-btn" data-id="' + r.id + '">Divert to Company</button>' : '') +
+          (!needsAction ? '<button class="reset-btn" data-id="' + r.id + '">Reset</button>' : '') +
         '</div>';
       list.appendChild(row);
     });
@@ -687,6 +707,33 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         } else {
           msg.className = 'msg success';
           msg.textContent = 'Withdrawal diverted to company account.';
+          loadWithdrawals();
+        }
+      });
+    });
+
+    // Available on any already-settled or held request -- pulls it back
+    // to pending and un-marks its earnings as paid, without releasing
+    // them into the student's available balance (they stay attached to
+    // this request until it's decided again). The one override that
+    // works regardless of how the request got here, instant-paid or not.
+    document.querySelectorAll('.reset-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const ok = await showConfirm({
+          title: 'Reset Withdrawal',
+          message: 'Pull this withdrawal back for review? It will return to Pending and stop counting as paid.',
+          confirmLabel: 'Reset',
+          danger: true
+        });
+        if (!ok) return;
+        const msg = document.getElementById('withdrawals-msg');
+        const { error } = await supabaseClient.rpc('settle_withdrawal_request', { p_request_id: btn.getAttribute('data-id'), p_status: 'reset' });
+        if (error) {
+          msg.className = 'msg error';
+          msg.textContent = 'Could not reset withdrawal.';
+        } else {
+          msg.className = 'msg success';
+          msg.textContent = 'Withdrawal reset for review.';
           loadWithdrawals();
         }
       });

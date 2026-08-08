@@ -911,7 +911,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     container.innerHTML = currencies.map(function(cur) {
       const bal = byCurrency[cur];
       const pendingHtml = bal.pending > 0
-        ? '<p class="cbr-pending">' + cur + ' ' + bal.pending.toFixed(2) + ' pending admin approval</p>'
+        ? '<p class="cbr-pending">' + cur + ' ' + bal.pending.toFixed(2) + ' held for review</p>'
         : '';
       return '<div class="currency-balance-row" data-currency="' + escapeHtml(cur) + '">' +
         '<div><p class="cbr-amount">' + cur + ' ' + bal.available.toFixed(2) + ' available</p>' + pendingHtml + '</div>' +
@@ -950,8 +950,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
             ? 'That balance was just claimed by another request. Refreshing...'
             : 'Could not submit request. Please try again or contact support.';
         } else {
+          // Most withdrawals settle instantly -- the RPC only holds one
+          // back when a fraud signal actually trips, so tell the
+          // student which of the two just happened rather than always
+          // showing the old "we'll process this shortly" line.
+          const result = (data && data[0]) || {};
           msg.className = 'msg success';
-          msg.textContent = 'Withdrawal request submitted for ' + currency + ' ' + amount + '. We will process this shortly.';
+          msg.textContent = result.status === 'held'
+            ? 'Withdrawal request for ' + currency + ' ' + amount + ' is being reviewed before payout -- you\'ll see it settle here once approved.'
+            : 'Paid instantly: ' + currency + ' ' + amount + '. Funds will be sent to the payout details you provided.';
         }
 
         await loadReferralBalances(currentUserId);
