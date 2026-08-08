@@ -506,12 +506,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
         <p class="msg" id="mfa-msg" style="display:none;"></p>
       </div>
-
-      <p class="section-title">Your Referral Link</p>
-      <div class="referral-link-row">
-        <input type="text" id="referral-link" readonly>
-        <button class="copy-btn" id="copy-referral">Copy</button>
-      </div>
     </div>
   </aside>
 
@@ -525,15 +519,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <section style="padding-bottom:8px;">
       <p class="section-title">Referral Program</p>
       <div class="referral-box">
-        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment. Find your link under your profile (top right).</p>
+        <div class="referral-link-row">
+          <input type="text" id="referral-link" readonly>
+          <button class="copy-btn" id="copy-referral">Copy</button>
+        </div>
+        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 5% commission whenever someone you refer completes a paid enrollment.</p>
         <div class="earnings-stat">
           <div><p>Total Referrals</p><p id="referral-count">0</p></div>
         </div>
         <div id="currency-balances"></div>
-        <p class="msg" id="earnings-msg"></p>
         <div class="earnings-actions">
+          <button type="button" class="earnings-btn" id="payout-btn">Payout</button>
           <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
         </div>
+        <p class="msg" id="earnings-msg"></p>
       </div>
     </section>
 
@@ -934,6 +933,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // button. "Available" excludes anything already claimed by a pending
   // withdrawal request (withdrawal_request_id set) -- that money isn't
   // owed twice, it's just waiting on an admin to mark it paid.
+  // Informational only now -- shows what's available/pending per currency,
+  // but the Payout button below (always visible, not per-currency) is what
+  // actually triggers a withdrawal. Keeping this purely a read-out means
+  // there's exactly one place a student clicks to request a payout instead
+  // of a different button appearing per currency they happen to have.
   async function loadReferralBalances(userId) {
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
@@ -963,61 +967,83 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     container.innerHTML = currencies.map(function(cur) {
       const bal = byCurrency[cur];
-      const pendingHtml = bal.pending > 0
-        ? '<p class="cbr-pending">' + cur + ' ' + bal.pending.toFixed(2) + ' held for review</p>'
+      const availableHtml = bal.available > 0
+        ? '<p class="cbr-amount">' + escapeHtml(cur) + ' ' + bal.available.toFixed(2) + ' available</p>'
         : '';
-      return '<div class="currency-balance-row" data-currency="' + escapeHtml(cur) + '">' +
-        '<div><p class="cbr-amount">' + cur + ' ' + bal.available.toFixed(2) + ' available</p>' + pendingHtml + '</div>' +
-        (bal.available > 0 ? '<button type="button" class="earnings-btn withdraw-currency-btn" data-currency="' + escapeHtml(cur) + '" data-amount="' + bal.available.toFixed(2) + '">Withdraw</button>' : '') +
-      '</div>';
+      const pendingHtml = bal.pending > 0
+        ? '<p class="cbr-pending">' + escapeHtml(cur) + ' ' + bal.pending.toFixed(2) + ' held for review</p>'
+        : '';
+      return '<div class="currency-balance-row" data-currency="' + escapeHtml(cur) + '">' + availableHtml + pendingHtml + '</div>';
     }).join('');
-
-    container.querySelectorAll('.withdraw-currency-btn').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        const msg = document.getElementById('earnings-msg');
-        msg.className = 'msg';
-        msg.textContent = '';
-
-        const currency = btn.getAttribute('data-currency');
-        const amount = btn.getAttribute('data-amount');
-
-        const payoutDetails = await showModal({
-          title: 'Withdraw Earnings',
-          message: 'Available balance: ' + currency + ' ' + amount + '. Enter your payout details (bank account or mobile money number):',
-          showInput: true,
-          inputPlaceholder: 'e.g. Bank name, account number',
-          confirmLabel: 'Submit Request'
-        });
-
-        if (!payoutDetails) return;
-
-        btn.disabled = true;
-        const { data, error } = await supabaseClient.rpc('request_referral_withdrawal', {
-          p_currency: currency,
-          p_payout_details: payoutDetails
-        });
-
-        if (error) {
-          msg.className = 'msg error';
-          msg.textContent = error.message && error.message.indexOf('No unclaimed earnings') !== -1
-            ? 'That balance was just claimed by another request. Refreshing...'
-            : 'Could not submit request. Please try again or contact support.';
-        } else {
-          // Most withdrawals settle instantly -- the RPC only holds one
-          // back when a fraud signal actually trips, so tell the
-          // student which of the two just happened rather than always
-          // showing the old "we'll process this shortly" line.
-          const result = (data && data[0]) || {};
-          msg.className = 'msg success';
-          msg.textContent = result.status === 'held'
-            ? 'Withdrawal request for ' + currency + ' ' + amount + ' is being reviewed before payout -- you\'ll see it settle here once approved.'
-            : 'Paid instantly: ' + currency + ' ' + amount + '. Funds will be sent to the payout details you provided.';
-        }
-
-        await loadReferralBalances(currentUserId);
-      });
-    });
   }
+
+  // Single Payout button (always visible, next to Invest in a Course) --
+  // reads the freshest balance at click time rather than trusting
+  // whatever loadReferralBalances last rendered, picks whichever
+  // currency has the most available if the student happens to have more
+  // than one, and always ends with the same honest processing-time
+  // message: the RPC may settle the request internally right away, but
+  // there's no automated payout API behind it yet -- an admin still
+  // moves the actual money by hand, so promising anything faster than
+  // 24-48 hrs here would be overselling it.
+  document.getElementById('payout-btn').addEventListener('click', async function() {
+    const btn = this;
+    const msg = document.getElementById('earnings-msg');
+    msg.className = 'msg';
+    msg.textContent = '';
+
+    const { data: earnings } = await supabaseClient
+      .from('referral_earnings')
+      .select('commission_amount, currency')
+      .eq('referrer_id', currentUserId)
+      .eq('paid_out', false)
+      .is('withdrawal_request_id', null);
+
+    const byCurrency = {};
+    (earnings || []).forEach(function(e) {
+      byCurrency[e.currency] = (byCurrency[e.currency] || 0) + Number(e.commission_amount);
+    });
+
+    const best = Object.entries(byCurrency).sort(function(a, b) { return b[1] - a[1]; })[0];
+
+    if (!best || best[1] <= 0) {
+      msg.className = 'msg error';
+      msg.textContent = 'You have no earnings available to withdraw yet.';
+      return;
+    }
+
+    const currency = best[0];
+    const amount = best[1].toFixed(2);
+
+    const payoutDetails = await showModal({
+      title: 'Payout — ' + currency + ' ' + amount,
+      message: 'Enter your payout account details (bank name and account number, or mobile money number). This must match the name on your registration.',
+      showInput: true,
+      inputPlaceholder: 'e.g. Bank name, account number',
+      confirmLabel: 'Request Payout'
+    });
+
+    if (!payoutDetails) return;
+
+    btn.disabled = true;
+    const { error } = await supabaseClient.rpc('request_referral_withdrawal', {
+      p_currency: currency,
+      p_payout_details: payoutDetails
+    });
+    btn.disabled = false;
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = error.message && error.message.indexOf('No unclaimed earnings') !== -1
+        ? 'That balance was just claimed by another request. Please try again.'
+        : 'Could not submit request. Please try again or contact support.';
+    } else {
+      msg.className = 'msg success';
+      msg.textContent = 'Withdrawal request placed. Payment processes within 24–48 hrs.';
+    }
+
+    await loadReferralBalances(currentUserId);
+  });
 
   document.getElementById('copy-referral').addEventListener('click', function() {
     const input = document.getElementById('referral-link');
