@@ -628,6 +628,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       Array.from(document.querySelectorAll('.reply-box.open')).map(function(el) { return el.id; })
     );
 
+    // This runs on every reaction/comment/share, on a delete, and on a
+    // 20-second timer while the tab just sits open -- any of which can
+    // fire while the reaction picker or context menu is open. They're
+    // both anchored to the specific button/post they were opened from,
+    // and this rebuilds every post's DOM element from scratch, so
+    // whatever they were anchored to may already be gone (or moved) by
+    // the time this finishes. Close them rather than leave them
+    // pointing at stale elements.
+    hideReactionPicker();
+    hideContextMenu();
+
     feed.innerHTML = '';
     const topLevel = (childrenByParent['__root__'] || []).slice().sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
 
