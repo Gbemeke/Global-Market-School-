@@ -355,6 +355,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // actually likely to want.
   const QUICK_EMOJI = ['\u{1F44D}', '\u{2764}\u{FE0F}', '\u{1F602}', '\u{1F62E}', '\u{1F622}', '\u{1F64F}', '\u{1F525}', '\u{1F389}'];
 
+  // Staff post as "Global Market School", never their own name or
+  // photo -- checked at render time (so it applies to every admin
+  // post regardless of when it was made, not just new ones) as well
+  // as at insert time (so a real name/photo is never even written to
+  // the row for a new admin post in the first place).
+  const ADMIN_DISPLAY_NAME = 'Global Market School';
+  function displayAuthorName(entity) {
+    return entity.author_is_admin ? ADMIN_DISPLAY_NAME : (entity.author_name || 'Student');
+  }
+  function displayAuthorAvatarHtml(entity) {
+    if (!entity.author_is_admin && entity.author_avatar_url) {
+      return '<img src="' + escapeHtml(entity.author_avatar_url) + '" alt="">';
+    }
+    return escapeHtml(displayAuthorName(entity).charAt(0).toUpperCase());
+  }
+
   function reactionMeta(key) {
     return REACTIONS.filter(function(r) { return r.key === key; })[0] || REACTIONS[0];
   }
@@ -557,9 +573,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // commented on, and shared, to any depth) ----
 
   function renderNode(post, depth) {
-    const avatarInner = post.author_avatar_url
-      ? '<img src="' + escapeHtml(post.author_avatar_url) + '" alt="">'
-      : escapeHtml((post.author_name || 'A').charAt(0).toUpperCase());
+    const avatarInner = displayAuthorAvatarHtml(post);
 
     const likeRows = likesByPost[post.id] || [];
     const reactionCounts = {};
@@ -586,9 +600,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     if (post.shared_post_id) {
       const original = postsById[post.shared_post_id];
       if (original) {
-        const oAvatar = original.author_avatar_url
-          ? '<img src="' + escapeHtml(original.author_avatar_url) + '" alt="">'
-          : escapeHtml((original.author_name || 'A').charAt(0).toUpperCase());
+        const oAvatar = displayAuthorAvatarHtml(original);
         let oMedia = '';
         if (original.image_url) oMedia = '<div class="post-media"><img src="' + escapeHtml(original.image_url) + '" alt="" loading="lazy"></div>';
         else if (original.video_url) oMedia = '<div class="post-media"><video src="' + escapeHtml(original.video_url) + '" controls playsinline></video></div>';
@@ -597,7 +609,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="quoted-post">' +
             '<div class="post-head">' +
               '<span class="post-author-row"><span class="post-avatar">' + oAvatar + '</span>' +
-              '<span class="post-author">' + escapeHtml(original.author_name) + '</span>' + authorBadgeHtml(original) + '</span>' +
+              '<span class="post-author">' + escapeHtml(displayAuthorName(original)) + '</span>' + authorBadgeHtml(original) + '</span>' +
               '<span class="post-time">' + timeAgo(original.created_at) + '</span>' +
             '</div>' +
             '<p class="quoted-content">' + escapeHtml(original.content) + '</p>' +
@@ -625,8 +637,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<span class="post-avatar">' + avatarInner + '</span>' +
           '<div class="msg-target" data-id="' + post.id + '">' +
             '<div class="reply-bubble">' +
-              (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
-              '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + authorBadgeHtml(post) +
+              (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(displayAuthorName(post)) + ' reposted</div>' : '') +
+              '<span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) +
               (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
             '</div>' +
             mediaHtml + quoteHtml +
@@ -641,10 +653,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     } else {
       el.innerHTML =
         '<div class="msg-target" data-id="' + post.id + '">' +
-          (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
+          (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(displayAuthorName(post)) + ' reposted</div>' : '') +
           '<div class="post-head">' +
             '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
-            '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + authorBadgeHtml(post) + '</span>' +
+            '<span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) + '</span>' +
             '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
           '</div>' +
           (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
@@ -806,8 +818,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         btn.disabled = true;
         const { error } = await supabaseClient.from('global_chat_posts').insert({
           user_id: currentUserId,
-          author_name: currentUserName,
-          author_avatar_url: currentUserAvatarUrl,
+          author_name: currentIsAdmin ? ADMIN_DISPLAY_NAME : currentUserName,
+          author_avatar_url: currentIsAdmin ? null : currentUserAvatarUrl,
           author_is_admin: currentIsAdmin,
           author_is_verified: currentIsVerified,
           parent_id: parentId,
@@ -846,8 +858,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
           const { error } = await supabaseClient.from('global_chat_posts').insert({
             user_id: currentUserId,
-            author_name: currentUserName,
-            author_avatar_url: currentUserAvatarUrl,
+            author_name: currentIsAdmin ? ADMIN_DISPLAY_NAME : currentUserName,
+            author_avatar_url: currentIsAdmin ? null : currentUserAvatarUrl,
             author_is_admin: currentIsAdmin,
             author_is_verified: currentIsVerified,
             content: (caption || '').trim(),
@@ -1194,8 +1206,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
       const { error } = await supabaseClient.from('global_chat_posts').insert({
         user_id: currentUserId,
-        author_name: currentUserName,
-        author_avatar_url: currentUserAvatarUrl,
+        author_name: currentIsAdmin ? ADMIN_DISPLAY_NAME : currentUserName,
+        author_avatar_url: currentIsAdmin ? null : currentUserAvatarUrl,
         author_is_admin: currentIsAdmin,
         author_is_verified: currentIsVerified,
         content: content,
@@ -1235,7 +1247,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       })
       .subscribe(async function(status) {
         if (status === 'SUBSCRIBED') {
-          await presenceChannel.track({ online_at: new Date().toISOString(), name: currentUserName });
+          await presenceChannel.track({ online_at: new Date().toISOString(), name: currentIsAdmin ? ADMIN_DISPLAY_NAME : currentUserName });
         }
       });
   }
