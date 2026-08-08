@@ -60,7 +60,6 @@ section{padding:24px 0;}
 
 .feed{display:flex; flex-direction:column; gap:14px;}
 .post{background:#fff; border:1px solid var(--hair); padding:18px;}
-.post.reply{padding:14px; background:var(--paper);}
 .msg-target{cursor:pointer; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;}
 .post-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
 .post-author-row{display:flex; align-items:center; gap:9px;}
@@ -69,7 +68,6 @@ section{padding:24px 0;}
   color:var(--gold-bright); font-family:'Cinzel', serif; font-size:12.5px; font-weight:600;
   display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
 }
-.post.reply .post-avatar{width:28px; height:28px; font-size:11px;}
 .post-avatar img{width:100%; height:100%; object-fit:cover;}
 .post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
 .post-time{font-size:12px; color:var(--ink-soft);}
@@ -80,7 +78,6 @@ section{padding:24px 0;}
 .post-media img, .post-media video{width:100%; max-height:440px; object-fit:contain; display:block; background:#000;}
 
 .quoted-post{border:1px solid var(--hair); padding:12px; margin-top:10px; background:var(--paper);}
-.post.reply .quoted-post{background:#fff;}
 .quoted-content{margin-top:8px; font-size:14px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
 
 .engagement-summary{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12.5px; color:var(--ink-soft);}
@@ -97,8 +94,31 @@ section{padding:24px 0;}
 .action-btn:hover{background:var(--paper);}
 .action-btn.liked{color:var(--gold);}
 
-.replies{margin-top:14px; padding-left:18px; border-left:2px solid var(--hair); display:flex; flex-direction:column; gap:12px;}
+.replies{margin-top:14px; padding-left:14px; border-left:2px solid var(--hair); display:flex; flex-direction:column; gap:10px;}
 .replies:empty{margin-top:0; border-left:none;}
+
+/* Comments (replies) skip the card look entirely -- a small rounded
+   bubble carrying the name and text together, with a light
+   "Like · Reply · time" row underneath, the same way Facebook keeps
+   comment threads visually lighter than the feed post they hang off. */
+.post.reply{padding:0; background:none; border:none;}
+.reply-row{display:flex; align-items:flex-start; gap:8px;}
+.reply-row .post-avatar{width:28px; height:28px; font-size:11px; margin-top:2px;}
+.reply-bubble{background:var(--paper); border-radius:16px; padding:8px 14px; min-width:0;}
+.reply-bubble .post-author{display:block; margin-bottom:1px;}
+.reply-bubble .post-content{margin:0; font-size:14.5px;}
+.reply-bubble .repost-tag{margin-bottom:4px;}
+.post.reply .post-media{margin-top:8px; max-width:260px;}
+.post.reply .quoted-post{margin-top:8px;}
+.reply-meta{
+  display:flex; align-items:center; gap:14px; margin:4px 0 0 14px;
+  font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:0.5px; text-transform:uppercase; color:var(--ink-soft);
+}
+.reply-meta-btn{background:none; border:none; padding:0; cursor:pointer; font:inherit; color:inherit; touch-action:manipulation; -webkit-user-select:none; user-select:none;}
+.reply-meta-btn:hover, .reply-meta-btn.liked{color:var(--gold);}
+.reply-meta .reply-like-count{display:flex; align-items:center; gap:3px; text-transform:none; letter-spacing:0; font-family:'EB Garamond', serif; font-size:12.5px;}
+.post.reply .reply-box{margin-left:14px;}
+
 .reply-box{display:none; margin-top:12px;}
 .reply-box.open{display:block;}
 .reply-box textarea{
@@ -487,36 +507,62 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const el = document.createElement('div');
     el.className = depth > 0 ? 'post reply' : 'post';
-    el.innerHTML =
-      '<div class="msg-target" data-id="' + post.id + '">' +
-        (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
-        '<div class="post-head">' +
-          '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
-          '<span class="post-author">' + escapeHtml(post.author_name) + '</span></span>' +
-          '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
+
+    if (depth > 0) {
+      // Comments render as a compact, borderless bubble -- Facebook
+      // keeps a comment thread visually lighter than the feed post it
+      // hangs off, with "Like · Reply · time" as small text underneath
+      // instead of a full bordered action bar.
+      el.innerHTML =
+        '<div class="reply-row">' +
+          '<span class="post-avatar">' + avatarInner + '</span>' +
+          '<div class="msg-target" data-id="' + post.id + '">' +
+            '<div class="reply-bubble">' +
+              (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
+              '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' +
+              (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
+            '</div>' +
+            mediaHtml + quoteHtml +
+          '</div>' +
         '</div>' +
-        (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
-        mediaHtml + quoteHtml +
-      '</div>' +
-      '<div class="engagement-summary">' +
-        '<span class="likes-summary">' + (totalReactions ? '<span class="like-badge-icon">' + topReactionEmojis + '</span>' + formatCount(totalReactions) : '') + '</span>' +
-        '<span class="counts-summary">' +
-          (commentCount ? '<span>' + formatCount(commentCount) + ' Comment' + (commentCount === 1 ? '' : 's') + '</span>' : '') +
-          (shareCount ? '<span>' + formatCount(shareCount) + ' Share' + (shareCount === 1 ? '' : 's') + '</span>' : '') +
-        '</span>' +
-      '</div>' +
-      '<div class="post-actions-bar">' +
-        '<button class="action-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + reactionBtnLabel + '</button>' +
-        '<button class="action-btn comment-toggle" data-id="' + post.id + '">&#128172; Comment</button>' +
-        '<button class="action-btn share-btn" data-id="' + post.id + '">&#8599; Share</button>' +
-      '</div>';
+        '<div class="reply-meta">' +
+          '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
+          '<button class="reply-meta-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + (myReaction ? reactionMeta(myReaction).label : 'Like') + '</button>' +
+          '<button class="reply-meta-btn comment-toggle" data-id="' + post.id + '">Reply</button>' +
+          (totalReactions ? '<span class="reply-like-count">' + topReactionEmojis + ' ' + formatCount(totalReactions) + '</span>' : '') +
+        '</div>';
+    } else {
+      el.innerHTML =
+        '<div class="msg-target" data-id="' + post.id + '">' +
+          (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
+          '<div class="post-head">' +
+            '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
+            '<span class="post-author">' + escapeHtml(post.author_name) + '</span></span>' +
+            '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
+          '</div>' +
+          (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
+          mediaHtml + quoteHtml +
+        '</div>' +
+        '<div class="engagement-summary">' +
+          '<span class="likes-summary">' + (totalReactions ? '<span class="like-badge-icon">' + topReactionEmojis + '</span>' + formatCount(totalReactions) : '') + '</span>' +
+          '<span class="counts-summary">' +
+            (commentCount ? '<span>' + formatCount(commentCount) + ' Comment' + (commentCount === 1 ? '' : 's') + '</span>' : '') +
+            (shareCount ? '<span>' + formatCount(shareCount) + ' Share' + (shareCount === 1 ? '' : 's') + '</span>' : '') +
+          '</span>' +
+        '</div>' +
+        '<div class="post-actions-bar">' +
+          '<button class="action-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + reactionBtnLabel + '</button>' +
+          '<button class="action-btn comment-toggle" data-id="' + post.id + '">&#128172; Comment</button>' +
+          '<button class="action-btn share-btn" data-id="' + post.id + '">&#8599; Share</button>' +
+        '</div>';
+    }
 
     const replyBox = document.createElement('div');
     replyBox.className = 'reply-box';
     replyBox.id = 'reply-box-' + post.id;
     replyBox.innerHTML =
-      '<textarea placeholder="Write a comment..." maxlength="2000"></textarea>' +
-      '<div class="composer-actions"><button class="post-btn comment-submit" data-id="' + post.id + '">Comment</button></div>';
+      '<textarea placeholder="' + (depth > 0 ? 'Write a reply...' : 'Write a comment...') + '" maxlength="2000"></textarea>' +
+      '<div class="composer-actions"><button class="post-btn comment-submit" data-id="' + post.id + '">' + (depth > 0 ? 'Reply' : 'Comment') + '</button></div>';
     el.appendChild(replyBox);
 
     const childWrap = document.createElement('div');
