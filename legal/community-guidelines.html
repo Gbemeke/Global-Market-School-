@@ -11,7 +11,7 @@
 :root{
   --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
   --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
-  --ink:#1c2333; --ink-soft:#4a5468; --danger:#8a3b2e;
+  --ink:#1c2333; --ink-soft:#4a5468; --danger:#8a3b2e; --good:#3f7a5c;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{overflow-x:hidden; max-width:100%;}
@@ -33,7 +33,14 @@ header{background:var(--paper); border-bottom:1px solid var(--hair);}
 .content ul{padding-left:22px; margin-bottom:16px;}
 .warning-box{background:#fbf0ee; border:1px solid rgba(138,59,46,0.3); border-left:3px solid var(--danger); padding:22px 24px; margin:24px 0; font-size:16px; color:var(--ink);}
 .warning-box strong{color:var(--danger); font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; display:block; margin-bottom:10px;}
+.trust-box{background:#eef5f1; border:1px solid rgba(63,122,92,0.3); border-left:3px solid var(--good); padding:22px 24px; margin:24px 0; font-size:16px; color:var(--ink);}
+.trust-box strong{color:var(--good); font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; display:block; margin-bottom:10px;}
+.trust-box ul{margin-bottom:0;}
 .note-box{background:#fff; border:1px solid var(--hair); border-left:3px solid var(--gold); padding:18px 20px; margin-top:36px; font-size:14px; color:var(--ink-soft);}
+.admin-badge{
+  display:inline-block; font-family:'Cinzel', serif; font-size:9px; letter-spacing:0.8px; text-transform:uppercase;
+  color:var(--navy-deep); background:var(--gold-bright); border-radius:3px; padding:2px 6px;
+}
 footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:28px 0; font-size:12.5px;}
 footer a{color:rgba(244,239,224,0.7); text-decoration:none; margin:0 8px;}
 </style>
@@ -55,28 +62,46 @@ footer a{color:rgba(244,239,224,0.7); text-decoration:none; margin:0 8px;}
   </div>
 
   <div class="content">
-    <p>Global Chat is a space for students of Global Market School to encourage each other, ask questions, and share what they're learning. These guidelines exist to keep it that way. By posting in Global Chat, you agree to follow them.</p>
+    <p>Global Chat is where Global Market School students connect, ask questions, and cheer each other on while they learn. It's built with the same goal as every lesson on this platform — to actually help you, without putting you at risk. Here's how we try to do that, and what we need from you to keep it that way.</p>
 
-    <h2>1. Be Respectful</h2>
-    <p>No harassment, hate speech, threats, or personal attacks against other students, instructors, or admins. Disagree with an idea if you like — don't attack the person.</p>
+    <h2>1. Watch Out for Scammers</h2>
+    <p>Trading communities attract them, and Global Chat is no exception. The tactics are consistent — learn to spot them:</p>
+    <ul>
+      <li>A stranger (or even a "fellow student") promising guaranteed or doubled returns if you send them money or crypto.</li>
+      <li>Someone claiming to be a Global Market School "account manager," "expert," or "mentor" who offers to trade or manage funds on your behalf.</li>
+      <li>Pressure to move the conversation off-platform — to WhatsApp, Telegram, or elsewhere — to "sort you out" privately.</li>
+      <li>Fake giveaways, fake certificates, or paid "VIP signal" groups charging an entry fee.</li>
+      <li>Anyone asking for your password, one-time login code, or full card/bank details, for any reason.</li>
+    </ul>
 
-    <h2>2. This Is Not a Signals Group</h2>
-    <p>Nothing posted by a fellow student in Global Chat — including opinions, chart screenshots, or "calls" — is financial advice from Global Market School, and nobody's personal opinion here is a guaranteed outcome. Do not present your own predictions as certainties, and treat what others post the same way. See our full <a href="risk-disclaimer.html" style="color:var(--gold); text-decoration:underline;">Risk Disclaimer</a> for how this applies to everything we teach.</p>
+    <div class="trust-box">
+      <strong>What Global Market School will actually do</strong>
+      <ul>
+        <li>We will never message you asking for money, your password, or a one-time code.</li>
+        <li>We do not manage funds, trade on your behalf, or accept deposits through Global Chat.</li>
+        <li>Real staff communication comes through your dashboard, your registered email, or official Global Market School channels — never a random DM from a fellow "student."</li>
+      </ul>
+    </div>
 
-    <h2>3. No Soliciting or Scheming</h2>
-    <p>Do not use Global Chat to solicit money, promote paid signal groups, run giveaways, advertise unrelated businesses, or recruit for schemes of any kind — inside the platform or by redirecting students elsewhere. This includes impersonating staff to ask for funds.</p>
+    <p>If you see any of this: don't engage, don't send anything, and use the Report option on the post right away. Our admins review every report.</p>
 
-    <h2>4. Keep It On-Topic</h2>
-    <p>Global Chat is for markets, trading, and the course community. It's not the place for unrelated spam or repeated off-topic posting.</p>
+    <h2>2. How Your Account Is Protected</h2>
+    <p>Your dashboard supports Two-Factor Authentication (2FA) — turning it on means your password alone isn't enough to get into your account, even if someone else ever gets hold of it. We'd genuinely encourage you to turn it on in Account Settings.</p>
+    <p>Only accounts we've actually verified as staff carry the <span class="admin-badge" style="vertical-align:1px;">Admin</span> badge next to their name in Global Chat. If someone claims to be an admin and doesn't have the badge, they aren't one — treat the claim as false.</p>
 
-    <h2>5. No Impersonation</h2>
-    <p>Don't present yourself as a Global Market School instructor, admin, or staff member unless you actually are one.</p>
+    <h2>3. This Is Not a Signals Group</h2>
+    <p>Nothing posted by a fellow student in Global Chat — opinions, chart screenshots, "calls" — is financial advice from Global Market School, and nobody's prediction here is a guaranteed outcome. Please don't present your own opinions as certainties either. See our full <a href="risk-disclaimer.html" style="color:var(--gold); text-decoration:underline;">Risk Disclaimer</a> for how this applies to everything we teach.</p>
 
-    <h2>6. Respect Privacy</h2>
-    <p>Don't post another student's personal or contact information without their consent.</p>
+    <h2>4. If You Act on Something Someone Told You</h2>
+    <p>Global Chat is peer conversation between students — it isn't a service Global Market School runs or supervises trade-by-trade. If another student, or anyone posing as one, promises you a return, asks you for money, or gives you instructions and you act on it, that exchange is between you and them. Global Market School has no part in it, doesn't endorse it, and can't reverse or recover money sent this way. This is exactly why section 1 matters — please never send money or login details to anyone you meet in Global Chat, no matter how convincing they sound.</p>
 
-    <h2>7. Moderation</h2>
-    <p>Admins may remove any post or comment that breaks these guidelines, at their discretion, without prior notice. Repeated or serious violations may lead to losing access to Global Chat. Use the Report option on a post if you believe it breaks these rules — our admins review every report.</p>
+    <h2>5. Community Conduct</h2>
+    <ul>
+      <li>Be respectful — no harassment, threats, or personal attacks.</li>
+      <li>Keep discussion on-topic and constructive.</li>
+      <li>Don't post another student's personal information without their consent.</li>
+      <li>Admins may remove posts that break these guidelines; repeated or serious violations may lead to losing access to Global Chat.</li>
+    </ul>
 
     <div class="warning-box">
       <strong>A reminder, not a scare tactic</strong>

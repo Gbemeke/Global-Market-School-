@@ -70,6 +70,10 @@ section{padding:24px 0;}
 }
 .post-avatar img{width:100%; height:100%; object-fit:cover;}
 .post-author{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:0.5px; color:var(--navy-deep);}
+.admin-badge{
+  display:inline-block; font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:0.8px; text-transform:uppercase;
+  color:var(--navy-deep); background:var(--gold-bright); border-radius:3px; padding:2px 5px; margin-left:6px; vertical-align:1px;
+}
 .post-time{font-size:12px; color:var(--ink-soft);}
 .post-content{margin-top:10px; font-size:15px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
 .repost-tag{display:flex; align-items:center; gap:6px; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
@@ -239,13 +243,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <a href="../index.html" class="rules-gate-brand"><img src="../assets/images/global-chat-logo.png" alt="">Global Market School</a>
     <div class="rules-gate-card">
       <h1>Before you jump in&hellip;</h1>
-      <p>Global Chat is a space for students to encourage each other and talk markets. A quick summary of the rules:</p>
+      <p>Global Chat is a space for students to encourage each other and talk markets. A few things worth knowing first:</p>
       <ul class="rules-list">
-        <li><span>&#8226;</span> Be respectful &mdash; no harassment or personal attacks.</li>
-        <li><span>&#8226;</span> This isn't a signals group &mdash; nothing posted here is financial advice.</li>
-        <li><span>&#8226;</span> No soliciting money, paid signals, or unrelated schemes.</li>
-        <li><span>&#8226;</span> Keep it on-topic, and respect other students' privacy.</li>
-        <li><span>&#8226;</span> Admins may remove posts and, for repeated violations, restrict access.</li>
+        <li><span>&#8226;</span> We'll never DM you for money, your password, or a login code &mdash; anything official comes through your dashboard or email.</li>
+        <li><span>&#8226;</span> Nothing posted here &mdash; by us or by other students &mdash; is financial advice or a guaranteed return.</li>
+        <li><span>&#8226;</span> Turn on Two-Factor Authentication in your dashboard for extra account protection.</li>
+        <li><span>&#8226;</span> If someone in chat promises you a return and you send them money, that's between you and them &mdash; not us. Report it.</li>
+        <li><span>&#8226;</span> Be respectful, keep it on-topic, and only trust the <span class="admin-badge">Admin</span> badge as proof someone's really staff.</li>
       </ul>
       <p><a href="../legal/community-guidelines.html" target="_blank" rel="noopener" class="rules-gate-link">Read the full Community Guidelines &rarr;</a></p>
       <label class="rules-checkbox-row">
@@ -455,6 +459,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     return currentIsAdmin || post.user_id === currentUserId;
   }
 
+  // Real staff posts carry this, set once at insert time from the
+  // author's own admin status -- it's what makes "look for the badge"
+  // in the Community Guidelines an actual, checkable thing rather than
+  // just words. Nobody can add it to their own post after the fact.
+  function adminBadgeHtml(isAdmin) {
+    return isAdmin ? '<span class="admin-badge">Admin</span>' : '';
+  }
+
   // ---- Composer media attachment ----
 
   function clearComposerMedia() {
@@ -573,7 +585,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="quoted-post">' +
             '<div class="post-head">' +
               '<span class="post-author-row"><span class="post-avatar">' + oAvatar + '</span>' +
-              '<span class="post-author">' + escapeHtml(original.author_name) + '</span></span>' +
+              '<span class="post-author">' + escapeHtml(original.author_name) + '</span>' + adminBadgeHtml(original.author_is_admin) + '</span>' +
               '<span class="post-time">' + timeAgo(original.created_at) + '</span>' +
             '</div>' +
             '<p class="quoted-content">' + escapeHtml(original.content) + '</p>' +
@@ -602,7 +614,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="msg-target" data-id="' + post.id + '">' +
             '<div class="reply-bubble">' +
               (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
-              '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' +
+              '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + adminBadgeHtml(post.author_is_admin) +
               (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
             '</div>' +
             mediaHtml + quoteHtml +
@@ -620,7 +632,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(post.author_name) + ' reposted</div>' : '') +
           '<div class="post-head">' +
             '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
-            '<span class="post-author">' + escapeHtml(post.author_name) + '</span></span>' +
+            '<span class="post-author">' + escapeHtml(post.author_name) + '</span>' + adminBadgeHtml(post.author_is_admin) + '</span>' +
             '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
           '</div>' +
           (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
@@ -784,6 +796,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           user_id: currentUserId,
           author_name: currentUserName,
           author_avatar_url: currentUserAvatarUrl,
+          author_is_admin: currentIsAdmin,
           parent_id: parentId,
           content: content
         });
@@ -822,6 +835,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
             user_id: currentUserId,
             author_name: currentUserName,
             author_avatar_url: currentUserAvatarUrl,
+            author_is_admin: currentIsAdmin,
             content: (caption || '').trim(),
             shared_post_id: postId
           });
@@ -1168,6 +1182,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         user_id: currentUserId,
         author_name: currentUserName,
         author_avatar_url: currentUserAvatarUrl,
+        author_is_admin: currentIsAdmin,
         content: content,
         image_url: media.image_url,
         video_url: media.video_url
