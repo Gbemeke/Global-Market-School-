@@ -150,7 +150,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .reaction-picker.show{display:flex;}
 .reaction-picker button{background:none; border:none; font-size:23px; cursor:pointer; padding:3px 5px; line-height:1; transition:transform .12s ease; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
-.reaction-picker button:hover{transform:scale(1.3) translateY(-2px);}
+.reaction-picker button:hover, .reaction-picker button.drag-hover{transform:scale(1.3) translateY(-2px);}
 
 .context-menu{
   position:fixed; display:none; flex-direction:column; background:#fff; border:1px solid var(--hair); min-width:160px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;
@@ -785,16 +785,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     showPopupBackdrop();
   }
 
+  function applyReactionChoice(postId, type, current) {
+    hideReactionPicker();
+    if (type === current) removeReaction(postId);
+    else setReaction(postId, type);
+  }
+
   document.getElementById('reaction-picker').addEventListener('click', function(e) {
     const btn = e.target.closest('button[data-reaction-type]');
     if (!btn) return;
     const picker = document.getElementById('reaction-picker');
-    const postId = picker.dataset.postId;
-    const type = btn.getAttribute('data-reaction-type');
-    const current = picker.dataset.currentReaction;
-    hideReactionPicker();
-    if (type === current) removeReaction(postId);
-    else setReaction(postId, type);
+    applyReactionChoice(picker.dataset.postId, btn.getAttribute('data-reaction-type'), picker.dataset.currentReaction);
   });
 
   // ---- Long-press message menu: Delete / Report / Copy / Paste ----
@@ -918,10 +919,36 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     activePresses.clear();
   }
 
+  // Facebook lets you slide straight from the Like button across the
+  // opened emoji row and lift on whichever one you want, in one
+  // continuous touch -- no separate second tap. Reproducing that needs
+  // the finger's still-down touch to keep reporting to us even once it
+  // physically moves over the picker, which lives outside #feed in the
+  // DOM (a plain pointermove only reaches whatever's currently under the
+  // finger). setPointerCapture pins that touch's events to the button
+  // that started the press regardless of where the finger travels;
+  // elementFromPoint is then used to work out what's actually under it.
+  function updateReactionDragHover(x, y) {
+    const hovered = document.elementFromPoint(x, y);
+    const target = hovered && hovered.closest('#reaction-picker button[data-reaction-type]');
+    document.querySelectorAll('#reaction-picker button.drag-hover').forEach(function(b) {
+      if (b !== target) b.classList.remove('drag-hover');
+    });
+    if (target) target.classList.add('drag-hover');
+    return target;
+  }
+
+  function clearReactionDragHover() {
+    document.querySelectorAll('#reaction-picker button.drag-hover').forEach(function(b) {
+      b.classList.remove('drag-hover');
+    });
+  }
+
   document.getElementById('feed').addEventListener('pointerdown', function(e) {
     const reactBtn = e.target.closest('.react-btn');
     if (reactBtn) {
       cancelPress(e.pointerId);
+      try { reactBtn.setPointerCapture(e.pointerId); } catch (err) { /* unsupported -- drag-to-select just won't engage */ }
       const timer = setTimeout(function() {
         const p = activePresses.get(e.pointerId);
         if (p) p.fired = true;
@@ -947,16 +974,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   document.getElementById('feed').addEventListener('pointermove', function(e) {
     const p = activePresses.get(e.pointerId);
     if (!p) return;
-    if (Math.abs(e.clientX - p.startX) > PRESS_MOVE_CANCEL_PX ||
-        Math.abs(e.clientY - p.startY) > PRESS_MOVE_CANCEL_PX) {
-      cancelPress(e.pointerId);
+    if (!p.fired) {
+      if (Math.abs(e.clientX - p.startX) > PRESS_MOVE_CANCEL_PX ||
+          Math.abs(e.clientY - p.startY) > PRESS_MOVE_CANCEL_PX) {
+        cancelPress(e.pointerId);
+      }
+      return;
     }
+    if (p.kind === 'react') updateReactionDragHover(e.clientX, e.clientY);
   });
 
   document.getElementById('feed').addEventListener('pointerup', function(e) {
     const p = activePresses.get(e.pointerId);
     const reactBtn = e.target.closest('.react-btn');
     cancelPress(e.pointerId);
+    if (p && p.kind === 'react' && p.fired) {
+      const dragTarget = updateReactionDragHover(e.clientX, e.clientY);
+      clearReactionDragHover();
+      if (dragTarget) {
+        const picker = document.getElementById('reaction-picker');
+        applyReactionChoice(picker.dataset.postId, dragTarget.getAttribute('data-reaction-type'), picker.dataset.currentReaction);
+      }
+      return;
+    }
     if (p && reactBtn && p.kind === 'react' && !p.fired) {
       const postId = reactBtn.getAttribute('data-id');
       const current = reactBtn.getAttribute('data-reaction') || '';
@@ -967,10 +1007,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   document.getElementById('feed').addEventListener('pointercancel', function(e) {
     cancelPress(e.pointerId);
+    clearReactionDragHover();
   });
 
   window.addEventListener('scroll', function() {
     cancelAllPresses();
+    clearReactionDragHover();
     hideReactionPicker();
     hideContextMenu();
   }, { passive: true, capture: true });
