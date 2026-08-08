@@ -1511,12 +1511,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   setInterval(loadMarketTicker, 5 * 60 * 1000);
 
   // Admin-controlled: Site Settings > Payout Ticker decides whether this
-  // banner shows illustrative example figures (payout_ticker_mode =
-  // 'demo', for a young platform with little real activity yet -- the
-  // label always says "Example" so it's never mistaken for real user
-  // data) or genuine settled payouts (mode = 'real', via
+  // banner shows the admin's own example figures (payout_ticker_mode =
+  // 'demo', for a young platform with little real activity yet) or
+  // genuine settled payouts (mode = 'real', via
   // get_recent_referral_payouts(), which returns only amount + currency
   // -- nothing that identifies who earned or who was referred).
+  const DEMO_REPEAT = 5; // repeats the admin's figure set so the track feels long and active, not a short thin loop
+
   async function loadPayoutTicker() {
     const hero = document.getElementById('payout-hero');
     const track = document.getElementById('payout-hero-track');
@@ -1536,12 +1537,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
       if (mode === 'demo') {
         const currency = (map.payout_ticker_demo_currency || 'USD').trim();
-        items = (map.payout_ticker_demo_amounts || '')
+        const parsed = (map.payout_ticker_demo_amounts || '')
           .split(',')
           .map(function (s) { return Number(s.trim()); })
           .filter(function (n) { return isFinite(n) && n > 0; })
           .map(function (n) { return { commission_amount: n, currency: currency }; });
-        label.textContent = (map.payout_ticker_demo_label || 'Referral Earnings Payout') + ' — Example';
+        for (let i = 0; i < DEMO_REPEAT; i++) items = items.concat(parsed);
+        label.textContent = map.payout_ticker_demo_label || 'Referral Earnings Payout';
       } else {
         const { data } = await supabaseClient.rpc('get_recent_referral_payouts', { p_limit: 20 });
         items = data || [];
