@@ -214,21 +214,41 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 @keyframes ticker-scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
 .ticker-note{font-size:11px; color:var(--ink-soft); margin-top:8px; text-align:right;}
 
-.payout-led-box{
-  background:#04140a; border:1px solid #1d5c3a; overflow:hidden; position:relative;
-  padding:14px 0; display:flex; align-items:center; margin-bottom:16px;
+/* Payout hero banner -- full-bleed, sits right under the header so it's
+   the first thing a visitor sees before any scrolling. A row of small
+   twinkling colored bulbs (marquee-sign style) frames the scrolling
+   payout figures top and bottom. */
+.payout-hero{
+  background:linear-gradient(135deg, #0b1b33, #16294a);
+  padding:10px 0 8px;
+  position:relative;
+  overflow:hidden;
+  border-bottom:1px solid rgba(178,142,76,0.35);
 }
-.payout-led-label{
-  flex-shrink:0; display:flex; align-items:center; gap:6px; padding:0 16px;
-  font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#4ee08a; border-right:1px solid rgba(78,224,138,0.3);
+.payout-hero-lights{display:flex; justify-content:space-evenly; padding:0 4px;}
+.payout-hero-lights span{
+  width:6px; height:6px; border-radius:50%; display:inline-block; flex-shrink:0;
+  animation:light-twinkle 1.6s ease-in-out infinite;
 }
-.payout-led-label .dot{width:7px; height:7px; border-radius:50%; background:#4ee08a; box-shadow:0 0 6px #4ee08a; animation:ticker-pulse 1.4s ease-in-out infinite;}
-.payout-led-viewport{overflow:hidden; flex:1;}
-.payout-led-track{display:inline-flex; gap:44px; white-space:nowrap; animation:ticker-scroll 22s linear infinite; padding-left:24px;}
-.payout-led-item{
-  font-family:'Courier New', monospace; font-size:19px; font-weight:700; letter-spacing:1px; color:#4ee08a;
-  text-shadow:0 0 8px rgba(78,224,138,0.65), 0 0 2px rgba(78,224,138,0.9);
-}
+.payout-hero-lights span:nth-child(5n+1){background:#e0554f; box-shadow:0 0 6px #e0554f;}
+.payout-hero-lights span:nth-child(5n+2){background:#4ee08a; box-shadow:0 0 6px #4ee08a;}
+.payout-hero-lights span:nth-child(5n+3){background:#4ea8e0; box-shadow:0 0 6px #4ea8e0;}
+.payout-hero-lights span:nth-child(5n+4){background:#d6b568; box-shadow:0 0 6px #d6b568;}
+.payout-hero-lights span:nth-child(5n+5){background:#c968d6; box-shadow:0 0 6px #c968d6;}
+.payout-hero-lights span:nth-child(2n){animation-delay:0.4s;}
+.payout-hero-lights span:nth-child(3n){animation-delay:0.85s;}
+.payout-hero-lights span:nth-child(7n){animation-delay:1.15s;}
+@keyframes light-twinkle{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.35; transform:scale(0.75);}}
+.payout-hero-inner{padding:8px 16px 6px; text-align:center;}
+.payout-hero-label{font-family:'Cinzel', serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:6px;}
+.payout-hero-viewport{overflow:hidden;}
+.payout-hero-track{display:inline-flex; gap:40px; white-space:nowrap; animation:ticker-scroll 24s linear infinite;}
+.payout-hero-item{font-family:'Courier New', monospace; font-size:19px; font-weight:700; letter-spacing:1px;}
+.payout-hero-item:nth-child(5n+1){color:#4ee08a; text-shadow:0 0 8px rgba(78,224,138,0.6);}
+.payout-hero-item:nth-child(5n+2){color:#4ea8e0; text-shadow:0 0 8px rgba(78,168,224,0.6);}
+.payout-hero-item:nth-child(5n+3){color:#d6b568; text-shadow:0 0 8px rgba(214,181,104,0.6);}
+.payout-hero-item:nth-child(5n+4){color:#e0857f; text-shadow:0 0 8px rgba(224,133,127,0.6);}
+.payout-hero-item:nth-child(5n+5){color:#c968d6; text-shadow:0 0 8px rgba(201,104,214,0.6);}
 
 .global-chat-fab{
   position:fixed; right:20px; bottom:86px; z-index:60;
@@ -396,6 +416,23 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
   </header>
 
+  <div class="payout-hero" id="payout-hero" style="display:none;">
+    <div class="payout-hero-lights">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="payout-hero-inner">
+      <p class="payout-hero-label" id="payout-hero-label">Referral Earnings Payout</p>
+      <div class="payout-hero-viewport"><div class="payout-hero-track" id="payout-hero-track"></div></div>
+    </div>
+    <div class="payout-hero-lights">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
   <div class="profile-overlay" id="profile-overlay"></div>
   <aside class="join-panel" id="join-panel" aria-label="Join your class WhatsApp group">
     <div class="profile-panel-head">
@@ -487,10 +524,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     <section style="padding-bottom:8px;">
       <p class="section-title">Referral Program</p>
-      <div class="payout-led-box" id="payout-led-box" style="display:none;">
-        <span class="payout-led-label"><span class="dot"></span>Payouts</span>
-        <div class="payout-led-viewport"><div class="payout-led-track" id="payout-led-track"></div></div>
-      </div>
       <div class="referral-box">
         <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment. Find your link under your profile (top right).</p>
         <div class="earnings-stat">
@@ -1477,32 +1510,67 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   loadMarketTicker();
   setInterval(loadMarketTicker, 5 * 60 * 1000);
 
-  // Real settled payouts only -- get_recent_referral_payouts() returns
-  // just the amount and currency of paid_out=true rows, nothing that
-  // identifies who earned or who was referred, so it's safe to show
-  // to any logged-in student, not just admins. Hidden entirely rather
-  // than showing a fabricated example when there's genuinely nothing
-  // paid out yet.
+  // Admin-controlled: Site Settings > Payout Ticker decides whether this
+  // banner shows illustrative example figures (payout_ticker_mode =
+  // 'demo', for a young platform with little real activity yet -- the
+  // label always says "Example" so it's never mistaken for real user
+  // data) or genuine settled payouts (mode = 'real', via
+  // get_recent_referral_payouts(), which returns only amount + currency
+  // -- nothing that identifies who earned or who was referred).
   async function loadPayoutTicker() {
-    const box = document.getElementById('payout-led-box');
-    const track = document.getElementById('payout-led-track');
+    const hero = document.getElementById('payout-hero');
+    const track = document.getElementById('payout-hero-track');
+    const label = document.getElementById('payout-hero-label');
+
     try {
-      const { data, error } = await supabaseClient.rpc('get_recent_referral_payouts', { p_limit: 20 });
-      if (error || !data || !data.length) {
-        box.style.display = 'none';
+      const { data: rows } = await supabaseClient
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['payout_ticker_mode', 'payout_ticker_demo_amounts', 'payout_ticker_demo_currency', 'payout_ticker_demo_label']);
+
+      const map = {};
+      (rows || []).forEach(function (r) { map[r.key] = r.value; });
+      const mode = map.payout_ticker_mode === 'real' ? 'real' : 'demo';
+
+      let items = [];
+
+      if (mode === 'demo') {
+        const currency = (map.payout_ticker_demo_currency || 'USD').trim();
+        items = (map.payout_ticker_demo_amounts || '')
+          .split(',')
+          .map(function (s) { return Number(s.trim()); })
+          .filter(function (n) { return isFinite(n) && n > 0; })
+          .map(function (n) { return { commission_amount: n, currency: currency }; });
+        label.textContent = (map.payout_ticker_demo_label || 'Referral Earnings Payout') + ' — Example';
+      } else {
+        const { data } = await supabaseClient.rpc('get_recent_referral_payouts', { p_limit: 20 });
+        items = data || [];
+        label.textContent = 'Referral Earnings Payout';
+      }
+
+      if (!items.length) {
+        if (mode === 'real') {
+          // Admin has genuinely switched this on -- show it, just with an
+          // honest placeholder instead of looking broken/empty.
+          label.textContent = 'Referral Earnings Payout';
+          track.innerHTML = '<span class="payout-hero-item">Be the first to earn a payout!</span>';
+          hero.style.display = 'block';
+        } else {
+          hero.style.display = 'none';
+        }
         return;
       }
 
-      const itemsHtml = data.map(function (p) {
+      const itemsHtml = items.map(function (p) {
         const amount = Number(p.commission_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        return '<span class="payout-led-item">' + escapeHtml(p.currency) + ' ' + amount + ' PAID</span>';
+        return '<span class="payout-hero-item">' + escapeHtml(p.currency) + ' ' + amount + ' PAID</span>';
       }).join('');
 
       // Duplicated so the CSS marquee (translateX(-50%)) loops seamlessly
       track.innerHTML = itemsHtml + itemsHtml;
-      box.style.display = 'flex';
+      hero.style.display = 'block';
     } catch (e) {
-      box.style.display = 'none';
+      hero.style.display = 'none';
     }
   }
 
