@@ -119,13 +119,22 @@ section{padding:24px 0;}
 .reply-meta .reply-like-count{display:flex; align-items:center; gap:3px; text-transform:none; letter-spacing:0; font-family:'EB Garamond', serif; font-size:12.5px;}
 .post.reply .reply-box{margin-left:14px;}
 
-.reply-box{display:none; margin-top:12px;}
-.reply-box.open{display:block;}
+/* A comment box tucked inside a thread reads as part of that thread,
+   not a second call to action -- so unlike the big "POST" button on
+   the composer up top, its submit sits small and inline right next
+   to the input instead of as its own full-size block underneath,
+   the way Facebook keeps its comment box compact. */
+.reply-box{display:none; margin-top:12px; align-items:flex-end; gap:8px;}
+.reply-box.open{display:flex;}
 .reply-box textarea{
-  width:100%; min-height:50px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14px;
+  flex:1; min-width:0; min-height:38px; padding:9px 12px; font-family:'EB Garamond', serif; font-size:14px;
   border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical;
 }
-.reply-box .composer-actions{margin-top:8px;}
+.reply-box .composer-actions{margin-top:0;}
+.reply-box .post-btn{
+  background:none; color:var(--navy-deep); border:1px solid var(--gold); padding:8px 14px; font-size:10px;
+}
+.reply-box .post-btn:hover{background:var(--gold); color:var(--navy-deep);}
 
 .empty-note{text-align:center; color:var(--ink-soft); font-size:14px; padding:32px 0;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
