@@ -114,6 +114,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:95; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88vw; text-align:center;}
 .toast.show{opacity:1;}
 
+/* Sits behind the reaction picker / context menu, invisible, covering
+   the whole screen, whenever either is open. This is what actually
+   makes them dismissable -- not guessing whether a given tap landed
+   "outside" the popup, but simply: nothing else on the page is
+   touchable while a popup is up except this layer, and touching it
+   (any tap, or the very start of a scroll drag) closes the popup on
+   the spot, same as Facebook's own comment reactions/menu do it. */
+.popup-backdrop{position:fixed; inset:0; z-index:89; display:none;}
+.popup-backdrop.show{display:block;}
+
 .reaction-picker{
   position:fixed; display:none; align-items:center; gap:2px; background:#fff; border:1px solid var(--hair); border-radius:30px; padding:6px 8px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;
   -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
@@ -204,6 +214,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="popup-backdrop" id="popup-backdrop"></div>
 <div class="reaction-picker" id="reaction-picker"></div>
 <div class="context-menu" id="context-menu"></div>
 
@@ -656,6 +667,34 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     });
   }
 
+  // ---- Shared dismiss layer for the reaction picker and context menu ----
+  //
+  // Earlier versions tried to detect "the user tapped outside the popup"
+  // by listening for pointerdown/click on the whole document and checking
+  // whether the tap landed inside the popup's own element. That depends
+  // on those listeners staying correctly attached and firing before
+  // whatever else is on the page, and on a specific scroll event also
+  // being caught separately -- several independent things that all have
+  // to work every time. This replaces all of that with the same trick
+  // Facebook's own popups use: a full-screen invisible layer sits behind
+  // the popup the moment it opens. It's the only thing under the user's
+  // finger anywhere except the popup itself, so any tap -- or the very
+  // start of a scroll -- hits it directly and closes the popup on the
+  // spot. Nothing to detect, nothing that can fail to fire.
+
+  function showPopupBackdrop() {
+    document.getElementById('popup-backdrop').classList.add('show');
+  }
+
+  function hidePopupBackdrop() {
+    document.getElementById('popup-backdrop').classList.remove('show');
+  }
+
+  document.getElementById('popup-backdrop').addEventListener('pointerdown', function() {
+    hideReactionPicker();
+    hideContextMenu();
+  });
+
   // ---- Reactions: quick tap toggles Like, long-press opens the emoji picker ----
 
   async function setReaction(postId, type) {
@@ -671,13 +710,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   function hideReactionPicker() {
     document.getElementById('reaction-picker').classList.remove('show');
-    document.removeEventListener('pointerdown', hideReactionPickerOnOutsideClick, true);
-    document.removeEventListener('click', hideReactionPickerOnOutsideClick, true);
-  }
-
-  function hideReactionPickerOnOutsideClick(e) {
-    const picker = document.getElementById('reaction-picker');
-    if (!picker.contains(e.target)) hideReactionPicker();
+    hidePopupBackdrop();
   }
 
   function openReactionPicker(btn) {
@@ -703,11 +736,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     picker.style.left = left + 'px';
     picker.style.top = top + 'px';
     picker.classList.add('show');
-
-    setTimeout(function() {
-      document.addEventListener('pointerdown', hideReactionPickerOnOutsideClick, true);
-      document.addEventListener('click', hideReactionPickerOnOutsideClick, true);
-    }, 0);
+    showPopupBackdrop();
   }
 
   document.getElementById('reaction-picker').addEventListener('click', function(e) {
@@ -736,13 +765,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   function hideContextMenu() {
     document.getElementById('context-menu').classList.remove('show');
-    document.removeEventListener('pointerdown', hideContextMenuOnOutsideClick, true);
-    document.removeEventListener('click', hideContextMenuOnOutsideClick, true);
-  }
-
-  function hideContextMenuOnOutsideClick(e) {
-    const menu = document.getElementById('context-menu');
-    if (!menu.contains(e.target)) hideContextMenu();
+    hidePopupBackdrop();
   }
 
   function openContextMenu(postId, x, y) {
@@ -767,11 +790,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
     menu.classList.add('show');
-
-    setTimeout(function() {
-      document.addEventListener('pointerdown', hideContextMenuOnOutsideClick, true);
-      document.addEventListener('click', hideContextMenuOnOutsideClick, true);
-    }, 0);
+    showPopupBackdrop();
   }
 
   document.getElementById('context-menu').addEventListener('click', async function(e) {
