@@ -226,6 +226,32 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         <p class="admin-only-note">Referral withdrawals settle instantly by default -- no admin click needed. A request is held for manual review instead only when one of these trips. Regardless of the outcome, any withdrawal (instant-paid or held) can still be pulled back with Reset on the Withdrawals tab.</p>
         <div class="settings-grid" id="settings-referral-hold"></div>
         <p class="msg" id="settings-msg"></p>
+
+        <p class="section-title">Payout Ticker (Dashboard)</p>
+        <p class="admin-only-note">The colorful banner at the very top of every student's dashboard, before they scroll. Demo mode scrolls the figures below on repeat. Switch to Real once genuine payouts start coming in -- it will then show actual settled referral commissions instead (amounts only, never who earned them).</p>
+        <div class="settings-grid">
+          <div class="setting-row">
+            <label>Display Mode</label>
+            <select id="payout-ticker-mode" style="flex:1; padding:8px 10px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:var(--paper);">
+              <option value="demo">Demo -- example figures</option>
+              <option value="real">Real -- live settled payouts</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label>Demo Amounts</label>
+            <input type="text" id="payout-ticker-amounts" placeholder="2000,500,100,1000,25,55,3000">
+          </div>
+          <div class="setting-row">
+            <label>Demo Currency</label>
+            <input type="text" id="payout-ticker-currency" placeholder="USD" style="max-width:140px;">
+          </div>
+          <div class="setting-row">
+            <label>Demo Label</label>
+            <input type="text" id="payout-ticker-label" placeholder="Referral Earnings Payout">
+            <button type="button" id="payout-ticker-save-btn">Save</button>
+          </div>
+        </div>
+        <p class="msg" id="payout-ticker-msg"></p>
       </div>
 
       <div class="tab-panel" id="tab-withdrawals">
@@ -495,7 +521,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       return buildRow(pair[0], 'site_settings', map, pair[1]);
     }).join('');
 
-    document.querySelectorAll('.setting-row button').forEach(function(btn) {
+    document.querySelectorAll('.setting-row button[data-key]').forEach(function(btn) {
       btn.addEventListener('click', async function() {
         const key = btn.getAttribute('data-key');
         const table = btn.getAttribute('data-table') || 'site_settings';
@@ -505,6 +531,32 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         msg.className = error ? 'msg error' : 'msg success';
         msg.textContent = error ? 'Could not save ' + key + '.' : key + ' saved successfully.';
       });
+    });
+
+    // Payout ticker: four related settings saved together as one action,
+    // rather than four separate generic rows -- they only make sense
+    // edited as a group.
+    document.getElementById('payout-ticker-mode').value = map.payout_ticker_mode === 'real' ? 'real' : 'demo';
+    document.getElementById('payout-ticker-amounts').value = map.payout_ticker_demo_amounts || '';
+    document.getElementById('payout-ticker-currency').value = map.payout_ticker_demo_currency || 'USD';
+    document.getElementById('payout-ticker-label').value = map.payout_ticker_demo_label || 'Referral Earnings Payout';
+
+    document.getElementById('payout-ticker-save-btn').addEventListener('click', async function() {
+      const msg = document.getElementById('payout-ticker-msg');
+      const updates = [
+        { key: 'payout_ticker_mode', value: document.getElementById('payout-ticker-mode').value },
+        { key: 'payout_ticker_demo_amounts', value: document.getElementById('payout-ticker-amounts').value.trim() },
+        { key: 'payout_ticker_demo_currency', value: document.getElementById('payout-ticker-currency').value.trim().toUpperCase() || 'USD' },
+        { key: 'payout_ticker_demo_label', value: document.getElementById('payout-ticker-label').value.trim() || 'Referral Earnings Payout' }
+      ];
+
+      const results = await Promise.all(updates.map(function(u) {
+        return supabaseClient.from('site_settings').update({ value: u.value }).eq('key', u.key);
+      }));
+      const failed = results.some(function(r) { return r.error; });
+
+      msg.className = failed ? 'msg error' : 'msg success';
+      msg.textContent = failed ? 'Could not save payout ticker settings.' : 'Payout ticker settings saved.';
     });
   }
 
