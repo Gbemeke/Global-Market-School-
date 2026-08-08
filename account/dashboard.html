@@ -90,7 +90,8 @@ section{padding:28px 0;}
 .referral-link-row{display:flex; gap:8px; margin:14px 0;}
 .referral-link-row input{flex:1; padding:11px 12px; border:1px solid var(--hair); font-family:'EB Garamond', serif; font-size:14px; background:var(--paper); color:var(--ink);}
 .copy-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--gold); color:var(--navy-deep); border:none; padding:0 16px; cursor:pointer;}
-.earnings-stat{display:flex; gap:28px; margin-top:16px;}
+.earnings-stat{display:flex; justify-content:space-between; margin-top:16px; max-width:280px;}
+.earnings-stat div{text-align:center;}
 .earnings-stat div p:first-child{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1.5px; color:var(--ink-soft); text-transform:uppercase;}
 .earnings-stat div p:last-child{font-family:'Cormorant Garamond', serif; font-size:24px; color:var(--navy-deep);}
 .earnings-actions{display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;}
@@ -506,12 +507,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
         <p class="msg" id="mfa-msg" style="display:none;"></p>
       </div>
-
-      <p class="section-title">Your Referral Link</p>
-      <div class="referral-link-row">
-        <input type="text" id="referral-link" readonly>
-        <button class="copy-btn" id="copy-referral">Copy</button>
-      </div>
     </div>
   </aside>
 
@@ -525,13 +520,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <section style="padding-bottom:8px;">
       <p class="section-title">Referral Program</p>
       <div class="referral-box">
-        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link — earn 5% commission whenever someone you refer completes a paid enrollment. Find your link under your profile (top right).</p>
-        <div class="earnings-stat">
-          <div><p>Total Referrals</p><p id="referral-count">0</p></div>
+        <div class="referral-link-row">
+          <input type="text" id="referral-link" readonly>
+          <button class="copy-btn" id="copy-referral">Copy</button>
         </div>
-        <div id="currency-balances"></div>
-        <p class="msg" id="earnings-msg"></p>
+        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 10% commission whenever someone you refer completes a paid enrollment.</p>
+        <div class="earnings-stat">
+          <div><p>Referrals</p><p id="referral-count">0</p></div>
+          <div><p>Earning</p><p id="referral-earning">$0</p></div>
+        </div>
         <div class="earnings-actions">
+          <a href="withdrawal.html" class="earnings-btn" id="withdrawal-btn">Withdrawal</a>
           <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
         </div>
       </div>
@@ -934,10 +933,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // button. "Available" excludes anything already claimed by a pending
   // withdrawal request (withdrawal_request_id set) -- that money isn't
   // owed twice, it's just waiting on an admin to mark it paid.
+  // Informational only now -- shows what's available/pending per currency,
+  // but the Payout button below (always visible, not per-currency) is what
+  // actually triggers a withdrawal. Keeping this purely a read-out means
+  // there's exactly one place a student clicks to request a payout instead
+  // of a different button appearing per currency they happen to have.
+  // Referrals tile is a plain count of every commission ever earned;
+  // Earning is the lifetime total of whichever currency the student has
+  // the most of (almost always just one currency in practice -- summing
+  // different currencies together would be meaningless). Actually
+  // requesting a withdrawal now lives on its own page (withdrawal.html),
+  // linked from the button next to this box -- this function is purely
+  // a read-out.
   async function loadReferralBalances(userId) {
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
-      .select('commission_amount, paid_out, currency, withdrawal_request_id')
+      .select('commission_amount, currency')
       .eq('referrer_id', userId);
 
     const rows = earnings || [];
@@ -945,78 +956,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const byCurrency = {};
     rows.forEach(function(e) {
-      if (!byCurrency[e.currency]) byCurrency[e.currency] = { available: 0, pending: 0 };
-      if (e.paid_out) return; // already settled -- not shown as owed in either bucket
-      if (e.withdrawal_request_id) byCurrency[e.currency].pending += Number(e.commission_amount);
-      else byCurrency[e.currency].available += Number(e.commission_amount);
+      byCurrency[e.currency] = (byCurrency[e.currency] || 0) + Number(e.commission_amount);
     });
 
-    const container = document.getElementById('currency-balances');
-    const currencies = Object.keys(byCurrency).filter(function(c) {
-      return byCurrency[c].available > 0 || byCurrency[c].pending > 0;
-    });
-
-    if (!currencies.length) {
-      container.innerHTML = '<p class="no-earnings-note">No earnings yet — share your link above to start earning.</p>';
-      return;
-    }
-
-    container.innerHTML = currencies.map(function(cur) {
-      const bal = byCurrency[cur];
-      const pendingHtml = bal.pending > 0
-        ? '<p class="cbr-pending">' + cur + ' ' + bal.pending.toFixed(2) + ' held for review</p>'
-        : '';
-      return '<div class="currency-balance-row" data-currency="' + escapeHtml(cur) + '">' +
-        '<div><p class="cbr-amount">' + cur + ' ' + bal.available.toFixed(2) + ' available</p>' + pendingHtml + '</div>' +
-        (bal.available > 0 ? '<button type="button" class="earnings-btn withdraw-currency-btn" data-currency="' + escapeHtml(cur) + '" data-amount="' + bal.available.toFixed(2) + '">Withdraw</button>' : '') +
-      '</div>';
-    }).join('');
-
-    container.querySelectorAll('.withdraw-currency-btn').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        const msg = document.getElementById('earnings-msg');
-        msg.className = 'msg';
-        msg.textContent = '';
-
-        const currency = btn.getAttribute('data-currency');
-        const amount = btn.getAttribute('data-amount');
-
-        const payoutDetails = await showModal({
-          title: 'Withdraw Earnings',
-          message: 'Available balance: ' + currency + ' ' + amount + '. Enter your payout details (bank account or mobile money number):',
-          showInput: true,
-          inputPlaceholder: 'e.g. Bank name, account number',
-          confirmLabel: 'Submit Request'
-        });
-
-        if (!payoutDetails) return;
-
-        btn.disabled = true;
-        const { data, error } = await supabaseClient.rpc('request_referral_withdrawal', {
-          p_currency: currency,
-          p_payout_details: payoutDetails
-        });
-
-        if (error) {
-          msg.className = 'msg error';
-          msg.textContent = error.message && error.message.indexOf('No unclaimed earnings') !== -1
-            ? 'That balance was just claimed by another request. Refreshing...'
-            : 'Could not submit request. Please try again or contact support.';
-        } else {
-          // Most withdrawals settle instantly -- the RPC only holds one
-          // back when a fraud signal actually trips, so tell the
-          // student which of the two just happened rather than always
-          // showing the old "we'll process this shortly" line.
-          const result = (data && data[0]) || {};
-          msg.className = 'msg success';
-          msg.textContent = result.status === 'held'
-            ? 'Withdrawal request for ' + currency + ' ' + amount + ' is being reviewed before payout -- you\'ll see it settle here once approved.'
-            : 'Paid instantly: ' + currency + ' ' + amount + '. Funds will be sent to the payout details you provided.';
-        }
-
-        await loadReferralBalances(currentUserId);
-      });
-    });
+    const best = Object.entries(byCurrency).sort(function(a, b) { return b[1] - a[1]; })[0];
+    document.getElementById('referral-earning').textContent = best ? formatTickerAmount(best[0], best[1]) : '$0';
   }
 
   document.getElementById('copy-referral').addEventListener('click', function() {

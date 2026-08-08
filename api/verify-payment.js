@@ -118,7 +118,7 @@ export default async function handler(req, res) {
           });
         }
 
-        // 3. If this user was referred by someone, credit 5% commission
+        // 3. If this user was referred by someone, credit 10% commission
         const profileRes = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user_id}&select=referred_by`, {
           headers: supabaseHeaders
         });
@@ -126,7 +126,7 @@ export default async function handler(req, res) {
         const referredBy = profileData && profileData[0] ? profileData[0].referred_by : null;
 
         if (referredBy && transactionRecord) {
-          const commission = Number(tx.amount) * 0.05;
+          const commission = Number(tx.amount) * 0.10;
           await fetch(`${supabaseUrl}/rest/v1/referral_earnings`, {
             method: "POST",
             headers: supabaseHeaders,
