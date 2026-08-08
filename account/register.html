@@ -229,6 +229,14 @@ a{color:inherit;}
     document.getElementById('hint-num').classList.toggle('met', /[0-9]/.test(v));
   });
 
+  // Captured once on load, not read again at submit time -- the value
+  // in the address bar is exactly what was in the link the referrer
+  // shared, and shouldn't change based on anything that happens on
+  // this page. Passed through as signup metadata so the handle_new_user
+  // database trigger can resolve it to the referrer's profile and set
+  // referred_by in the same insert that creates this new profile.
+  const refCode = new URLSearchParams(window.location.search).get('ref');
+
   document.getElementById('register-form').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -259,7 +267,8 @@ a{color:inherit;}
         data: {
           full_name: fullName,
           phone: phone,
-          country: country
+          country: country,
+          ref_code: refCode || null
         }
       }
     });
