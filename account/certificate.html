@@ -13,12 +13,13 @@
   --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
   --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
   --ink:#1c2333; --ink-soft:#4a5468; --bad:#8a3b2e;
+  --emerald:#2f6b52; --burgundy:#7a2e3d;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{overflow-x:hidden; max-width:100%;}
 body{font-family:'EB Garamond', Georgia, serif; background:var(--navy-mid); color:var(--ink); min-height:100vh;}
 a{color:inherit;}
-.toolbar{max-width:900px; margin:0 auto; padding:22px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
+.toolbar{max-width:640px; margin:0 auto; padding:22px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
 .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
 .brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:8.1px; color:var(--gold); letter-spacing:-0.2px;}
 .toolbar-actions{display:flex; gap:10px;}
@@ -29,40 +30,59 @@ a{color:inherit;}
 #loading, #error{max-width:600px; margin:80px auto; text-align:center; color:var(--ivory); font-style:italic; padding:0 24px;}
 #error{display:none;}
 
-.cert-frame{max-width:900px; margin:10px auto 60px; padding:0 24px;}
+/* Portrait "framed picture" proportions -- a fixed, compact vertical
+   rectangle rather than letting content flow to whatever height it
+   needs. Every section below is sized to fit inside this one frame,
+   on screen and on a single printed page, without a size that varies
+   by browser/paper defaults pushing it onto a second page. */
+.cert-frame{max-width:460px; margin:10px auto 60px; padding:0 24px;}
 .certificate{
   background:var(--paper); border:2px solid var(--gold); padding:6px; position:relative;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,0.5);
 }
-.certificate-inner{border:1px solid var(--gold); padding:56px 48px; text-align:center; position:relative;}
-.corner{position:absolute; width:28px; height:28px; border:1.5px solid var(--gold);}
-.corner.tl{top:14px; left:14px; border-right:none; border-bottom:none;}
-.corner.tr{top:14px; right:14px; border-left:none; border-bottom:none;}
-.corner.bl{bottom:14px; left:14px; border-right:none; border-top:none;}
-.corner.br{bottom:14px; right:14px; border-left:none; border-top:none;}
-.seal{width:70px; height:70px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; margin:0 auto 22px; font-family:'Cormorant Garamond', serif; font-weight:600; font-size:30px; color:var(--gold);}
-.cert-kicker{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
-.cert-org{font-family:'Cinzel', serif; font-size:15px; letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:30px;}
-.cert-presented{font-size:14px; color:var(--ink-soft); font-style:italic; margin-bottom:6px;}
-.cert-name{font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600; font-size:clamp(30px,5vw,44px); color:var(--navy-deep); margin-bottom:22px; padding-bottom:16px; border-bottom:1px solid var(--hair); display:inline-block; min-width:60%;}
-.cert-body{font-size:16.5px; color:var(--ink); max-width:56ch; margin:0 auto 30px; line-height:1.8;}
+.cert-ribbon{height:7px; background:linear-gradient(90deg, var(--emerald), var(--gold-bright) 50%, var(--burgundy));}
+.certificate-inner{border:1px solid var(--gold); padding:44px 28px 36px; text-align:center; position:relative;}
+.corner{position:absolute; width:22px; height:22px; border:1.5px solid var(--gold);}
+.corner.tl{top:11px; left:11px; border-right:none; border-bottom:none;}
+.corner.tr{top:11px; right:11px; border-left:none; border-bottom:none;}
+.corner.bl{bottom:11px; left:11px; border-right:none; border-top:none;}
+.corner.br{bottom:11px; right:11px; border-left:none; border-top:none;}
+.corner-dot{position:absolute; width:5px; height:5px; border-radius:50%;}
+.corner-dot.tl{top:8px; left:8px; background:var(--emerald);}
+.corner-dot.tr{top:8px; right:8px; background:var(--burgundy);}
+.corner-dot.bl{bottom:8px; left:8px; background:var(--burgundy);}
+.corner-dot.br{bottom:8px; right:8px; background:var(--emerald);}
+.seal{
+  width:64px; height:64px; border-radius:50%; margin:0 auto 20px; position:relative;
+  background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%);
+  border:2px solid var(--burgundy); box-shadow:0 0 0 3px var(--paper), 0 0 0 4px var(--gold-bright);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cinzel', serif; font-weight:600; font-size:16px; letter-spacing:0.5px; color:var(--navy-deep);
+}
+.cert-kicker{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:2.5px; text-transform:uppercase; color:var(--burgundy); margin-bottom:8px;}
+.cert-org{font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:1.8px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:28px;}
+.cert-presented{font-size:13px; color:var(--ink-soft); font-style:italic; margin-bottom:6px;}
+.cert-name{font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600; font-size:clamp(24px,7vw,32px); color:var(--navy-deep); margin-bottom:22px; padding-bottom:14px; border-bottom:2px solid var(--gold-bright); display:inline-block; min-width:80%; line-height:1.2;}
+.cert-body{font-size:13.5px; color:var(--ink); max-width:32ch; margin:0 auto 26px; line-height:1.75;}
 .cert-body strong{color:var(--navy-deep);}
-.cert-meta-row{display:flex; justify-content:center; gap:50px; flex-wrap:wrap; margin:34px 0 10px;}
-.cert-meta{text-align:center;}
-.cert-meta .l{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:6px;}
-.cert-meta .v{font-family:'Cormorant Garamond', serif; font-size:16px; color:var(--navy-deep); font-weight:600;}
-.cert-sign-row{display:flex; justify-content:space-between; align-items:flex-end; margin-top:44px; gap:20px; flex-wrap:wrap;}
-.cert-sign{text-align:center; flex:1; min-width:180px;}
-.cert-sign .line{border-top:1px solid var(--ink-soft); margin-bottom:8px; padding-top:6px; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:19px; color:var(--navy-deep);}
-.cert-sign .role{font-family:'Cinzel', serif; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft);}
-.cert-verify{margin-top:36px; padding-top:20px; border-top:1px solid var(--hair); font-size:12px; color:var(--ink-soft);}
-.cert-verify strong{color:var(--navy-deep); letter-spacing:0.5px;}
+.cert-meta-row{display:flex; justify-content:center; flex-wrap:wrap; gap:0; margin:22px 0 8px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:16px 0;}
+.cert-meta{text-align:center; flex:1; min-width:100px; border-left:1px solid var(--hair); margin:4px 0;}
+.cert-meta:first-child{border-left:none;}
+.cert-meta .l{font-family:'Cinzel', serif; font-size:8px; letter-spacing:1.2px; text-transform:uppercase; color:var(--emerald); margin-bottom:6px;}
+.cert-meta .v{font-family:'Cormorant Garamond', serif; font-size:14.5px; color:var(--navy-deep); font-weight:600;}
+.cert-sign-row{display:flex; flex-direction:column; align-items:center; margin-top:32px; gap:22px;}
+.cert-sign{text-align:center; width:100%;}
+.cert-sign .line{border-top:1px solid var(--ink-soft); margin-bottom:6px; padding-top:6px; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:16px; color:var(--navy-deep);}
+.cert-sign .role{font-family:'Cinzel', serif; font-size:8px; letter-spacing:0.8px; text-transform:uppercase; color:var(--ink-soft);}
+.cert-verify{margin-top:24px; padding-top:16px; border-top:1px solid var(--hair); font-size:9.5px; color:var(--ink-soft); line-height:1.6;}
+.cert-verify strong{color:var(--navy-deep); letter-spacing:0.3px;}
 
 @media print {
   body{background:#fff;}
   .toolbar{display:none;}
   .cert-frame{margin:0; padding:0; max-width:none;}
-  .certificate{border-width:1.5px;}
-  @page{size:landscape; margin:12mm;}
+  .certificate{border-width:1.5px; box-shadow:none;}
+  @page{size:portrait; margin:14mm;}
 }
 </style>
 </head>
@@ -81,27 +101,30 @@ a{color:inherit;}
 
 <div class="cert-frame" id="cert-frame" style="display:none;">
   <div class="certificate">
+    <div class="cert-ribbon"></div>
     <div class="certificate-inner">
       <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-      <div class="seal">G</div>
+      <div class="corner-dot tl"></div><div class="corner-dot tr"></div><div class="corner-dot bl"></div><div class="corner-dot br"></div>
+      <div class="seal">GMS</div>
       <div class="cert-kicker">Certificate of Completion</div>
       <div class="cert-org">Global Market School</div>
       <p class="cert-presented">This certifies that</p>
       <div class="cert-name" id="cert-name"></div>
       <p class="cert-body">has successfully completed the <strong id="cert-tier"></strong> curriculum and passed its certification assessment, demonstrating proficiency in the subject matter taught throughout the program.</p>
       <div class="cert-meta-row">
-        <div class="cert-meta"><div class="l">Score Achieved</div><div class="v" id="cert-score"></div></div>
+        <div class="cert-meta"><div class="l">Score</div><div class="v" id="cert-score"></div></div>
         <div class="cert-meta"><div class="l">Date Issued</div><div class="v" id="cert-date"></div></div>
-        <div class="cert-meta"><div class="l">Certificate No.</div><div class="v" id="cert-number"></div></div>
+        <div class="cert-meta"><div class="l">Cert. No.</div><div class="v" id="cert-number"></div></div>
       </div>
       <div class="cert-sign-row">
-        <div class="cert-sign"><div class="line">Akodi Victor</div><div class="role">CEO &amp; Founder, Global Market School</div></div>
+        <div class="cert-sign"><div class="line">Akodi Victor</div><div class="role">CEO &amp; Founder</div></div>
         <div class="cert-sign"><div class="line">Global Market School</div><div class="role">Issuing Institution</div></div>
       </div>
       <div class="cert-verify">
-        Verify this certificate's authenticity anytime at <strong>globalmarketschool.com/verify.html</strong> using certificate number <strong id="cert-verify-number"></strong>.
+        Verify at <strong>globalmarketschool.com/verify.html</strong> — Certificate No. <strong id="cert-verify-number"></strong>
       </div>
     </div>
+    <div class="cert-ribbon"></div>
   </div>
 </div>
 
