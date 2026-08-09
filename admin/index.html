@@ -97,6 +97,9 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 .status-pill.held{background:#fbf0ee; color:var(--bad);}
 .status-pill.paid{background:#eaf3ee; color:var(--good);}
 .status-pill.diverted{background:#f4e6ea; color:var(--bad);}
+.status-pill.active{background:#eaf3ee; color:var(--good);}
+.status-pill.revoked{background:#fbf0ee; color:var(--bad);}
+.cert-reason-input{padding:8px 10px; font-family:'EB Garamond', serif; font-size:13px; border:1px solid var(--hair); background:var(--paper); width:160px;}
 .mark-paid-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--good); color:#fff; border:none; padding:9px 14px; cursor:pointer;}
 .divert-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:var(--bad); color:#fff; border:none; padding:9px 14px; cursor:pointer;}
 .reset-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; background:none; border:1px solid var(--hair); color:var(--ink-soft); padding:9px 14px; cursor:pointer;}
@@ -158,6 +161,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         <button class="tab-btn" data-tab="students">Students</button>
         <button class="tab-btn" data-tab="settings">Site Settings</button>
         <button class="tab-btn" data-tab="withdrawals">Withdrawals</button>
+        <button class="tab-btn" data-tab="certificates">Certificates</button>
         <button class="tab-btn" data-tab="chat">Global Chat</button>
       </div>
     </div>
@@ -272,6 +276,23 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
         <p class="msg" id="withdrawals-msg"></p>
       </div>
 
+      <div class="tab-panel" id="tab-certificates">
+        <p class="section-title">Issued Certificates</p>
+        <p class="admin-only-note">Every certificate ever issued -- verified independently by anyone at globalmarketschool.com/verify.html using its number. Revoking keeps the record but marks it invalid everywhere (verify page and the student's own certificate link) instead of deleting it, so there's no ambiguity between "revoked" and "never existed."</p>
+        <input type="text" id="cert-search" placeholder="Search by name or certificate number..." style="width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:#fff; margin-bottom:14px;">
+        <div class="table-scroll">
+          <table id="certificates-table">
+            <thead>
+              <tr>
+                <th>Student</th><th>Class</th><th>Score</th><th>Cert. No.</th><th>Issued</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="certificates-tbody"></tbody>
+          </table>
+        </div>
+        <p class="msg" id="certificates-msg"></p>
+      </div>
+
       <div class="tab-panel" id="tab-chat">
         <p class="section-title">Reported Posts</p>
         <p class="admin-only-note">Posts students have flagged, grouped by post with newest report first. Dismissing clears all reports on a post without deleting it. Banning an author blocks them from posting, commenting, reacting, and reposting in Global Chat only -- it does not touch their course access or login.</p>
@@ -357,6 +378,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     await loadSettings();
     await loadPaymentCurrencies();
     await loadWithdrawals();
+    await loadCertificates();
     await loadChatReports();
     await loadChatMod();
 
@@ -815,6 +837,110 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     div.textContent = str == null ? '' : str;
     return div.innerHTML;
   }
+
+  let allCertificates = [];
+
+  async function loadCertificates() {
+    const { data } = await supabaseClient
+      .from('certificates')
+      .select('id, certificate_number, student_name, tier, score, issued_at, revoked, revoked_reason')
+      .order('issued_at', { ascending: false });
+    allCertificates = data || [];
+    renderCertificates(allCertificates);
+  }
+
+  function renderCertificates(rows) {
+    const tbody = document.getElementById('certificates-tbody');
+    tbody.innerHTML = '';
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="color:var(--ink-soft);">No certificates match.</td></tr>';
+      return;
+    }
+
+    rows.forEach(function (c) {
+      const issuedDate = new Date(c.issued_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + escapeHtml(c.student_name) + '</td>' +
+        '<td>' + escapeHtml(c.tier) + '</td>' +
+        '<td>' + Math.round(Number(c.score) * 100) + '%</td>' +
+        '<td>' + escapeHtml(c.certificate_number) + '</td>' +
+        '<td>' + issuedDate + '</td>' +
+        '<td><span class="status-pill ' + (c.revoked ? 'revoked' : 'active') + '">' + (c.revoked ? 'revoked' : 'active') + '</span></td>' +
+        '<td>' +
+          '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+            '<a href="../verify.html?id=' + encodeURIComponent(c.certificate_number) + '" target="_blank" rel="noopener" class="reset-btn" style="text-decoration:none; display:inline-block;">Verify</a>' +
+            (c.revoked
+              ? '<button class="mark-paid-btn reinstate-cert-btn" data-id="' + c.id + '">Reinstate</button>'
+              : '<input type="text" class="cert-reason-input" placeholder="Reason (optional)" id="reason-' + c.id + '">' +
+                '<button class="divert-btn revoke-cert-btn" data-id="' + c.id + '">Revoke</button>') +
+          '</div>' +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.revoke-cert-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = btn.getAttribute('data-id');
+        const reasonInput = document.getElementById('reason-' + id);
+        const reason = reasonInput ? reasonInput.value.trim() : '';
+        const ok = await showConfirm({
+          title: 'Revoke Certificate',
+          message: 'This certificate will immediately show as revoked on the verify page and the student\'s own certificate link. This is meant for genuine mistakes or disputes, not routine use.',
+          confirmLabel: 'Revoke',
+          danger: true
+        });
+        if (!ok) return;
+        const msg = document.getElementById('certificates-msg');
+        const { error } = await supabaseClient
+          .from('certificates')
+          .update({ revoked: true, revoked_reason: reason || null, revoked_at: new Date().toISOString() })
+          .eq('id', id);
+        if (error) {
+          msg.className = 'msg error';
+          msg.textContent = 'Could not revoke certificate.';
+        } else {
+          msg.className = 'msg success';
+          msg.textContent = 'Certificate revoked.';
+          await loadCertificates();
+        }
+      });
+    });
+
+    document.querySelectorAll('.reinstate-cert-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = btn.getAttribute('data-id');
+        const ok = await showConfirm({
+          title: 'Reinstate Certificate',
+          message: 'This certificate will show as genuine again on the verify page and the student\'s own certificate link.',
+          confirmLabel: 'Reinstate'
+        });
+        if (!ok) return;
+        const msg = document.getElementById('certificates-msg');
+        const { error } = await supabaseClient
+          .from('certificates')
+          .update({ revoked: false, revoked_reason: null, revoked_at: null })
+          .eq('id', id);
+        if (error) {
+          msg.className = 'msg error';
+          msg.textContent = 'Could not reinstate certificate.';
+        } else {
+          msg.className = 'msg success';
+          msg.textContent = 'Certificate reinstated.';
+          await loadCertificates();
+        }
+      });
+    });
+  }
+
+  document.getElementById('cert-search').addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    if (!q) { renderCertificates(allCertificates); return; }
+    renderCertificates(allCertificates.filter(function (c) {
+      return c.student_name.toLowerCase().indexOf(q) !== -1 || c.certificate_number.toLowerCase().indexOf(q) !== -1;
+    }));
+  });
 
   // Toggles profiles.chat_banned for one user_id and refreshes both
   // chat panels (a ban set from a report row should immediately show

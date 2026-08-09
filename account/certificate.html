@@ -27,8 +27,8 @@ a{color:inherit;}
 .btn:hover{background:var(--gold); color:var(--navy-deep);}
 .btn-primary{background:var(--gold); color:var(--navy-deep);}
 .btn-primary:hover{background:var(--gold-bright);}
-#loading, #error{max-width:600px; margin:80px auto; text-align:center; color:var(--ivory); font-style:italic; padding:0 24px;}
-#error{display:none;}
+#loading, #error, #revoked{max-width:600px; margin:80px auto; text-align:center; color:var(--ivory); font-style:italic; padding:0 24px;}
+#error, #revoked{display:none;}
 
 /* Portrait "framed picture" proportions -- a fixed, compact vertical
    rectangle rather than letting content flow to whatever height it
@@ -132,6 +132,7 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 
 <div id="loading">Loading certificate…</div>
 <p id="error">Certificate not found. Double-check the link, or contact support if you believe this is an error.</p>
+<p id="revoked" style="display:none;">This certificate has been revoked by Global Market School and is no longer valid. Contact support if you believe this is an error.</p>
 
 <div class="cert-frame" id="cert-frame" style="display:none;">
   <div class="certificate">
@@ -223,7 +224,7 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 
     const { data, error } = await supabaseClient
       .from('certificates')
-      .select('certificate_number, student_name, tier, score, issued_at')
+      .select('certificate_number, student_name, tier, score, issued_at, revoked')
       .eq('certificate_number', id)
       .single();
 
@@ -231,6 +232,11 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 
     if (error || !data) {
       document.getElementById('error').style.display = 'block';
+      return;
+    }
+
+    if (data.revoked) {
+      document.getElementById('revoked').style.display = 'block';
       return;
     }
 
