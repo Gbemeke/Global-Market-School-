@@ -147,7 +147,7 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
         <div class="cert-org">Global Market School</div>
         <p class="cert-presented">This certifies that</p>
         <div class="cert-name" id="cert-name"></div>
-        <p class="cert-body">has successfully completed the <strong id="cert-tier"></strong> curriculum in <strong>Stock Market &amp; Forex Trading</strong> and passed its certification assessment, demonstrating proficiency in both disciplines.</p>
+        <p class="cert-body">has successfully completed the <strong id="cert-tier"></strong> curriculum — a <strong id="cert-lessons"></strong> program in <strong>Stock Market &amp; Forex Trading</strong> — and passed its certification assessment, demonstrating proficiency in both disciplines.</p>
         <div class="cert-meta-row">
           <div class="cert-meta"><div class="l">Score</div><div class="v" id="cert-score"></div></div>
           <div class="cert-meta"><div class="l">Grade</div><div class="v" id="cert-grade"></div></div>
@@ -200,6 +200,12 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 
   const TIER_LABELS = { 'Beginner': 'Beginner Class', 'Intermediate': 'Intermediate Class', 'Advanced': 'Advanced Class', 'Elite': 'Elite Group', 'Trade Group': 'Trade Group' };
 
+  // Cumulative lesson count actually behind each tier (stock + forex
+  // tracks combined, counting everything unlocked on the way to that
+  // tier -- matches account/dashboard.html's own course lists exactly,
+  // so this is real curriculum scope, not an invented number).
+  const LESSON_COUNTS = { 'Beginner': 10, 'Intermediate': 20, 'Advanced': 30, 'Elite': 40, 'Trade Group': 50 };
+
   function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
@@ -242,6 +248,7 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 
     document.getElementById('cert-name').textContent = data.student_name;
     document.getElementById('cert-tier').textContent = TIER_LABELS[data.tier] || (data.tier + ' Class');
+    document.getElementById('cert-lessons').textContent = (LESSON_COUNTS[data.tier] || '') + '-Lesson';
     document.getElementById('cert-score').textContent = Math.round(Number(data.score) * 100) + '%';
     document.getElementById('cert-grade').textContent = gradeFor(Number(data.score));
     const issuedDate = new Date(data.issued_at);
