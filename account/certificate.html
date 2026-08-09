@@ -44,7 +44,7 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 }
 .cert-ribbon{height:7px; background:linear-gradient(90deg, var(--emerald), var(--gold-bright) 50%, var(--burgundy)); position:relative; z-index:2;}
 .certificate-inner{
-  border:1px solid var(--gold); padding:44px 28px 36px; text-align:center; position:relative; overflow:hidden;
+  border:1px solid var(--gold); padding:36px 28px 80px; text-align:center; position:relative; overflow:hidden;
   background-color:var(--paper);
   background-image:
     repeating-linear-gradient(115deg, rgba(178,142,76,0.07) 0px, rgba(178,142,76,0.07) 1px, transparent 1px, transparent 7px),
@@ -70,33 +70,35 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
 .corner-dot.bl{bottom:8px; left:8px; background:var(--burgundy);}
 .corner-dot.br{bottom:8px; right:8px; background:var(--emerald);}
 .cert-stamp{
-  position:absolute; right:6px; bottom:2px; width:92px; height:92px;
+  position:absolute; right:24px; bottom:12px; width:74px; height:74px;
   opacity:0.85; transform:rotate(-12deg); mix-blend-mode:multiply; z-index:3; pointer-events:none;
 }
 .cert-stamp svg{width:100%; height:100%; display:block;}
 .seal{
-  width:64px; height:64px; border-radius:50%; margin:0 auto 20px; position:relative;
+  width:56px; height:56px; border-radius:50%; margin:0 auto 14px; position:relative;
   background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%);
   border:2px solid var(--burgundy); box-shadow:0 0 0 3px var(--paper), 0 0 0 4px var(--gold-bright);
   display:flex; align-items:center; justify-content:center;
-  font-family:'Cinzel', serif; font-weight:600; font-size:16px; letter-spacing:0.5px; color:var(--navy-deep);
+  font-family:'Cinzel', serif; font-weight:600; font-size:14px; letter-spacing:0.5px; color:var(--navy-deep);
 }
-.cert-kicker{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:2.5px; text-transform:uppercase; color:var(--burgundy); margin-bottom:8px;}
-.cert-org{font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:1.8px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:28px;}
+.cert-kicker{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:2.5px; text-transform:uppercase; color:var(--burgundy); margin-bottom:6px;}
+.cert-org{font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:1.8px; text-transform:uppercase; color:var(--navy-deep); margin-bottom:20px;}
 .cert-presented{font-size:13px; color:var(--ink-soft); font-style:italic; margin-bottom:6px;}
-.cert-name{font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600; font-size:clamp(24px,7vw,32px); color:var(--navy-deep); margin-bottom:22px; padding-bottom:14px; border-bottom:2px solid var(--gold-bright); display:inline-block; min-width:80%; line-height:1.2;}
-.cert-body{font-size:13.5px; color:var(--ink); max-width:32ch; margin:0 auto 26px; line-height:1.75;}
+.cert-name{font-family:'Cormorant Garamond', serif; font-style:italic; font-weight:600; font-size:clamp(24px,7vw,32px); color:var(--navy-deep); margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid var(--gold-bright); display:inline-block; min-width:80%; line-height:1.2;}
+.cert-body{font-size:13.5px; color:var(--ink); max-width:32ch; margin:0 auto 18px; line-height:1.62;}
 .cert-body strong{color:var(--navy-deep);}
-.cert-meta-row{display:flex; justify-content:center; flex-wrap:wrap; gap:0; margin:22px 0 8px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:16px 0;}
-.cert-meta{text-align:center; flex:1; min-width:100px; border-left:1px solid var(--hair); margin:4px 0;}
-.cert-meta:first-child{border-left:none;}
-.cert-meta .l{font-family:'Cinzel', serif; font-size:8px; letter-spacing:1.2px; text-transform:uppercase; color:var(--emerald); margin-bottom:6px;}
+.cert-meta-row{display:grid; grid-template-columns:1fr 1fr; margin:16px 0 6px; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair);}
+.cert-meta{text-align:center; padding:9px 8px; border-left:1px solid var(--hair); border-bottom:1px solid var(--hair);}
+.cert-meta:nth-child(odd){border-left:none;}
+.cert-meta:nth-child(3),.cert-meta:nth-child(4){border-bottom:none;}
+.cert-meta .l{font-family:'Cinzel', serif; font-size:8px; letter-spacing:1.2px; text-transform:uppercase; color:var(--emerald); margin-bottom:5px;}
 .cert-meta .v{font-family:'Cormorant Garamond', serif; font-size:14.5px; color:var(--navy-deep); font-weight:600;}
-.cert-sign-row{display:flex; flex-direction:column; align-items:center; margin-top:32px; gap:22px;}
+.cert-sign-row{display:flex; flex-direction:column; align-items:center; margin-top:22px; gap:13px;}
 .cert-sign{text-align:center; width:100%;}
-.cert-sign .line{border-top:1px solid var(--ink-soft); margin-bottom:6px; padding-top:6px; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:16px; color:var(--navy-deep);}
+.cert-sign .sign-img{display:block; height:38px; width:auto; margin:0 auto -7px; mix-blend-mode:multiply;}
+.cert-sign .line{border-top:1px solid var(--ink-soft); margin-bottom:5px; padding-top:5px; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:15px; color:var(--navy-deep);}
 .cert-sign .role{font-family:'Cinzel', serif; font-size:8px; letter-spacing:0.8px; text-transform:uppercase; color:var(--ink-soft);}
-.cert-verify{margin-top:24px; padding-top:16px; border-top:1px solid var(--hair); font-size:9.5px; color:var(--ink-soft); line-height:1.6;}
+.cert-verify{margin-top:16px; padding-top:10px; border-top:1px solid var(--hair); font-size:9.5px; color:var(--ink-soft); line-height:1.55;}
 .cert-verify strong{color:var(--navy-deep); letter-spacing:0.3px;}
 
 @media print {
@@ -134,15 +136,20 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
         <div class="cert-org">Global Market School</div>
         <p class="cert-presented">This certifies that</p>
         <div class="cert-name" id="cert-name"></div>
-        <p class="cert-body">has successfully completed the <strong id="cert-tier"></strong> curriculum and passed its certification assessment, demonstrating proficiency in the subject matter taught throughout the program.</p>
+        <p class="cert-body">has successfully completed the <strong id="cert-tier"></strong> curriculum in <strong>Stock Market &amp; Forex Trading</strong> and passed its certification assessment, demonstrating proficiency in both disciplines.</p>
         <div class="cert-meta-row">
           <div class="cert-meta"><div class="l">Score</div><div class="v" id="cert-score"></div></div>
+          <div class="cert-meta"><div class="l">Grade</div><div class="v" id="cert-grade"></div></div>
           <div class="cert-meta"><div class="l">Date Issued</div><div class="v" id="cert-date"></div></div>
           <div class="cert-meta"><div class="l">Cert. No.</div><div class="v" id="cert-number"></div></div>
         </div>
         <div class="cert-sign-row">
-          <div class="cert-sign"><div class="line">Akodi Victor</div><div class="role">CEO &amp; Founder</div></div>
-          <div class="cert-sign"><div class="line">Global Market School</div><div class="role">Issuing Institution</div></div>
+          <div class="cert-sign">
+            <img class="sign-img" src="../assets/images/signature-akodi-victor.png" alt="Signature of Akodi Victor">
+            <div class="line">Akodi Victor</div><div class="role">CEO &amp; Founder</div>
+          </div>
+          <div class="cert-sign"><div class="line">Global Market School</div><div class="role">Registrar</div></div>
+          <div class="cert-sign"><div class="line" id="cert-sign-date"></div><div class="role">Date</div></div>
         </div>
         <div class="cert-verify">
           Verify at <strong>globalmarketschool.com/verify.html</strong> — Certificate No. <strong id="cert-verify-number"></strong>
@@ -182,6 +189,16 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
     return new URLSearchParams(window.location.search).get(name);
   }
 
+  // Assessments require 80% to pass, so every issued certificate already
+  // starts at that floor -- these bands split the achievable 80-100%
+  // range into the four credit levels a certificate is expected to show.
+  function gradeFor(score) {
+    if (score >= 0.95) return 'Excellent';
+    if (score >= 0.90) return 'Merit';
+    if (score >= 0.85) return 'Credit';
+    return 'Pass';
+  }
+
   async function init() {
     const id = getParam('id');
     if (!id) {
@@ -206,7 +223,10 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
     document.getElementById('cert-name').textContent = data.student_name;
     document.getElementById('cert-tier').textContent = TIER_LABELS[data.tier] || (data.tier + ' Class');
     document.getElementById('cert-score').textContent = Math.round(Number(data.score) * 100) + '%';
-    document.getElementById('cert-date').textContent = new Date(data.issued_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('cert-grade').textContent = gradeFor(Number(data.score));
+    const issuedDate = new Date(data.issued_at);
+    document.getElementById('cert-date').textContent = issuedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('cert-sign-date').textContent = issuedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     document.getElementById('cert-number').textContent = data.certificate_number;
     document.getElementById('cert-verify-number').textContent = data.certificate_number;
     document.title = data.student_name + ' — ' + (TIER_LABELS[data.tier] || data.tier) + ' Certificate — Global Market School';
