@@ -86,6 +86,12 @@ section{padding:28px 0;}
 }
 .tier-coming-soon{font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:8px; max-width:42ch;}
 
+.photo-nudge{background:#fff; border:1px solid var(--hair); border-left:3px solid var(--gold); padding:18px 20px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+.photo-nudge p{font-size:14px; color:var(--ink); max-width:52ch;}
+.photo-nudge p strong{color:var(--navy-deep);}
+.photo-nudge-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; background:var(--gold); color:var(--navy-deep); border:none; padding:11px 18px; cursor:pointer; flex-shrink:0; white-space:nowrap;}
+.photo-nudge-btn:hover{background:var(--gold-bright);}
+
 .referral-box{background:#fff; border:1px solid var(--hair); padding:24px;}
 .referral-link-row{display:flex; gap:8px; margin:14px 0;}
 .referral-link-row input{flex:1; padding:11px 12px; border:1px solid var(--hair); font-family:'EB Garamond', serif; font-size:14px; background:var(--paper); color:var(--ink);}
@@ -149,6 +155,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .avatar-upload-btn:hover{background:var(--gold); color:var(--navy-deep);}
 .avatar-hint{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+.avatar-instructions{font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px;}
 
 .mfa-status{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
 .mfa-status-text{font-size:14px;}
@@ -450,6 +457,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
     <div class="profile-panel-body">
       <p class="section-title">Profile Picture</p>
+      <p class="avatar-instructions">Use a clean, passport-style photo -- plain background, facing forward, well-lit, no group photos or filters. This photo appears in the top-left corner of your certificate once you pass an assessment, so a clear headshot matters.</p>
       <div class="avatar-upload-row">
         <div class="avatar-preview" id="avatar-preview">A</div>
         <div>
@@ -515,6 +523,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <p class="eyebrow">Student Dashboard</p>
       <h1 id="welcome-msg">Welcome back</h1>
       <a href="../admin/index.html" class="admin-link" id="admin-link" style="display:none;">Go to Admin Panel</a>
+    </div>
+
+    <div class="photo-nudge" id="photo-nudge" style="display:none;">
+      <p><strong>Add your certificate photo.</strong> Upload a clean, passport-style photo now — plain background, facing forward, well-lit, no group photos or filters — so it's ready in the right place on your certificate the moment you pass your first assessment.</p>
+      <button type="button" class="photo-nudge-btn" id="photo-nudge-btn">Add Photo</button>
     </div>
 
     <section style="padding-bottom:8px;">
@@ -852,6 +865,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     currentInitial = (profile.full_name || profile.email || 'A').charAt(0).toUpperCase();
     currentAvatarUrl = profile.avatar_url || null;
     renderAvatar();
+    document.getElementById('photo-nudge').style.display = currentAvatarUrl ? 'none' : 'flex';
     document.getElementById('edit-name').value = profile.full_name || '';
     document.getElementById('edit-phone').value = profile.phone || '';
     populateCountryDropdown(profile.country || '');
@@ -1007,6 +1021,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('profile-overlay').classList.remove('open');
   }
   document.getElementById('profile-btn').addEventListener('click', openProfilePanel);
+  document.getElementById('photo-nudge-btn').addEventListener('click', openProfilePanel);
   document.getElementById('panel-close').addEventListener('click', closeProfilePanel);
   document.getElementById('profile-overlay').addEventListener('click', function() {
     closeProfilePanel();
@@ -1263,6 +1278,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     currentAvatarUrl = publicUrl;
     renderAvatar();
+    document.getElementById('photo-nudge').style.display = 'none';
     msg.style.display = 'block';
     msg.className = 'msg success';
     msg.textContent = 'Profile picture updated.';
