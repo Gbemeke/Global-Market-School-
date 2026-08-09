@@ -258,6 +258,38 @@ a{color:inherit;}
     }
 
     btn.disabled = true;
+    btn.textContent = 'Checking details...';
+
+    // One phone number and one email can only ever belong to one
+    // account -- checked here for a clear, specific message, and
+    // enforced for real by a database constraint either way (this
+    // check alone can't be trusted against a race between two people
+    // registering the same details at once).
+    const { data: availability, error: availabilityError } = await supabaseClient.rpc('check_registration_available', {
+      p_phone: phone,
+      p_email: email
+    });
+
+    if (availabilityError) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not verify your details. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Register Now';
+      return;
+    }
+
+    if (availability.phone_taken || availability.email_taken) {
+      msg.className = 'msg error';
+      msg.textContent = availability.phone_taken && availability.email_taken
+        ? 'That phone number and email are already registered. Each can only be used for one account.'
+        : availability.phone_taken
+          ? 'That phone number is already registered to another account.'
+          : 'That email is already registered. Try logging in instead.';
+      btn.disabled = false;
+      btn.textContent = 'Register Now';
+      return;
+    }
+
     btn.textContent = 'Creating account...';
 
     const { data, error } = await supabaseClient.auth.signUp({

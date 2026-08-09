@@ -184,6 +184,11 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       </div>
 
       <div class="tab-panel" id="tab-students">
+        <p class="section-title">Profile Change Requests</p>
+        <p class="admin-only-note">Full name, phone, and email are locked from self-service editing -- they're what certificates print, what a withdrawal's payout account must match, and what proves one person can't hold two accounts. The student had to re-confirm their password to submit a request, but that alone doesn't prove the request is genuine (a compromised password would pass it too) -- before approving, it's worth reaching out through the account's OTHER contact detail shown below (not the new one being requested) if anything looks off.</p>
+        <div id="name-requests-list"></div>
+        <p class="msg" id="name-requests-msg"></p>
+
         <p class="section-title">All Students</p>
         <div class="table-scroll">
           <table id="students-table">
@@ -374,6 +379,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     }
 
     await loadOverview();
+    await loadNameChangeRequests();
     await loadStudents();
     await loadSettings();
     await loadPaymentCurrencies();
@@ -415,6 +421,92 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       const row = document.createElement('tr');
       row.innerHTML = '<td>' + key + '</td><td>' + count + '</td>';
       tbody.appendChild(row);
+    });
+  }
+
+  const CHANGE_FIELD_LABELS = { full_name: 'Name', phone: 'Phone', email: 'Email' };
+
+  async function loadNameChangeRequests() {
+    const { data: requests } = await supabaseClient
+      .from('profile_change_requests')
+      .select('id, field, old_value, new_value, reason, created_at, profiles(full_name, email, phone)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+
+    const list = document.getElementById('name-requests-list');
+    list.innerHTML = '';
+
+    if (!requests || !requests.length) {
+      list.innerHTML = '<p style="color:var(--ink-soft); font-size:14px;">No pending profile change requests.</p>';
+      return;
+    }
+
+    requests.forEach(function (r) {
+      const acct = r.profiles || {};
+      const fieldLabel = CHANGE_FIELD_LABELS[r.field] || r.field;
+      // Deliberately shows the account's OTHER contact details
+      // unchanged by this request -- e.g. for a phone-change request,
+      // the current email is a channel the real owner already has that
+      // wasn't just typed into this form, worth reaching out through
+      // before approving.
+      const contactBits = [];
+      if (r.field !== 'email') contactBits.push('Email on file: ' + escapeHtml(acct.email || 'none'));
+      if (r.field !== 'phone') contactBits.push('Phone on file: ' + escapeHtml(acct.phone || 'none'));
+      const row = document.createElement('div');
+      row.className = 'withdraw-row';
+      row.innerHTML =
+        '<div class="info">' +
+          '<p><strong>' + escapeHtml(acct.full_name || 'Unknown') + '</strong> — ' + escapeHtml(fieldLabel) + '</p>' +
+          '<p>"' + escapeHtml(r.old_value || '(none on file)') + '" &rarr; "' + escapeHtml(r.new_value) + '"</p>' +
+          (r.reason ? '<p style="font-style:italic;">Reason given: "' + escapeHtml(r.reason) + '"</p>' : '<p style="font-style:italic; color:var(--ink-soft);">No reason given</p>') +
+          '<p style="font-size:12px; color:var(--ink-soft);">' + contactBits.join(' &middot; ') + '</p>' +
+        '</div>' +
+        '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+          '<button class="mark-paid-btn approve-name-btn" data-id="' + r.id + '">Approve</button>' +
+          '<button class="divert-btn reject-name-btn" data-id="' + r.id + '">Reject</button>' +
+        '</div>';
+      list.appendChild(row);
+    });
+
+    document.querySelectorAll('.approve-name-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const msg = document.getElementById('name-requests-msg');
+        const { error } = await supabaseClient.rpc('resolve_profile_change_request', { p_request_id: btn.getAttribute('data-id'), p_approve: true });
+        if (error) {
+          // Surfaced verbatim -- this is where a real conflict (e.g. the
+          // phone/email got taken by someone else since the request was
+          // submitted) shows up, not a generic failure message.
+          msg.className = 'msg error';
+          msg.textContent = error.message || 'Could not approve request.';
+        } else {
+          msg.className = 'msg success';
+          msg.textContent = 'Change approved.';
+          await loadNameChangeRequests();
+          await loadStudents();
+        }
+      });
+    });
+
+    document.querySelectorAll('.reject-name-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const ok = await showConfirm({
+          title: 'Reject Change Request',
+          message: 'The student keeps their current value and can submit a new request if needed.',
+          confirmLabel: 'Reject',
+          danger: true
+        });
+        if (!ok) return;
+        const msg = document.getElementById('name-requests-msg');
+        const { error } = await supabaseClient.rpc('resolve_profile_change_request', { p_request_id: btn.getAttribute('data-id'), p_approve: false });
+        if (error) {
+          msg.className = 'msg error';
+          msg.textContent = 'Could not reject request.';
+        } else {
+          msg.className = 'msg success';
+          msg.textContent = 'Request rejected.';
+          await loadNameChangeRequests();
+        }
+      });
     });
   }
 
