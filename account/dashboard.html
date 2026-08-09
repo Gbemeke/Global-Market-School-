@@ -124,8 +124,8 @@ section{padding:28px 0;}
 .field-hint{font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
 .field-hint a{color:var(--gold); cursor:pointer; text-decoration:underline;}
 .field-hint.pending{color:#a6650a;}
-.name-change-box{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
-.name-change-box input{flex:1; min-width:160px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:#fff;}
+.name-change-box{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+.name-change-box input{width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:#fff;}
 .phone-row{display:flex; gap:8px;}
 .phone-code{
   flex-shrink:0; padding:10px 12px; border:1px solid var(--hair); background:var(--ivory);
@@ -483,6 +483,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <p class="field-hint" id="name-change-hint">Locked to protect certificate and payout accuracy. <a id="request-name-change-link">Request a change</a></p>
           <div class="name-change-box" id="name-change-box" style="display:none;">
             <input type="text" id="new-name-input" placeholder="Full legal name">
+            <input type="text" id="name-reason-input" placeholder="Reason for change (optional)">
+            <input type="password" id="name-password-input" placeholder="Confirm your password" autocomplete="current-password">
             <button type="button" class="save-btn" id="submit-name-change" style="margin-top:0;">Submit</button>
           </div>
           <p class="msg" id="name-change-msg"></p>
@@ -493,6 +495,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <p class="field-hint" id="email-change-hint">Locked -- one email per account. <a id="request-email-change-link">Request a change</a></p>
           <div class="name-change-box" id="email-change-box" style="display:none;">
             <input type="email" id="new-email-input" placeholder="New email address">
+            <input type="text" id="email-reason-input" placeholder="Reason for change (optional)">
+            <input type="password" id="email-password-input" placeholder="Confirm your password" autocomplete="current-password">
             <button type="button" class="save-btn" id="submit-email-change" style="margin-top:0;">Submit</button>
           </div>
           <p class="msg" id="email-change-msg"></p>
@@ -510,6 +514,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <p class="field-hint" id="phone-change-hint">Locked -- one phone number per account. <a id="request-phone-change-link">Request a change</a></p>
           <div class="name-change-box" id="phone-change-box" style="display:none;">
             <input type="tel" id="new-phone-input" placeholder="New phone number">
+            <input type="text" id="phone-reason-input" placeholder="Reason for change (optional)">
+            <input type="password" id="phone-password-input" placeholder="Confirm your password" autocomplete="current-password">
             <button type="button" class="save-btn" id="submit-phone-change" style="margin-top:0;">Submit</button>
           </div>
           <p class="msg" id="phone-change-msg"></p>
@@ -1061,9 +1067,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // near-identical copies of the same request/pending/submit logic.
 
   const CHANGE_FIELDS = {
-    full_name: { hintId: 'name-change-hint', linkId: 'request-name-change-link', boxId: 'name-change-box', inputId: 'new-name-input', submitId: 'submit-name-change', msgId: 'name-change-msg', label: 'Name change', getCurrent: () => currentFullName },
-    phone: { hintId: 'phone-change-hint', linkId: 'request-phone-change-link', boxId: 'phone-change-box', inputId: 'new-phone-input', submitId: 'submit-phone-change', msgId: 'phone-change-msg', label: 'Phone change', getCurrent: () => currentPhone },
-    email: { hintId: 'email-change-hint', linkId: 'request-email-change-link', boxId: 'email-change-box', inputId: 'new-email-input', submitId: 'submit-email-change', msgId: 'email-change-msg', label: 'Email change', getCurrent: () => currentEmail }
+    full_name: { hintId: 'name-change-hint', linkId: 'request-name-change-link', boxId: 'name-change-box', inputId: 'new-name-input', reasonId: 'name-reason-input', passwordId: 'name-password-input', submitId: 'submit-name-change', msgId: 'name-change-msg', label: 'Name change', getCurrent: () => currentFullName },
+    phone: { hintId: 'phone-change-hint', linkId: 'request-phone-change-link', boxId: 'phone-change-box', inputId: 'new-phone-input', reasonId: 'phone-reason-input', passwordId: 'phone-password-input', submitId: 'submit-phone-change', msgId: 'phone-change-msg', label: 'Phone change', getCurrent: () => currentPhone },
+    email: { hintId: 'email-change-hint', linkId: 'request-email-change-link', boxId: 'email-change-box', inputId: 'new-email-input', reasonId: 'email-reason-input', passwordId: 'email-password-input', submitId: 'submit-email-change', msgId: 'email-change-msg', label: 'Email change', getCurrent: () => currentEmail }
   };
 
   async function checkPendingChanges() {
@@ -1096,7 +1102,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById(cfg.submitId).addEventListener('click', async function () {
       const msg = document.getElementById(cfg.msgId);
       msg.className = 'msg';
+      const btn = this;
       const newValue = document.getElementById(cfg.inputId).value.trim();
+      const reason = document.getElementById(cfg.reasonId).value.trim();
+      const password = document.getElementById(cfg.passwordId).value;
       const currentValue = cfg.getCurrent();
 
       if (!newValue) {
@@ -1109,13 +1118,42 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         msg.textContent = "That's already your registered value.";
         return;
       }
+      if (!password) {
+        msg.className = 'msg error';
+        msg.textContent = 'Please confirm your password to submit this request.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      // Proves whoever is submitting this still knows the account's
+      // actual password right now -- not just that a browser session
+      // happens to be logged in (which could be a stolen/leftover
+      // session on a shared device, not the real owner acting).
+      const { error: authError } = await supabaseClient.auth.signInWithPassword({
+        email: currentEmail,
+        password: password
+      });
+
+      if (authError) {
+        btn.disabled = false;
+        btn.textContent = 'Submit';
+        msg.className = 'msg error';
+        msg.textContent = 'Incorrect password.';
+        return;
+      }
 
       const { error } = await supabaseClient.from('profile_change_requests').insert({
         user_id: currentUserId,
         field: field,
         old_value: currentValue,
-        new_value: newValue
+        new_value: newValue,
+        reason: reason || null
       });
+
+      btn.disabled = false;
+      btn.textContent = 'Submit';
 
       if (error) {
         msg.className = 'msg error';
@@ -1124,6 +1162,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         msg.className = 'msg success';
         msg.textContent = 'Request submitted for admin review.';
         document.getElementById(cfg.boxId).style.display = 'none';
+        document.getElementById(cfg.passwordId).value = '';
+        document.getElementById(cfg.reasonId).value = '';
         checkPendingChanges();
       }
     });
