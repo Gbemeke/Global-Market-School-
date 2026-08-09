@@ -22,7 +22,7 @@ a{color:inherit;}
 .toolbar{max-width:640px; margin:0 auto; padding:22px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
 .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
 .brand .mark{width:26px;height:26px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:8.1px; color:var(--gold); letter-spacing:-0.2px;}
-.toolbar-actions{display:flex; gap:10px;}
+.toolbar-actions{display:flex; flex-wrap:wrap; gap:10px;}
 .btn{font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; padding:11px 18px; border:1px solid var(--gold); cursor:pointer; background:none; color:var(--gold-bright);}
 .btn:hover{background:var(--gold); color:var(--navy-deep);}
 .btn-primary{background:var(--gold); color:var(--navy-deep);}
@@ -125,6 +125,7 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
   <a href="dashboard.html" class="brand"><span class="mark">GMS</span>Global Market School</a>
   <div class="toolbar-actions">
     <a href="dashboard.html" class="btn">Dashboard</a>
+    <a href="#" target="_blank" rel="noopener" class="btn" id="linkedin-btn" style="display:none;">Add to LinkedIn</a>
     <button type="button" class="btn btn-primary" id="print-btn" style="display:none;">Print Certificate</button>
   </div>
 </div>
@@ -243,6 +244,22 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
     document.getElementById('cert-number').textContent = data.certificate_number;
     document.getElementById('cert-verify-number').textContent = data.certificate_number;
     document.title = data.student_name + ' — ' + (TIER_LABELS[data.tier] || data.tier) + ' Certificate — Global Market School';
+
+    // LinkedIn's own "Add to Profile" deep link -- the same mechanism
+    // Coursera/Udemy/edX use. It opens LinkedIn's certification form
+    // pre-filled with our details; the student still has to click
+    // LinkedIn's own "Add" to actually save it to their profile.
+    const linkedinParams = new URLSearchParams({
+      startTask: 'CERTIFICATION_NAME',
+      name: (TIER_LABELS[data.tier] || data.tier) + ' Certification — Stock Market & Forex Trading',
+      organizationName: 'Global Market School',
+      issueYear: String(issuedDate.getFullYear()),
+      issueMonth: String(issuedDate.getMonth() + 1),
+      certUrl: 'https://globalmarketschool.com/verify.html?id=' + encodeURIComponent(data.certificate_number),
+      certId: data.certificate_number
+    });
+    document.getElementById('linkedin-btn').href = 'https://www.linkedin.com/profile/add?' + linkedinParams.toString();
+    document.getElementById('linkedin-btn').style.display = 'inline-block';
 
     document.getElementById('cert-frame').style.display = 'block';
     document.getElementById('print-btn').style.display = 'inline-block';
