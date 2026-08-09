@@ -466,15 +466,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <div class="profile-panel-body">
       <p class="section-title">Profile Picture</p>
       <p class="avatar-instructions">Use a clean, passport-style photo -- plain background, facing forward, well-lit, no group photos or filters. This photo appears in the top-left corner of your certificate once you pass an assessment, so a clear headshot matters.</p>
-      <div class="avatar-upload-row">
+      <div class="avatar-upload-row" id="avatar-upload-row">
         <div class="avatar-preview" id="avatar-preview">A</div>
         <div>
-          <label class="avatar-upload-btn" for="avatar-file-input">Change Photo</label>
+          <label class="avatar-upload-btn" for="avatar-file-input" id="avatar-upload-label">Change Photo</label>
           <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;">
-          <p class="avatar-hint">JPG, PNG, WEBP or GIF. Max 3MB.</p>
+          <p class="avatar-hint" id="avatar-hint">JPG, PNG, WEBP or GIF. Max 3MB.</p>
         </div>
       </div>
       <p class="msg" id="avatar-msg" style="display:none;"></p>
+      <p class="field-hint" id="avatar-locked-hint" style="display:none;">Locked to protect your verified certificate photo. <a id="request-avatar-change-link">Request a change</a></p>
+      <div class="name-change-box" id="avatar-change-box" style="display:none;">
+        <input type="file" id="avatar-request-file-input" accept="image/jpeg,image/png,image/webp,image/gif">
+        <p class="field-hint warn">Your new photo goes to admin review before it replaces the one on your certificate.</p>
+        <input type="text" id="avatar-reason-input" placeholder="Reason for change (optional)">
+        <input type="password" id="avatar-password-input" placeholder="Confirm your password" autocomplete="current-password">
+        <button type="button" class="save-btn" id="submit-avatar-change" style="margin-top:0;">Submit</button>
+      </div>
+      <p class="field-hint" id="avatar-request-hint"></p>
 
       <p class="section-title">Your Details</p>
       <div class="profile-box">
@@ -662,6 +671,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentFullName = '';
   let currentPhone = '';
   let currentEmail = '';
+  let currentIsPaid = false;
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -934,9 +944,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data: access } = await supabaseClient
       .from('course_access')
-      .select('course_key, has_access')
+      .select('course_key, has_access, granted_by')
       .eq('user_id', userId)
       .eq('has_access', true);
+
+    currentIsPaid = (access || []).some(a => a.granted_by === 'payment');
+    applyAvatarLockUI();
 
     const unlockedKeys = (access || []).map(a => a.course_key);
     const grid = document.getElementById('tier-grid');
@@ -1081,7 +1094,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       .eq('user_id', currentUserId)
       .eq('status', 'pending');
 
+    document.getElementById('avatar-request-hint').textContent = '';
     (data || []).forEach(function (req) {
+      if (req.field === 'avatar_url') {
+        document.getElementById('avatar-request-hint').textContent = 'A new photo is pending admin review.';
+        return;
+      }
       const cfg = CHANGE_FIELDS[req.field];
       if (!cfg) return;
       // Only path that touches this hint's markup -- the "not pending"
@@ -1169,6 +1187,114 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         checkPendingChanges();
       }
     });
+  });
+
+  // ---- Profile photo lock (paid/verified students) ----
+  // Unpaid students keep the instant self-service upload below. Once a
+  // student has paid course access, avatar_url is locked at the database
+  // level (see the enforce_avatar_lock trigger) -- this is the request
+  // flow that's the only way to change it after that point.
+
+  function applyAvatarLockUI() {
+    document.getElementById('avatar-upload-row').style.display = currentIsPaid ? 'none' : 'flex';
+    document.getElementById('avatar-locked-hint').style.display = currentIsPaid ? 'block' : 'none';
+    if (!currentIsPaid) {
+      document.getElementById('avatar-change-box').style.display = 'none';
+    }
+  }
+
+  document.getElementById('request-avatar-change-link').addEventListener('click', function () {
+    document.getElementById('avatar-change-box').style.display = 'flex';
+  });
+
+  document.getElementById('submit-avatar-change').addEventListener('click', async function () {
+    const msg = document.getElementById('avatar-msg');
+    msg.style.display = 'block';
+    msg.className = 'msg';
+    const btn = this;
+    const fileInput = document.getElementById('avatar-request-file-input');
+    const file = fileInput.files[0];
+    const reason = document.getElementById('avatar-reason-input').value.trim();
+    const password = document.getElementById('avatar-password-input').value;
+
+    if (!file) {
+      msg.className = 'msg error';
+      msg.textContent = 'Please choose a photo.';
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      msg.className = 'msg error';
+      msg.textContent = 'Image must be under 3MB.';
+      return;
+    }
+    if (!password) {
+      msg.className = 'msg error';
+      msg.textContent = 'Please confirm your password to submit this request.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    const { error: authError } = await supabaseClient.auth.signInWithPassword({
+      email: currentEmail,
+      password: password
+    });
+
+    if (authError) {
+      btn.disabled = false;
+      btn.textContent = 'Submit';
+      msg.className = 'msg error';
+      msg.textContent = 'Incorrect password.';
+      return;
+    }
+
+    btn.textContent = 'Uploading...';
+
+    // A distinct filename, not the live "avatar.<ext>" path -- the
+    // pending photo must not overwrite what's still showing on the
+    // certificate/profile until an admin approves it.
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = currentUserId + '/pending-avatar-' + Date.now() + '.' + ext;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, cacheControl: '3600' });
+
+    if (uploadError) {
+      btn.disabled = false;
+      btn.textContent = 'Submit';
+      msg.className = 'msg error';
+      msg.textContent = 'Upload failed. Please try again.';
+      return;
+    }
+
+    const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+
+    const { error } = await supabaseClient.from('profile_change_requests').insert({
+      user_id: currentUserId,
+      field: 'avatar_url',
+      old_value: currentAvatarUrl,
+      new_value: publicUrl,
+      reason: reason || null
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Submit';
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not submit request. Please try again.';
+    } else {
+      msg.className = 'msg success';
+      msg.textContent = 'Photo submitted for admin review.';
+      document.getElementById('avatar-change-box').style.display = 'none';
+      document.getElementById('avatar-password-input').value = '';
+      document.getElementById('avatar-reason-input').value = '';
+      fileInput.value = '';
+      checkPendingChanges();
+    }
   });
 
   // ---- Password change: email-only, no direct in-page password field ----
@@ -1424,6 +1550,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const msg = document.getElementById('avatar-msg');
     msg.style.display = 'none';
+
+    if (currentIsPaid) {
+      // The upload control is hidden for paid students, but guard the
+      // handler itself too -- a direct write here would just be rejected
+      // by the enforce_avatar_lock trigger anyway, so fail clearly instead.
+      e.target.value = '';
+      msg.style.display = 'block';
+      msg.className = 'msg error';
+      msg.textContent = 'Your photo is locked -- use "Request a change" above.';
+      return;
+    }
 
     if (file.size > 3 * 1024 * 1024) {
       msg.style.display = 'block';
