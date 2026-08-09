@@ -120,6 +120,12 @@ section{padding:28px 0;}
 .field{margin-bottom:14px;}
 .field label{display:block; font-size:11px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
 .field input, .field select{width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:var(--paper);}
+.field input:read-only{background:var(--ivory); color:var(--ink-soft);}
+.field-hint{font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
+.field-hint a{color:var(--gold); cursor:pointer; text-decoration:underline;}
+.field-hint.pending{color:#a6650a;}
+.name-change-box{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+.name-change-box input{flex:1; min-width:160px; padding:10px 12px; font-family:'EB Garamond', serif; font-size:14px; border:1px solid var(--hair); background:#fff;}
 .phone-row{display:flex; gap:8px;}
 .phone-code{
   flex-shrink:0; padding:10px 12px; border:1px solid var(--hair); background:var(--ivory);
@@ -134,7 +140,7 @@ section{padding:28px 0;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
 footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px; margin-top:20px;}
 
-.header-actions{display:flex; align-items:center; gap:10px;}
+.header-actions{display:flex; align-items:center; flex-wrap:wrap; gap:10px;}
 .profile-btn{
   width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gold); background:none;
   color:var(--gold-bright); font-family:'Cinzel', serif; font-size:13px; font-weight:600; cursor:pointer;
@@ -419,6 +425,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="../index.html" class="brand"><span class="mark">GMS</span>Global Market School</a>
       <div class="header-actions">
         <button class="profile-btn" id="profile-btn" aria-label="Your profile" title="Your profile">A</button>
+        <button class="logout-btn" id="settings-btn">Settings</button>
         <button class="logout-btn" id="logout-btn">Log Out</button>
       </div>
     </div>
@@ -470,7 +477,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
       <p class="section-title">Your Details</p>
       <div class="profile-box">
-        <div class="field"><label>Full Name</label><input type="text" id="edit-name"></div>
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="edit-name" readonly>
+          <p class="field-hint" id="name-change-hint">Locked to protect certificate and payout accuracy. <a id="request-name-change-link">Request a change</a></p>
+          <div class="name-change-box" id="name-change-box" style="display:none;">
+            <input type="text" id="new-name-input" placeholder="Full legal name">
+            <button type="button" class="save-btn" id="submit-name-change" style="margin-top:0;">Submit</button>
+          </div>
+          <p class="msg" id="name-change-msg"></p>
+        </div>
         <div class="field">
           <label>Country</label>
           <select id="edit-country"></select>
@@ -612,6 +628,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentUserId = null;
   let currentInitial = 'A';
   let currentAvatarUrl = null;
+  let currentFullName = '';
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -866,9 +883,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     currentAvatarUrl = profile.avatar_url || null;
     renderAvatar();
     document.getElementById('photo-nudge').style.display = currentAvatarUrl ? 'none' : 'flex';
-    document.getElementById('edit-name').value = profile.full_name || '';
+    currentFullName = profile.full_name || '';
+    document.getElementById('edit-name').value = currentFullName;
     document.getElementById('edit-phone').value = profile.phone || '';
     populateCountryDropdown(profile.country || '');
+    checkPendingNameChange();
 
     if (profile.is_admin) {
       document.getElementById('admin-link').style.display = 'inline-block';
@@ -989,10 +1008,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const { data: { session } } = await supabaseClient.auth.getSession();
     const msg = document.getElementById('profile-msg');
 
+    // Full Name is deliberately not in this update -- it's locked (see
+    // checkPendingNameChange / the name-change-box below) since it's
+    // what certificates print and what a withdrawal's payout account
+    // must match. Letting it change with a single unreviewed click
+    // would quietly undermine both.
     const { error } = await supabaseClient
       .from('profiles')
       .update({
-        full_name: document.getElementById('edit-name').value.trim(),
         phone: document.getElementById('edit-phone').value.trim(),
         country: document.getElementById('edit-country').value.trim()
       })
@@ -1004,6 +1027,67 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     } else {
       msg.className = 'msg success';
       msg.textContent = 'Changes saved successfully.';
+    }
+  });
+
+  // ---- Name change requests (admin-reviewed) ----
+
+  async function checkPendingNameChange() {
+    const { data } = await supabaseClient
+      .from('profile_name_change_requests')
+      .select('new_name, status')
+      .eq('user_id', currentUserId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const pending = data && data[0];
+    if (pending) {
+      // Only path that touches this hint's markup -- the "not pending"
+      // state is exactly what's already server-rendered, so its link
+      // keeps the single listener bound below with no rebinding needed.
+      const hint = document.getElementById('name-change-hint');
+      hint.className = 'field-hint pending';
+      hint.textContent = 'Name change to "' + pending.new_name + '" is pending admin review.';
+    }
+  }
+
+  function openNameChangeBox() {
+    document.getElementById('name-change-box').style.display = 'flex';
+    document.getElementById('new-name-input').value = currentFullName;
+  }
+  document.getElementById('request-name-change-link').addEventListener('click', openNameChangeBox);
+
+  document.getElementById('submit-name-change').addEventListener('click', async function() {
+    const msg = document.getElementById('name-change-msg');
+    msg.className = 'msg';
+    const newName = document.getElementById('new-name-input').value.trim();
+
+    if (!newName) {
+      msg.className = 'msg error';
+      msg.textContent = 'Please enter a name.';
+      return;
+    }
+    if (newName === currentFullName) {
+      msg.className = 'msg error';
+      msg.textContent = "That's already your registered name.";
+      return;
+    }
+
+    const { error } = await supabaseClient.from('profile_name_change_requests').insert({
+      user_id: currentUserId,
+      old_name: currentFullName,
+      new_name: newName
+    });
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not submit request. Please try again.';
+    } else {
+      msg.className = 'msg success';
+      msg.textContent = 'Request submitted for admin review.';
+      document.getElementById('name-change-box').style.display = 'none';
+      checkPendingNameChange();
     }
   });
 
@@ -1021,6 +1105,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('profile-overlay').classList.remove('open');
   }
   document.getElementById('profile-btn').addEventListener('click', openProfilePanel);
+  document.getElementById('settings-btn').addEventListener('click', openProfilePanel);
   document.getElementById('photo-nudge-btn').addEventListener('click', openProfilePanel);
   document.getElementById('panel-close').addEventListener('click', closeProfilePanel);
   document.getElementById('profile-overlay').addEventListener('click', function() {
