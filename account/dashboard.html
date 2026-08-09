@@ -122,6 +122,7 @@ section{padding:28px 0;}
 .field input, .field select{width:100%; padding:10px 12px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:var(--paper);}
 .field input:read-only{background:var(--ivory); color:var(--ink-soft);}
 .field-hint{font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
+.field-hint.warn{color:var(--bad);}
 .field-hint a{color:var(--gold); cursor:pointer; text-decoration:underline;}
 .field-hint.pending{color:#a6650a;}
 .name-change-box{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
@@ -483,6 +484,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <p class="field-hint" id="name-change-hint">Locked to protect certificate and payout accuracy. <a id="request-name-change-link">Request a change</a></p>
           <div class="name-change-box" id="name-change-box" style="display:none;">
             <input type="text" id="new-name-input" placeholder="Full legal name">
+            <p class="field-hint warn">Please enter your name exactly as it appears on your legal ID. A name that doesn't match your bank account will affect your certificate and your ability to receive payouts.</p>
             <input type="text" id="name-reason-input" placeholder="Reason for change (optional)">
             <input type="password" id="name-password-input" placeholder="Confirm your password" autocomplete="current-password">
             <button type="button" class="save-btn" id="submit-name-change" style="margin-top:0;">Submit</button>

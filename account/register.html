@@ -33,6 +33,7 @@ a{color:inherit;}
 .card-body{padding:28px 32px 32px;}
 .field{margin-bottom:16px;}
 .field label{display:block; font-size:12px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px;}
+.field-hint{font-size:12px; color:var(--bad); margin-top:6px; line-height:1.5;}
 .field input, .field select{
   width:100%; padding:12px 14px; font-family:'EB Garamond', serif; font-size:16px;
   border:1px solid var(--hair); background:#fff; color:var(--ink);
@@ -91,6 +92,7 @@ a{color:inherit;}
         <div class="field">
           <label for="full-name">Full Name</label>
           <input type="text" id="full-name" required autocomplete="name">
+          <p class="field-hint">Please enter your name exactly as it appears on your legal ID. A name that doesn't match your bank account will affect your certificate and your ability to receive payouts.</p>
         </div>
 
         <div class="field">
