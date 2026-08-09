@@ -106,6 +106,12 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 .reset-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
 .withdraw-row .flag-reason{font-size:12px; color:var(--bad); margin-top:4px;}
 .admin-only-note{font-size:11.5px; color:var(--ink-soft); margin:-6px 0 10px;}
+.admin-avatar-wrap{position:relative; width:34px; height:34px; display:inline-block; vertical-align:middle;}
+.admin-avatar-wrap img{width:34px; height:34px; border-radius:50%; object-fit:cover; display:block; border:1px solid var(--hair);}
+.admin-avatar-fallback{width:34px; height:34px; border-radius:50%; background:var(--navy-deep); color:var(--ivory); font-family:'Cinzel', serif; font-size:13px; display:flex; align-items:center; justify-content:center;}
+.admin-avatar-wrap .verified-badge{position:absolute; bottom:-2px; right:-2px; border:1.5px solid #fff; width:14px; height:14px;}
+.change-thumb{width:44px; height:56px; object-fit:cover; border:1px solid var(--hair); vertical-align:middle;}
+.change-thumb-arrow{margin:0 6px; color:var(--ink-soft); vertical-align:middle;}
 
 .chat-mod-row{background:#fff; border:1px solid var(--hair); padding:14px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;}
 .chat-mod-row .info p:first-child{font-size:13.5px; color:var(--navy-deep);}
@@ -194,7 +200,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
           <table id="students-table">
             <thead>
               <tr>
-                <th>Name</th><th>Email</th><th>Country</th><th>Admin</th><th>Chat Ban</th>
+                <th>Photo</th><th>Name</th><th>Email</th><th>Country</th><th>Admin</th><th>Chat Ban</th>
                 <th>Beg-Stk</th><th>Beg-Fx</th><th>Int-Stk</th><th>Int-Fx</th>
                 <th>Adv-Stk</th><th>Adv-Fx</th><th>Elite</th><th>Trade Grp</th><th>2FA</th>
               </tr>
@@ -424,7 +430,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     });
   }
 
-  const CHANGE_FIELD_LABELS = { full_name: 'Name', phone: 'Phone', email: 'Email' };
+  const CHANGE_FIELD_LABELS = { full_name: 'Name', phone: 'Phone', email: 'Email', avatar_url: 'Photo' };
 
   async function loadNameChangeRequests() {
     const { data: requests } = await supabaseClient
@@ -452,12 +458,17 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       const contactBits = [];
       if (r.field !== 'email') contactBits.push('Email on file: ' + escapeHtml(acct.email || 'none'));
       if (r.field !== 'phone') contactBits.push('Phone on file: ' + escapeHtml(acct.phone || 'none'));
+      const valueLineHtml = r.field === 'avatar_url'
+        ? (r.old_value ? '<img class="change-thumb" src="' + escapeHtml(r.old_value) + '" alt="">' : '<span style="font-style:italic; color:var(--ink-soft);">(none on file)</span>') +
+          '<span class="change-thumb-arrow">&rarr;</span>' +
+          '<img class="change-thumb" src="' + escapeHtml(r.new_value) + '" alt="">'
+        : '"' + escapeHtml(r.old_value || '(none on file)') + '" &rarr; "' + escapeHtml(r.new_value) + '"';
       const row = document.createElement('div');
       row.className = 'withdraw-row';
       row.innerHTML =
         '<div class="info">' +
           '<p><strong>' + escapeHtml(acct.full_name || 'Unknown') + '</strong> — ' + escapeHtml(fieldLabel) + '</p>' +
-          '<p>"' + escapeHtml(r.old_value || '(none on file)') + '" &rarr; "' + escapeHtml(r.new_value) + '"</p>' +
+          '<p>' + valueLineHtml + '</p>' +
           (r.reason ? '<p style="font-style:italic;">Reason given: "' + escapeHtml(r.reason) + '"</p>' : '<p style="font-style:italic; color:var(--ink-soft);">No reason given</p>') +
           '<p style="font-size:12px; color:var(--ink-soft);">' + contactBits.join(' &middot; ') + '</p>' +
         '</div>' +
@@ -522,7 +533,13 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
     allProfiles.forEach(function(p) {
       const row = document.createElement('tr');
-      let cells = '<td>' + escapeHtml(p.full_name || '—') + '</td><td>' + escapeHtml(p.email || '—') + '</td><td>' + escapeHtml(p.country || '—') + '</td>';
+      const isPaid = accessList.some(a => a.user_id === p.id && a.granted_by === 'payment' && a.has_access);
+      const badgeHtml = isPaid ? '<span class="verified-badge" title="Verified — paid student">&#10003;</span>' : '';
+      const photoHtml = p.avatar_url
+        ? '<img src="' + escapeHtml(p.avatar_url) + '" alt="">'
+        : '<span class="admin-avatar-fallback">' + escapeHtml((p.full_name || '?').trim().charAt(0).toUpperCase()) + '</span>';
+      let cells = '<td><span class="admin-avatar-wrap">' + photoHtml + badgeHtml + '</span></td>';
+      cells += '<td>' + escapeHtml(p.full_name || '—') + '</td><td>' + escapeHtml(p.email || '—') + '</td><td>' + escapeHtml(p.country || '—') + '</td>';
       cells += '<td><input type="checkbox" class="course-check admin-check" data-user="' + p.id + '" data-field="admin" ' + (p.is_admin ? 'checked' : '') + '></td>';
       cells += '<td><input type="checkbox" class="course-check ban-check" data-user="' + p.id + '" data-field="chat_banned" ' + (p.chat_banned ? 'checked' : '') + '></td>';
 
