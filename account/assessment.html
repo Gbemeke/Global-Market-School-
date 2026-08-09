@@ -99,137 +99,26 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
-  const TIERS = {
-    'Beginner': {
-      label: 'Beginner Class',
-      badge: 'Beginner Class — Certification Assessment',
-      requiredCourses: ['beginner-stock', 'beginner-forex'],
-      passScore: 0.8,
-      questions: [
-        { q: "Why does money exist, according to the barter problem?", options: ["To make trade look more official", "To remove the need for two people to each want exactly what the other has", "To let governments track spending", "To replace gold"], correct: 1 },
-        { q: "Which of these gives money real value?", options: ["The color of the note", "Trust, scarcity, and backing by an authority", "How many people carry it in their wallet", "Its weight"], correct: 1 },
-        { q: "What is the main difference between saving and investing?", options: ["There is no real difference", "Saving protects your money; investing puts it to work with more risk and more potential growth", "Investing is always safer than saving", "Saving always earns more than investing"], correct: 1 },
-        { q: "When you buy a share of a company, you are:", options: ["Placing a bet with the company", "Becoming a genuine part-owner of that real company", "Lending the company money with no ownership", "Buying an insurance policy on the company"], correct: 1 },
-        { q: "Why do stock prices constantly move?", options: ["A computer randomly changes them", "Buyers and sellers are in a live, ongoing disagreement about what the company is worth", "The government resets them every hour", "They only move once a day"], correct: 1 },
-        { q: "What does a market order do?", options: ["Buys or sells immediately at the best available price", "Only fills at a price you specifically choose", "Cancels itself automatically", "Only works after the market closes"], correct: 0 },
-        { q: "What is the biggest risk of investing money you might need very soon?", options: ["There is no risk", "You could be forced to sell during a downturn and lock in a loss", "Your broker will refuse to sell it", "It's actually not a risk at all"], correct: 1 },
-        { q: "Why does diversifying across many companies reduce risk?", options: ["It guarantees profit", "One company's bad year has much less impact on your overall portfolio", "It removes all risk completely", "It only works for large investors"], correct: 1 },
-        { q: "In forex, what does it mean that currencies trade in pairs?", options: ["You can buy a currency without selling another", "To buy one currency, you must simultaneously sell another", "Only banks can trade currency pairs", "Pairs only apply to exotic currencies"], correct: 1 },
-        { q: "What is a pip?", options: ["A type of forex broker", "The smallest standard unit of price movement in a currency pair", "A fee charged on every trade", "A type of stop-loss order"], correct: 1 },
-        { q: "What does 'leverage' allow a forex trader to do?", options: ["Guarantee a profit", "Control a larger position than their account balance alone would allow", "Avoid all risk", "Trade without a broker"], correct: 1 },
-        { q: "Why should beginners always use a stop-loss on a leveraged position?", options: ["It's required by law everywhere", "Without one, a leveraged loss has no defined limit", "It guarantees a win", "It increases your leverage"], correct: 1 }
-      ]
-    },
-    'Intermediate': {
-      label: 'Intermediate Class',
-      badge: 'Intermediate Class — Certification Assessment',
-      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex'],
-      passScore: 0.8,
-      questions: [
-        { q: "Why can rising revenue with shrinking profit margins be a warning sign?", options: ["It never is a warning sign", "It means the company is keeping a smaller share of each sale as actual profit", "It means the company has no debt", "Revenue and margin are unrelated"], correct: 1 },
-        { q: "What does a healthy balance sheet generally show?", options: ["Zero debt in all cases", "Manageable debt relative to what the company owns and earns", "As much debt as possible", "No assets at all"], correct: 1 },
-        { q: "A P/E ratio only becomes meaningful when:", options: ["Compared to the company's own history and its direct competitors", "It is below 10", "It is above 50", "It is exactly equal to the company's stock price"], correct: 0 },
-        { q: "What is a 'value trap'?", options: ["A stock that is cheap because the market is temporarily wrong", "A stock that looks cheap but is actually in real, structural decline", "Any stock with a low price", "A type of stop-loss order"], correct: 1 },
-        { q: "What does technical analysis study?", options: ["The company's financial statements", "Price charts, trends, and trading patterns", "The CEO's biography", "Interest rate policy only"], correct: 1 },
-        { q: "A price breakout on unusually low volume is generally:", options: ["More trustworthy than a high-volume breakout", "Less trustworthy and more likely to fade or reverse", "Completely irrelevant to volume", "Impossible to happen"], correct: 1 },
-        { q: "What makes something an actual trading strategy, rather than a guess?", options: ["A feeling that a stock looks good", "Written, specific, repeatable entry and exit criteria decided in advance", "Buying whatever is trending on social media", "Never selling under any circumstance"], correct: 1 },
-        { q: "Why does a strategy need defined exit criteria, not just entry criteria?", options: ["Exits don't actually matter", "Without a planned exit, you're holding a position and hoping rather than following a strategy", "Only professionals need exit plans", "Exits are decided by the broker automatically"], correct: 1 },
-        { q: "How do rising interest rates generally affect stock valuations broadly?", options: ["They have no effect on stocks", "They tend to compress valuations across the market, as future profits are worth relatively less today", "They always make every stock rise", "They only affect bonds, never stocks"], correct: 1 },
-        { q: "In forex, what does purchasing power parity compare?", options: ["Interest rates only", "What the same amount of money can actually buy in different countries, over the long run", "The number of banks in each country", "Stock market performance"], correct: 1 },
-        { q: "Why might a currency stay 'mispriced' relative to its fundamentals for a long time?", options: ["Mispricing always corrects within a day", "Being right about relative value doesn't guarantee being right about timing", "Fundamentals don't affect currency prices", "It's not possible for a currency to be mispriced"], correct: 1 },
-        { q: "What does 'risk-on' market sentiment generally favor?", options: ["Traditional safe-haven currencies", "Currencies linked to growth and higher yields", "No currencies at all", "Only gold"], correct: 1 },
-        { q: "Why do central banks 'watch each other' when setting policy?", options: ["They don't — each acts in complete isolation", "Large interest rate gaps between economies can trigger significant capital flows", "It's a legal requirement with no real reason", "Only for public relations"], correct: 1 }
-      ]
-    },
-    'Advanced': {
-      label: 'Advanced Class',
-      badge: 'Advanced Class — Certification Assessment',
-      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex'],
-      passScore: 0.8,
-      questions: [
-        { q: "In a live order book, the small gap between the best bid and the best ask is called:", options: ["The slippage", "The spread", "The margin", "The float"], correct: 1 },
-        { q: "Dark pools primarily exist so that:", options: ["Retail traders can hide small orders", "Large institutions can trade blocks without moving the visible order book beforehand", "Regulators can monitor insider trading", "Market makers can avoid paying commissions"], correct: 1 },
-        { q: "A stock's slippage cost is most directly determined by its:", options: ["Dividend yield", "P/E ratio", "Liquidity / average daily volume", "Sector classification"], correct: 2 },
-        { q: "Which financial statement is generally hardest for a company to manipulate?", options: ["Income statement", "Balance sheet", "Cash flow statement", "Shareholder letter"], correct: 2 },
-        { q: "A low P/E ratio by itself most reliably indicates:", options: ["The stock is definitely undervalued", "Nothing on its own — it must be compared to history and competitors", "The company has no debt", "The company is about to be acquired"], correct: 1 },
-        { q: "Which best describes 'confluence' in professional technical analysis?", options: ["Using exactly one strong indicator", "Multiple independent signals — trend, volume, momentum — all aligning before acting", "Trading only on news days", "Ignoring the higher timeframe"], correct: 1 },
-        { q: "A breakout above resistance on unusually low volume is generally:", options: ["More reliable than a high-volume breakout", "Less reliable and more likely to fail", "Irrelevant to the outcome", "A guaranteed reversal signal"], correct: 1 },
-        { q: "Position size should primarily be calculated from:", options: ["A round number of shares you feel comfortable with", "Account risk percentage and stop-loss distance", "The maximum leverage your broker allows", "Yesterday's closing price"], correct: 1 },
-        { q: "Why do professionals typically risk only 1-2% of their account per trade?", options: ["It's a legal requirement", "It allows the account to survive a losing streak without severe damage", "It guarantees a profit", "Brokers require it"], correct: 1 },
-        { q: "Holding five 'different' stocks that are all in the same sector and move together is an example of:", options: ["True diversification", "Hidden correlation risk", "Risk-free hedging", "Value investing"], correct: 1 },
-        { q: "Insider trading is illegal primarily because it:", options: ["Reduces market volume", "Breaks the assumption that all traders act on the same public information", "Increases spreads", "Is only illegal for company executives"], correct: 1 },
-        { q: "In forex, the London-New York session overlap is significant because it typically has:", options: ["The lowest liquidity of the day", "The highest liquidity and often the sharpest volatility", "No effect on major pairs", "Only exotic pairs trading actively"], correct: 1 },
-        { q: "If a currency's central bank raises interest rates significantly more than expected, the currency will most likely:", options: ["Always fall, since higher rates slow the economy", "Tend to strengthen, as higher rates attract foreign capital", "Be unaffected, since rates don't influence forex", "Only affect bond markets, not currency"], correct: 1 },
-        { q: "Going long EUR/USD and long GBP/USD at the same time is an example of:", options: ["Full diversification across two unrelated trades", "A correlated position — both are effectively bets against the US dollar", "A hedged, risk-free position", "An illegal trading strategy"], correct: 1 },
-        { q: "'Effective leverage' refers to:", options: ["The maximum leverage your broker advertises", "The actual ratio between your total position size and your real account equity", "A fixed number set by regulators", "The spread on a currency pair"], correct: 1 },
-        { q: "Risk of ruin describes:", options: ["The guaranteed outcome of any trading strategy", "The statistical probability that a strategy eventually wipes out an account given oversized position risk", "A type of stop-loss order", "The maximum leverage allowed by law"], correct: 1 },
-        { q: "The primary goal of professional trading, according to this course, is:", options: ["Maximizing profit on every single trade", "Capital preservation — staying in the game long enough for edge to play out", "Trading as frequently as possible", "Using maximum available leverage"], correct: 1 },
-        { q: "Revenge trading refers to:", options: ["A disciplined, plan-based re-entry after analysis", "Immediately re-entering the market after a loss to try to win it back, without a real setup", "A hedging strategy used by institutions", "Trading only during high-volatility sessions"], correct: 1 }
-      ]
-    },
-    'Elite': {
-      label: 'Elite Group',
-      badge: 'Elite Group — Certification Assessment',
-      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite'],
-      passScore: 0.8,
-      questions: [
-        { q: "A 'liquidity sweep' or stop hunt typically happens when:", options: ["Price randomly spikes with no cause", "Price briefly pushes through an obvious level to fill large institutional orders, then reverses", "A broker manipulates client accounts", "Volume disappears entirely"], correct: 1 },
-        { q: "In a DCF model, what does the discount rate represent?", options: ["The commission charged by the broker", "The return an investor would require to accept the risk of that future cash flow", "A fixed government-mandated rate", "The company's current stock price"], correct: 1 },
-        { q: "Why does terminal value often make up the majority of a DCF's total valuation?", options: ["It never does — it's usually a small piece", "It captures the value of all cash flows beyond the explicit forecast period, indefinitely", "It's a mistake analysts should avoid", "It only applies to bankrupt companies"], correct: 1 },
-        { q: "A covered call strategy involves:", options: ["Buying a put to protect a position", "Selling a call option against stock you already own, to collect premium income", "Selling stock you don't own", "Guaranteeing a profit with no risk"], correct: 1 },
-        { q: "Why do professionals track factor exposure (e.g. growth, value, size) beyond just sector?", options: ["Factors don't actually matter", "Stocks from different sectors can still move together due to shared underlying characteristics", "It's required by regulators", "It only applies to bonds"], correct: 1 },
-        { q: "Why do central bank statements sometimes move currencies more than the rate decision itself?", options: ["Statements never move markets", "The rate decision is often already priced in, so the wording carries the new information", "Only the exact number matters, never the language", "Statements are always ignored by traders"], correct: 1 },
-        { q: "What does 'policy divergence' between two central banks refer to?", options: ["Both banks always doing the exact same thing", "One bank's policy path moving in a different direction than the other's, in the same currency pair", "A type of currency peg", "An illegal trading practice"], correct: 1 },
-        { q: "Why do bond yields and currency values tend to move together?", options: ["They are completely unrelated", "Both are driven by the same underlying interest rate expectations", "Bond yields cause currency crashes directly", "Only in emerging markets"], correct: 1 },
-        { q: "Execution algorithms like TWAP/VWAP are used by institutions primarily to:", options: ["Guarantee a specific profit", "Break large orders into smaller pieces spread over time to minimize market impact", "Avoid all trading fees", "Predict future prices"], correct: 1 },
-        { q: "If you're long EUR/USD, long GBP/USD, and short USD/JPY, your net exposure is best described as:", options: ["Three unrelated, fully diversified trades", "A combined view that is effectively net short the US dollar", "A completely hedged, risk-free position", "Impossible to determine"], correct: 1 },
-        { q: "According to this course, what is the actual primary goal of elite-level trading discipline?", options: ["Maximizing every single trade's profit", "Process over outcome — consistency that compounds over years, not one great trade", "Trading as often as possible", "Avoiding all mentorship"], correct: 1 },
-        { q: "Why does Elite Group emphasize confidentiality so strongly?", options: ["It's just a formality with no real purpose", "It protects an environment where candid, genuinely useful mentorship can happen", "To prevent members from ever discussing trades", "It has nothing to do with mentorship quality"], correct: 1 }
-      ]
-    },
-    'Trade Group': {
-      label: 'Trade Group',
-      badge: 'Trade Group — Certification Assessment',
-      requiredCourses: ['beginner-stock', 'beginner-forex', 'intermediate-stock', 'intermediate-forex', 'advanced-stock', 'advanced-forex', 'elite', 'trade-group'],
-      passScore: 0.8,
-      questions: [
-        { q: "In live order flow, a large hidden order revealed at the top of the book most often signals:", options: ["A guaranteed reversal", "Genuine institutional interest at that price level worth paying attention to", "A broker error", "Nothing of significance"], correct: 1 },
-        { q: "Why is slippage a bigger real-time concern during live, fast-moving markets?", options: ["It isn't — slippage is only a theoretical concept", "Prices can move meaningfully between when you decide to trade and when the order fills", "Slippage only affects limit orders", "It only matters for forex, never stocks"], correct: 1 },
-        { q: "Scaling into a position means:", options: ["Buying or selling the entire position in a single order", "Entering a position in stages, at multiple price levels, rather than all at once", "Only applicable to options trading", "A type of stop-loss order"], correct: 1 },
-        { q: "Why do disciplined live traders often scale out of winning positions rather than exiting all at once?", options: ["It's always required by brokers", "It locks in partial profit while allowing the remaining position to capture further upside", "It guarantees a bigger profit", "It has no real benefit"], correct: 1 },
-        { q: "Managing a live multi-position portfolio primarily requires watching:", options: ["Only the single largest position", "Combined real-time risk and correlation across all open positions at once", "Nothing — each position is independent", "Only positions that are currently losing"], correct: 1 },
-        { q: "Trading around a high-impact news event without a plan typically results in:", options: ["Consistently better fills than normal", "Wider spreads, erratic price action, and higher slippage risk", "Guaranteed profit due to volatility", "No real difference from normal trading conditions"], correct: 1 },
-        { q: "Why does 'waiting for CEO confirmation' matter in a live trade-along environment?", options: ["It's a purely symbolic formality", "It keeps execution aligned with the shared plan and reduces emotional, independent decisions mid-trade", "It guarantees every trade wins", "It only applies to beginners"], correct: 1 },
-        { q: "Emotional trading during a live session most often leads to:", options: ["More consistent, disciplined results", "Deviating from the plan — chasing losses or exiting winners too early out of fear", "Better risk management automatically", "No measurable effect on outcomes"], correct: 1 },
-        { q: "Overtrading during a live session is best defined as:", options: ["Taking every valid, planned setup that appears", "Taking excessive, low-quality trades out of boredom or impatience rather than genuine signals", "Only trading once per day", "A strategy used by professional desks"], correct: 1 },
-        { q: "What does 'learn before you earn' emphasize in the Trade Group rules?", options: ["Profit should always come before understanding", "Genuine understanding and discipline should come before expecting consistent live-trading profit", "Only theoretical knowledge matters, not practice", "It's unrelated to live trading"], correct: 1 },
-        { q: "Why is risk management described as even more critical in a live, trade-along setting?", options: ["It isn't — live trading is inherently safer", "Real-time decisions under time pressure make it easier to deviate from planned risk if discipline lapses", "Live trading eliminates all real risk", "Risk management only applies to beginners"], correct: 1 },
-        { q: "The core standard Trade Group is built around, according to this course, is:", options: ["Maximizing trade frequency", "Discipline at scale — the same principles from earlier tracks, held under real-time pressure", "Ignoring risk management during live sessions", "Trading independently of any shared plan"], correct: 1 }
-      ]
-    }
-  };
+  // Question text and options are fetched from the database at load time
+  // (assessment_questions_public) -- the correct answers are never sent
+  // to the browser at all, and grading itself happens inside a database
+  // function (submit_assessment) that the client only ever calls. This
+  // closes the gap where a client-computed score could previously be
+  // written straight to the certificates table by anyone calling the
+  // REST API directly.
 
   function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
 
-  function randCode(len) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const bytes = new Uint8Array(len);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes).map(b => chars[b % chars.length]).join('');
-  }
-
   let currentUser = null;
-  let currentProfile = null;
   let tierKey = null;
   let tierConfig = null;
+  let questions = [];
 
   async function init() {
     tierKey = getParam('tier');
-    tierConfig = TIERS[tierKey];
-
-    if (!tierConfig) {
+    if (!tierKey) {
       document.getElementById('loading').textContent = 'Unknown assessment. Please return to your Dashboard.';
       return;
     }
@@ -241,17 +130,35 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
     currentUser = session.user;
 
-    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
-    currentProfile = profile;
+    const { data: tier, error: tierErr } = await supabaseClient
+      .from('assessment_tiers')
+      .select('*')
+      .eq('tier_key', tierKey)
+      .single();
 
-    // Confirm the student actually has access to every course this tier requires.
+    if (tierErr || !tier) {
+      document.getElementById('loading').textContent = 'Unknown assessment. Please return to your Dashboard.';
+      return;
+    }
+    tierConfig = tier;
+
+    const { data: qRows } = await supabaseClient
+      .from('assessment_questions_public')
+      .select('position, question, options')
+      .eq('tier_key', tierKey)
+      .order('position');
+    questions = qRows || [];
+
+    // This is a UX convenience only -- the real enrollment check happens
+    // server-side inside submit_assessment(), which cannot be bypassed
+    // by skipping this client-side gate.
     const { data: access } = await supabaseClient
       .from('course_access')
       .select('course_key')
       .eq('user_id', currentUser.id)
       .eq('has_access', true);
     const unlockedKeys = (access || []).map(a => a.course_key);
-    const hasAccess = tierConfig.requiredCourses.every(k => unlockedKeys.includes(k));
+    const hasAccess = tierConfig.required_courses.every(k => unlockedKeys.includes(k));
 
     if (!hasAccess) {
       document.getElementById('loading').textContent = 'You need to be enrolled in this class to take its assessment.';
@@ -281,7 +188,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<a href="certificate.html?id=' + encodeURIComponent(existing[0].certificate_number) + '" class="btn-primary">View Your Certificate</a>' +
         '</div>';
     } else {
-      document.getElementById('quiz-sub').textContent = 'Answer all ' + tierConfig.questions.length + ' questions. You need ' + Math.round(tierConfig.passScore * 100) + '% to pass and earn your certificate.';
+      document.getElementById('quiz-sub').textContent = 'Answer all ' + questions.length + ' questions. You need ' + Math.round(tierConfig.pass_score * 100) + '% to pass and earn your certificate.';
       renderQuiz();
     }
 
@@ -291,10 +198,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   function renderQuiz() {
     const container = document.getElementById('questions');
-    container.innerHTML = tierConfig.questions.map(function (item, qi) {
+    container.innerHTML = questions.map(function (item, qi) {
       return '<div class="q-block">' +
-        '<div class="q-num">Question ' + (qi + 1) + ' of ' + tierConfig.questions.length + '</div>' +
-        '<div class="q-text">' + item.q + '</div>' +
+        '<div class="q-num">Question ' + (qi + 1) + ' of ' + questions.length + '</div>' +
+        '<div class="q-text">' + item.question + '</div>' +
         item.options.map(function (opt, oi) {
           return '<label class="q-option"><input type="radio" name="q' + qi + '" value="' + oi + '" required><span>' + opt + '</span></label>';
         }).join('') +
@@ -312,21 +219,33 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     btn.disabled = true;
     btn.textContent = 'Grading…';
 
-    let correctCount = 0;
-    tierConfig.questions.forEach(function (item, qi) {
+    const answers = questions.map(function (item, qi) {
       const picked = document.querySelector('input[name="q' + qi + '"]:checked');
-      if (picked && Number(picked.value) === item.correct) correctCount++;
+      return picked ? Number(picked.value) : -1;
     });
-    const score = correctCount / tierConfig.questions.length;
-    const passed = score >= tierConfig.passScore;
+
+    // Grading itself happens inside this database call -- the browser
+    // never computes or sees its own score before the server does.
+    const { data: result, error } = await supabaseClient.rpc('submit_assessment', {
+      p_tier: tierKey,
+      p_answers: answers
+    });
+
+    if (error || !result) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not submit your assessment. Please try again.';
+      btn.disabled = false;
+      btn.textContent = 'Submit Assessment';
+      return;
+    }
 
     const resultBlock = document.getElementById('result-block');
 
-    if (!passed) {
+    if (!result.passed) {
       resultBlock.innerHTML =
         '<div class="result-box">' +
-          '<h3>' + Math.round(score * 100) + '% — Not Quite</h3>' +
-          '<p>You need ' + Math.round(tierConfig.passScore * 100) + '% to pass. Review the lessons and try again whenever you\'re ready.</p>' +
+          '<h3>' + Math.round(result.score * 100) + '% — Not Quite</h3>' +
+          '<p>You need ' + Math.round(tierConfig.pass_score * 100) + '% to pass. Review the lessons and try again whenever you\'re ready.</p>' +
           '<button type="button" class="btn-primary" onclick="window.location.reload()">Try Again</button>' +
         '</div>';
       document.getElementById('quiz-form').style.display = 'none';
@@ -335,30 +254,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       return;
     }
 
-    const certificateNumber = 'GMS-' + tierKey.toUpperCase().slice(0, 3) + '-' + randCode(8);
-
-    const { error } = await supabaseClient.from('certificates').insert({
-      certificate_number: certificateNumber,
-      user_id: currentUser.id,
-      student_name: (currentProfile && currentProfile.full_name) || currentUser.email,
-      tier: tierKey,
-      score: score
-    });
-
-    if (error) {
-      msg.className = 'msg error';
-      msg.textContent = 'You passed, but we could not save your certificate. Please try submitting again.';
-      btn.disabled = false;
-      btn.textContent = 'Submit Assessment';
-      return;
-    }
-
     document.getElementById('quiz-form').style.display = 'none';
     resultBlock.innerHTML =
       '<div class="result-box pass">' +
-        '<h3>' + Math.round(score * 100) + '% — You Passed!</h3>' +
+        '<h3>' + Math.round(result.score * 100) + '% — You Passed!</h3>' +
         '<p>Congratulations — you\'ve earned your ' + tierConfig.label + ' certificate of completion.</p>' +
-        '<a href="certificate.html?id=' + encodeURIComponent(certificateNumber) + '" class="btn-primary">View Your Certificate</a>' +
+        '<a href="certificate.html?id=' + encodeURIComponent(result.certificate_number) + '" class="btn-primary">View Your Certificate</a>' +
       '</div>';
   });
 

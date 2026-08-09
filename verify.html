@@ -38,9 +38,11 @@ header{background:var(--paper); border-bottom:1px solid var(--hair);}
 .result{margin:28px 0 60px; padding:26px 24px; border-left:3px solid; display:none;}
 .result.valid{background:#eaf3ee; border-color:var(--good); display:block;}
 .result.invalid{background:#fbf0ee; border-color:var(--bad); display:block;}
+.result.revoked{background:#fbf0ee; border-color:var(--bad); display:block;}
 .result h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:20px; margin-bottom:10px;}
 .result.valid h3{color:var(--good);}
 .result.invalid h3{color:var(--bad);}
+.result.revoked h3{color:var(--bad);}
 .result dl{margin-top:14px;}
 .result dt{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-top:12px;}
 .result dd{font-size:16px; color:var(--ink);}
@@ -88,6 +90,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     return new URLSearchParams(window.location.search).get(name);
   }
 
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
   async function verify(code) {
     const result = document.getElementById('result');
     result.className = 'result';
@@ -96,7 +104,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data, error } = await supabaseClient
       .from('certificates')
-      .select('certificate_number, student_name, tier, score, issued_at')
+      .select('certificate_number, student_name, tier, score, issued_at, revoked, revoked_reason, revoked_at')
       .eq('certificate_number', code.trim().toUpperCase())
       .single();
 
@@ -107,13 +115,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
 
     const issuedDate = new Date(data.issued_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+    if (data.revoked) {
+      const revokedDate = data.revoked_at ? new Date(data.revoked_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'an unknown date';
+      result.className = 'result revoked';
+      result.innerHTML =
+        '<h3>&#10007; Certificate Revoked</h3>' +
+        '<p>This certificate number was issued but has since been revoked by Global Market School and is no longer valid.</p>' +
+        '<dl>' +
+          '<dt>Awarded To</dt><dd>' + escapeHtml(data.student_name) + '</dd>' +
+          '<dt>Course</dt><dd>' + escapeHtml(TIER_LABELS[data.tier] || data.tier + ' Class') + '</dd>' +
+          '<dt>Originally Issued</dt><dd>' + issuedDate + '</dd>' +
+          '<dt>Revoked</dt><dd>' + revokedDate + '</dd>' +
+        '</dl>';
+      return;
+    }
+
     result.className = 'result valid';
     result.innerHTML =
       '<h3>&#10003; Genuine Certificate</h3>' +
       '<p>This certificate number is on record with Global Market School.</p>' +
       '<dl>' +
-        '<dt>Awarded To</dt><dd>' + data.student_name + '</dd>' +
-        '<dt>Course</dt><dd>' + (TIER_LABELS[data.tier] || data.tier + ' Class') + '</dd>' +
+        '<dt>Awarded To</dt><dd>' + escapeHtml(data.student_name) + '</dd>' +
+        '<dt>Course</dt><dd>' + escapeHtml(TIER_LABELS[data.tier] || data.tier + ' Class') + '</dd>' +
         '<dt>Score</dt><dd>' + Math.round(Number(data.score) * 100) + '%</dd>' +
         '<dt>Issued</dt><dd>' + issuedDate + '</dd>' +
       '</dl>';
