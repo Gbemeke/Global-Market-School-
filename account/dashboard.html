@@ -488,6 +488,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <p class="msg" id="name-change-msg"></p>
         </div>
         <div class="field">
+          <label>Email Address</label>
+          <input type="text" id="edit-email" readonly>
+          <p class="field-hint" id="email-change-hint">Locked -- one email per account. <a id="request-email-change-link">Request a change</a></p>
+          <div class="name-change-box" id="email-change-box" style="display:none;">
+            <input type="email" id="new-email-input" placeholder="New email address">
+            <button type="button" class="save-btn" id="submit-email-change" style="margin-top:0;">Submit</button>
+          </div>
+          <p class="msg" id="email-change-msg"></p>
+        </div>
+        <div class="field">
           <label>Country</label>
           <select id="edit-country"></select>
         </div>
@@ -495,11 +505,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <label>Phone Number</label>
           <div class="phone-row">
             <span class="phone-code" id="phone-code">+ &mdash;</span>
-            <input type="tel" id="edit-phone" placeholder="Number without country code">
+            <input type="tel" id="edit-phone" readonly>
           </div>
+          <p class="field-hint" id="phone-change-hint">Locked -- one phone number per account. <a id="request-phone-change-link">Request a change</a></p>
+          <div class="name-change-box" id="phone-change-box" style="display:none;">
+            <input type="tel" id="new-phone-input" placeholder="New phone number">
+            <button type="button" class="save-btn" id="submit-phone-change" style="margin-top:0;">Submit</button>
+          </div>
+          <p class="msg" id="phone-change-msg"></p>
         </div>
         <button class="save-btn" id="save-profile">Save Changes</button>
         <p class="msg" id="profile-msg"></p>
+      </div>
+
+      <p class="section-title">Password</p>
+      <div class="profile-box">
+        <p style="font-size:13.5px; color:var(--ink-soft); margin-bottom:14px;">For security, password changes happen by email rather than typing a new one directly here.</p>
+        <button class="save-btn" id="send-password-reset" style="margin-top:0;">Send Password Reset Email</button>
+        <p class="msg" id="password-reset-msg"></p>
       </div>
 
       <p class="section-title">Two-Factor Authentication</p>
@@ -629,6 +652,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentInitial = 'A';
   let currentAvatarUrl = null;
   let currentFullName = '';
+  let currentPhone = '';
+  let currentEmail = '';
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -884,10 +909,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     renderAvatar();
     document.getElementById('photo-nudge').style.display = currentAvatarUrl ? 'none' : 'flex';
     currentFullName = profile.full_name || '';
+    currentPhone = profile.phone || '';
+    currentEmail = session.user.email || profile.email || '';
     document.getElementById('edit-name').value = currentFullName;
-    document.getElementById('edit-phone').value = profile.phone || '';
+    document.getElementById('edit-phone').value = currentPhone;
+    document.getElementById('edit-email').value = currentEmail;
     populateCountryDropdown(profile.country || '');
-    checkPendingNameChange();
+    checkPendingChanges();
 
     if (profile.is_admin) {
       document.getElementById('admin-link').style.display = 'inline-block';
@@ -1008,17 +1036,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const { data: { session } } = await supabaseClient.auth.getSession();
     const msg = document.getElementById('profile-msg');
 
-    // Full Name is deliberately not in this update -- it's locked (see
-    // checkPendingNameChange / the name-change-box below) since it's
-    // what certificates print and what a withdrawal's payout account
-    // must match. Letting it change with a single unreviewed click
-    // would quietly undermine both.
+    // Only Country is a direct update -- Full Name, Phone, and Email
+    // are all locked (see the change-request boxes below) since
+    // they're exactly what certificates print, what a withdrawal's
+    // payout account must match, and what proves one person can't
+    // hold two accounts. Letting any of them change with a single
+    // unreviewed click would quietly undermine all three.
     const { error } = await supabaseClient
       .from('profiles')
-      .update({
-        phone: document.getElementById('edit-phone').value.trim(),
-        country: document.getElementById('edit-country').value.trim()
-      })
+      .update({ country: document.getElementById('edit-country').value.trim() })
       .eq('id', session.user.id);
 
     if (error) {
@@ -1030,64 +1056,97 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
   });
 
-  // ---- Name change requests (admin-reviewed) ----
+  // ---- Profile change requests (admin-reviewed): name, phone, email ----
+  // One generic implementation driven by field config, rather than three
+  // near-identical copies of the same request/pending/submit logic.
 
-  async function checkPendingNameChange() {
+  const CHANGE_FIELDS = {
+    full_name: { hintId: 'name-change-hint', linkId: 'request-name-change-link', boxId: 'name-change-box', inputId: 'new-name-input', submitId: 'submit-name-change', msgId: 'name-change-msg', label: 'Name change', getCurrent: () => currentFullName },
+    phone: { hintId: 'phone-change-hint', linkId: 'request-phone-change-link', boxId: 'phone-change-box', inputId: 'new-phone-input', submitId: 'submit-phone-change', msgId: 'phone-change-msg', label: 'Phone change', getCurrent: () => currentPhone },
+    email: { hintId: 'email-change-hint', linkId: 'request-email-change-link', boxId: 'email-change-box', inputId: 'new-email-input', submitId: 'submit-email-change', msgId: 'email-change-msg', label: 'Email change', getCurrent: () => currentEmail }
+  };
+
+  async function checkPendingChanges() {
     const { data } = await supabaseClient
-      .from('profile_name_change_requests')
-      .select('new_name, status')
+      .from('profile_change_requests')
+      .select('field, new_value')
       .eq('user_id', currentUserId)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .eq('status', 'pending');
 
-    const pending = data && data[0];
-    if (pending) {
+    (data || []).forEach(function (req) {
+      const cfg = CHANGE_FIELDS[req.field];
+      if (!cfg) return;
       // Only path that touches this hint's markup -- the "not pending"
       // state is exactly what's already server-rendered, so its link
       // keeps the single listener bound below with no rebinding needed.
-      const hint = document.getElementById('name-change-hint');
+      const hint = document.getElementById(cfg.hintId);
       hint.className = 'field-hint pending';
-      hint.textContent = 'Name change to "' + pending.new_name + '" is pending admin review.';
-    }
+      hint.textContent = cfg.label + ' to "' + req.new_value + '" is pending admin review.';
+    });
   }
 
-  function openNameChangeBox() {
-    document.getElementById('name-change-box').style.display = 'flex';
-    document.getElementById('new-name-input').value = currentFullName;
-  }
-  document.getElementById('request-name-change-link').addEventListener('click', openNameChangeBox);
+  Object.keys(CHANGE_FIELDS).forEach(function (field) {
+    const cfg = CHANGE_FIELDS[field];
 
-  document.getElementById('submit-name-change').addEventListener('click', async function() {
-    const msg = document.getElementById('name-change-msg');
-    msg.className = 'msg';
-    const newName = document.getElementById('new-name-input').value.trim();
-
-    if (!newName) {
-      msg.className = 'msg error';
-      msg.textContent = 'Please enter a name.';
-      return;
-    }
-    if (newName === currentFullName) {
-      msg.className = 'msg error';
-      msg.textContent = "That's already your registered name.";
-      return;
-    }
-
-    const { error } = await supabaseClient.from('profile_name_change_requests').insert({
-      user_id: currentUserId,
-      old_name: currentFullName,
-      new_name: newName
+    document.getElementById(cfg.linkId).addEventListener('click', function () {
+      document.getElementById(cfg.boxId).style.display = 'flex';
+      document.getElementById(cfg.inputId).value = cfg.getCurrent();
     });
 
+    document.getElementById(cfg.submitId).addEventListener('click', async function () {
+      const msg = document.getElementById(cfg.msgId);
+      msg.className = 'msg';
+      const newValue = document.getElementById(cfg.inputId).value.trim();
+      const currentValue = cfg.getCurrent();
+
+      if (!newValue) {
+        msg.className = 'msg error';
+        msg.textContent = 'Please enter a value.';
+        return;
+      }
+      if (newValue === currentValue) {
+        msg.className = 'msg error';
+        msg.textContent = "That's already your registered value.";
+        return;
+      }
+
+      const { error } = await supabaseClient.from('profile_change_requests').insert({
+        user_id: currentUserId,
+        field: field,
+        old_value: currentValue,
+        new_value: newValue
+      });
+
+      if (error) {
+        msg.className = 'msg error';
+        msg.textContent = 'Could not submit request. Please try again.';
+      } else {
+        msg.className = 'msg success';
+        msg.textContent = 'Request submitted for admin review.';
+        document.getElementById(cfg.boxId).style.display = 'none';
+        checkPendingChanges();
+      }
+    });
+  });
+
+  // ---- Password change: email-only, no direct in-page password field ----
+
+  document.getElementById('send-password-reset').addEventListener('click', async function() {
+    const msg = document.getElementById('password-reset-msg');
+    const btn = this;
+    btn.disabled = true;
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(currentEmail, {
+      redirectTo: 'https://www.globalmarketschool.com/account/reset-password.html'
+    });
+
+    btn.disabled = false;
     if (error) {
       msg.className = 'msg error';
-      msg.textContent = 'Could not submit request. Please try again.';
+      msg.textContent = 'Could not send reset email. Please try again.';
     } else {
       msg.className = 'msg success';
-      msg.textContent = 'Request submitted for admin review.';
-      document.getElementById('name-change-box').style.display = 'none';
-      checkPendingNameChange();
+      msg.textContent = 'Check your email for a link to reset your password.';
     }
   });
 

@@ -184,8 +184,8 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       </div>
 
       <div class="tab-panel" id="tab-students">
-        <p class="section-title">Name Change Requests</p>
-        <p class="admin-only-note">Full names are locked from self-service editing -- they're what certificates print and what a withdrawal's payout account must match, so changes go through review here instead of a single unreviewed click.</p>
+        <p class="section-title">Profile Change Requests</p>
+        <p class="admin-only-note">Full name, phone, and email are locked from self-service editing -- they're what certificates print, what a withdrawal's payout account must match, and what proves one person can't hold two accounts. Changes go through review here instead of a single unreviewed click.</p>
         <div id="name-requests-list"></div>
         <p class="msg" id="name-requests-msg"></p>
 
@@ -424,10 +424,12 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     });
   }
 
+  const CHANGE_FIELD_LABELS = { full_name: 'Name', phone: 'Phone', email: 'Email' };
+
   async function loadNameChangeRequests() {
     const { data: requests } = await supabaseClient
-      .from('profile_name_change_requests')
-      .select('id, old_name, new_name, created_at, profiles(email)')
+      .from('profile_change_requests')
+      .select('id, field, old_value, new_value, created_at, profiles(email)')
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
 
@@ -435,18 +437,19 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     list.innerHTML = '';
 
     if (!requests || !requests.length) {
-      list.innerHTML = '<p style="color:var(--ink-soft); font-size:14px;">No pending name change requests.</p>';
+      list.innerHTML = '<p style="color:var(--ink-soft); font-size:14px;">No pending profile change requests.</p>';
       return;
     }
 
     requests.forEach(function (r) {
-      const email = (r.profiles && r.profiles.email) || 'Unknown';
+      const accountEmail = (r.profiles && r.profiles.email) || 'Unknown';
+      const fieldLabel = CHANGE_FIELD_LABELS[r.field] || r.field;
       const row = document.createElement('div');
       row.className = 'withdraw-row';
       row.innerHTML =
         '<div class="info">' +
-          '<p><strong>' + escapeHtml(email) + '</strong></p>' +
-          '<p>"' + escapeHtml(r.old_name || '(none on file)') + '" &rarr; "' + escapeHtml(r.new_name) + '"</p>' +
+          '<p><strong>' + escapeHtml(accountEmail) + '</strong> — ' + escapeHtml(fieldLabel) + '</p>' +
+          '<p>"' + escapeHtml(r.old_value || '(none on file)') + '" &rarr; "' + escapeHtml(r.new_value) + '"</p>' +
         '</div>' +
         '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
           '<button class="mark-paid-btn approve-name-btn" data-id="' + r.id + '">Approve</button>' +
@@ -458,13 +461,16 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     document.querySelectorAll('.approve-name-btn').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         const msg = document.getElementById('name-requests-msg');
-        const { error } = await supabaseClient.rpc('resolve_name_change_request', { p_request_id: btn.getAttribute('data-id'), p_approve: true });
+        const { error } = await supabaseClient.rpc('resolve_profile_change_request', { p_request_id: btn.getAttribute('data-id'), p_approve: true });
         if (error) {
+          // Surfaced verbatim -- this is where a real conflict (e.g. the
+          // phone/email got taken by someone else since the request was
+          // submitted) shows up, not a generic failure message.
           msg.className = 'msg error';
-          msg.textContent = 'Could not approve request.';
+          msg.textContent = error.message || 'Could not approve request.';
         } else {
           msg.className = 'msg success';
-          msg.textContent = 'Name change approved.';
+          msg.textContent = 'Change approved.';
           await loadNameChangeRequests();
           await loadStudents();
         }
@@ -474,20 +480,20 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
     document.querySelectorAll('.reject-name-btn').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         const ok = await showConfirm({
-          title: 'Reject Name Change',
-          message: 'The student keeps their current registered name and can submit a new request if needed.',
+          title: 'Reject Change Request',
+          message: 'The student keeps their current value and can submit a new request if needed.',
           confirmLabel: 'Reject',
           danger: true
         });
         if (!ok) return;
         const msg = document.getElementById('name-requests-msg');
-        const { error } = await supabaseClient.rpc('resolve_name_change_request', { p_request_id: btn.getAttribute('data-id'), p_approve: false });
+        const { error } = await supabaseClient.rpc('resolve_profile_change_request', { p_request_id: btn.getAttribute('data-id'), p_approve: false });
         if (error) {
           msg.className = 'msg error';
           msg.textContent = 'Could not reject request.';
         } else {
           msg.className = 'msg success';
-          msg.textContent = 'Name change rejected.';
+          msg.textContent = 'Request rejected.';
           await loadNameChangeRequests();
         }
       });
