@@ -74,6 +74,10 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
   opacity:0.85; transform:rotate(-12deg); mix-blend-mode:multiply; z-index:3; pointer-events:none;
 }
 .cert-stamp svg{width:100%; height:100%; display:block;}
+.cert-contact{
+  position:absolute; left:28px; bottom:22px; text-align:left; z-index:2;
+  font-family:'Cinzel', serif; font-size:8.5px; letter-spacing:0.4px; color:var(--ink-soft); line-height:1.7;
+}
 .seal{
   width:56px; height:56px; border-radius:50%; margin:0 auto 14px; position:relative;
   background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%);
@@ -154,6 +158,10 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
         <div class="cert-verify">
           Verify at <strong>globalmarketschool.com/verify.html</strong> — Certificate No. <strong id="cert-verify-number"></strong>
         </div>
+      </div>
+      <div class="cert-contact">
+        www.globalmarketschool.com<br>
+        info@globalmarketschool.com
       </div>
       <div class="cert-stamp" aria-hidden="true">
         <svg viewBox="0 0 120 120">
