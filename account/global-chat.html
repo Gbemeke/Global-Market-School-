@@ -955,6 +955,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   function hideReactionPicker() {
     document.getElementById('reaction-picker').classList.remove('show');
     hidePopupBackdrop();
+    stopPopupScrollWatchdog();
   }
 
   function openReactionPicker(btn) {
@@ -981,6 +982,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     picker.style.top = top + 'px';
     picker.classList.add('show');
     showPopupBackdrop();
+    startPopupScrollWatchdog();
   }
 
   function applyReactionChoice(postId, type, current) {
@@ -1012,6 +1014,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   function hideContextMenu() {
     document.getElementById('context-menu').classList.remove('show');
     hidePopupBackdrop();
+    stopPopupScrollWatchdog();
   }
 
   function openContextMenu(postId, x, y) {
@@ -1037,6 +1040,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     menu.style.top = top + 'px';
     menu.classList.add('show');
     showPopupBackdrop();
+    startPopupScrollWatchdog();
   }
 
   document.getElementById('context-menu').addEventListener('click', async function(e) {
@@ -1121,6 +1125,35 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   const PRESS_SCROLL_CANCEL_PX = 6;
   function pageScrollY() {
     return window.scrollY || document.documentElement.scrollTop || 0;
+  }
+
+  // Belt-and-suspenders for an already-open popup: the window 'scroll'
+  // listener further down is the primary way an open context menu /
+  // reaction picker gets closed once the page moves, but a second
+  // recording showed it staying open through several seconds of visible
+  // scrolling even so -- on some mobile browsers 'scroll' dispatch can be
+  // throttled/batched heavily during a fast continuous drag, so there's a
+  // real gap between "the page visibly moved" and "a scroll event actually
+  // reached this listener". requestAnimationFrame doesn't wait on scroll
+  // event dispatch at all, so it closes things the instant scrollY
+  // actually changes, regardless of how the browser paces scroll events.
+  let popupWatchdogId = null;
+  function stopPopupScrollWatchdog() {
+    if (popupWatchdogId !== null) cancelAnimationFrame(popupWatchdogId);
+    popupWatchdogId = null;
+  }
+  function startPopupScrollWatchdog() {
+    stopPopupScrollWatchdog();
+    const startY = pageScrollY();
+    (function tick() {
+      if (Math.abs(pageScrollY() - startY) > PRESS_SCROLL_CANCEL_PX) {
+        stopPopupScrollWatchdog();
+        hideReactionPicker();
+        hideContextMenu();
+        return;
+      }
+      popupWatchdogId = requestAnimationFrame(tick);
+    })();
   }
 
   function cancelPress(pointerId) {
