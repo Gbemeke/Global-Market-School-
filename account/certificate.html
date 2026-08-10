@@ -121,6 +121,19 @@ body{background:radial-gradient(circle at 50% 0%, #1a2f52, var(--navy-mid) 55%, 
      relative to the page and breaks the "framed picture" look. */
   .cert-frame{margin:0 auto; padding:0; max-width:480px;}
   .certificate{border-width:1.5px; box-shadow:none;}
+  /* Browsers drop background colors/gradients/images by default when
+     printing, to save ink -- and mobile Chrome's "Save as PDF" sheet
+     doesn't even show a "background graphics" toggle to override that,
+     so without this the certificate's gold gradient frame, emerald/gold/
+     burgundy ribbon, and cream paper texture all printed as plain white.
+     This forces the certificate's own decorative backgrounds to print
+     exactly as they appear on screen, while the outer page above (body)
+     stays intentionally white -- it's outside .cert-frame. */
+  .cert-frame, .cert-frame *{
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+    color-adjust:exact !important;
+  }
   @page{size:portrait; margin:14mm;}
 }
 </style>
