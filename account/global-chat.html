@@ -1104,8 +1104,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // corrupting whichever press lost the race. Each active touch now owns
   // its own independent state, so overlapping presses can't touch each
   // other's timers.
-  const activePresses = new Map(); // pointerId -> { timer, kind, fired, startX, startY }
+  const activePresses = new Map(); // pointerId -> { timer, kind, fired, startX, startY, startScrollY }
   const PRESS_MOVE_CANCEL_PX = 10;
+  // On real mobile browsers, once a touch's early movement gets recognized
+  // as a scroll gesture, the browser hands that touch off to native
+  // scrolling and stops delivering further pointermove/pointerup events to
+  // JS -- so the PRESS_MOVE_CANCEL_PX check above (which depends on those
+  // events still arriving) never runs, the 450ms timer fires anyway, and a
+  // context menu / reaction picker pops open at the touch's original,
+  // long-since-scrolled-past position. Confirmed via screen recording: the
+  // popup opened repeatedly over completely unrelated posts and stayed
+  // there through further scrolling. window.scrollY doesn't depend on
+  // event delivery the way pointermove does, so it's checked again right
+  // before actually opening, as a second signal that doesn't rely on the
+  // browser choosing to keep talking to JS during the gesture.
+  const PRESS_SCROLL_CANCEL_PX = 6;
+  function pageScrollY() {
+    return window.scrollY || document.documentElement.scrollTop || 0;
+  }
 
   function cancelPress(pointerId) {
     const p = activePresses.get(pointerId);
@@ -1148,12 +1164,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     if (reactBtn) {
       cancelPress(e.pointerId);
       try { reactBtn.setPointerCapture(e.pointerId); } catch (err) { /* unsupported -- drag-to-select just won't engage */ }
+      const startScrollY = pageScrollY();
       const timer = setTimeout(function() {
         const p = activePresses.get(e.pointerId);
-        if (p) p.fired = true;
+        if (!p || Math.abs(pageScrollY() - startScrollY) > PRESS_SCROLL_CANCEL_PX) { activePresses.delete(e.pointerId); return; }
+        p.fired = true;
         openReactionPicker(reactBtn);
       }, 450);
-      activePresses.set(e.pointerId, { timer: timer, kind: 'react', fired: false, startX: e.clientX, startY: e.clientY });
+      activePresses.set(e.pointerId, { timer: timer, kind: 'react', fired: false, startX: e.clientX, startY: e.clientY, startScrollY: startScrollY });
       return;
     }
 
@@ -1161,12 +1179,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     if (msgEl) {
       cancelPress(e.pointerId);
       const x = e.clientX, y = e.clientY;
+      const startScrollY = pageScrollY();
       const timer = setTimeout(function() {
         const p = activePresses.get(e.pointerId);
-        if (p) p.fired = true;
+        if (!p || Math.abs(pageScrollY() - startScrollY) > PRESS_SCROLL_CANCEL_PX) { activePresses.delete(e.pointerId); return; }
+        p.fired = true;
         openContextMenu(msgEl.getAttribute('data-id'), x, y);
       }, 450);
-      activePresses.set(e.pointerId, { timer: timer, kind: 'message', fired: false, startX: x, startY: y });
+      activePresses.set(e.pointerId, { timer: timer, kind: 'message', fired: false, startX: x, startY: y, startScrollY: startScrollY });
     }
   });
 
