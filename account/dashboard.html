@@ -1116,7 +1116,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     document.getElementById(cfg.linkId).addEventListener('click', function () {
       document.getElementById(cfg.boxId).style.display = 'flex';
-      document.getElementById(cfg.inputId).value = cfg.getCurrent();
+      // Left empty on purpose (not pre-filled with the current value) --
+      // pre-filling made it too easy to add a reason/password and submit
+      // without ever actually typing a new value, which this then had to
+      // silently reject as "already your registered value."
+      const input = document.getElementById(cfg.inputId);
+      input.value = '';
+      input.placeholder = 'Currently: ' + (cfg.getCurrent() || '(none on file)');
+      input.focus();
     });
 
     document.getElementById(cfg.submitId).addEventListener('click', async function () {
@@ -1135,7 +1142,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       }
       if (newValue === currentValue) {
         msg.className = 'msg error';
-        msg.textContent = "That's already your registered value.";
+        msg.textContent = "That's already your registered value -- enter the new one you want instead.";
         return;
       }
       if (!password) {
