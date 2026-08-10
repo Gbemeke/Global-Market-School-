@@ -637,7 +637,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="quoted-post">' +
             '<div class="post-head">' +
               '<span class="post-author-row"><span class="post-avatar">' + oAvatar + '</span>' +
-              '<span class="post-author">' + escapeHtml(displayAuthorName(original)) + '</span>' + authorBadgeHtml(original) + '</span>' +
+              '<span class="post-author-text"><span class="post-author">' + escapeHtml(displayAuthorName(original)) + '</span>' + authorBadgeHtml(original) + '</span></span>' +
               '<span class="post-time">' + timeAgo(original.created_at) + '</span>' +
             '</div>' +
             '<p class="quoted-content">' + escapeHtml(original.content) + '</p>' +
@@ -666,7 +666,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="msg-target" data-id="' + post.id + '">' +
             '<div class="reply-bubble">' +
               (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(displayAuthorName(post)) + ' reposted</div>' : '') +
-              '<span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) +
+              '<span class="post-author-text"><span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) + '</span>' +
               (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
             '</div>' +
             mediaHtml + quoteHtml +
@@ -684,7 +684,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           (post.shared_post_id ? '<div class="repost-tag">&#8635; ' + escapeHtml(displayAuthorName(post)) + ' reposted</div>' : '') +
           '<div class="post-head">' +
             '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
-            '<span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) + '</span>' +
+            '<span class="post-author-text"><span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) + '</span></span>' +
             '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
           '</div>' +
           (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
