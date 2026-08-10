@@ -433,14 +433,24 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
   const CHANGE_FIELD_LABELS = { full_name: 'Name', phone: 'Phone', email: 'Email', avatar_url: 'Photo' };
 
   async function loadNameChangeRequests() {
-    const { data: requests } = await supabaseClient
+    // profile_change_requests has TWO foreign keys into profiles (user_id
+    // and resolved_by), so the embed below must name which one to follow
+    // -- "profiles(...)" alone is ambiguous to PostgREST and errors out,
+    // which this used to swallow silently (only "data" was destructured),
+    // so every request looked like it vanished instead of showing here.
+    const { data: requests, error: requestsError } = await supabaseClient
       .from('profile_change_requests')
-      .select('id, field, old_value, new_value, reason, created_at, profiles(full_name, email, phone)')
+      .select('id, field, old_value, new_value, reason, created_at, profiles!profile_change_requests_user_id_fkey(full_name, email, phone)')
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
 
     const list = document.getElementById('name-requests-list');
     list.innerHTML = '';
+
+    if (requestsError) {
+      list.innerHTML = '<p style="color:var(--bad); font-size:14px;">Could not load change requests: ' + escapeHtml(requestsError.message) + '</p>';
+      return;
+    }
 
     if (!requests || !requests.length) {
       list.innerHTML = '<p style="color:var(--ink-soft); font-size:14px;">No pending profile change requests.</p>';
