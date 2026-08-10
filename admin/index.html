@@ -1095,7 +1095,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
   // chat panels (a ban set from a report row should immediately show
   // up in the moderation list too, and vice versa).
   async function toggleChatBan(userId, nextBanned) {
-    const { error } = await supabaseClient.from('profiles').update({ chat_banned: nextBanned }).eq('id', userId);
+    const { error } = await supabaseClient.rpc('admin_set_profile_flag', { p_user_id: userId, p_field: 'chat_banned', p_value: nextBanned });
     if (!error) {
       const p = allProfiles.find(function(x) { return x.id === userId; });
       if (p) p.chat_banned = nextBanned;
