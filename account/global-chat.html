@@ -1304,7 +1304,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const { data: profile } = await supabaseClient
       .from('profiles')
-      .select('full_name, is_admin, avatar_url, chat_rules_accepted_at, chat_banned')
+      .select('full_name, is_admin, avatar_url, chat_rules_accepted_at, chat_banned, admin_verified_override')
       .eq('id', currentUserId)
       .single();
 
@@ -1315,10 +1315,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       currentIsBanned = !!profile.chat_banned;
     }
 
-    // Verified = has actually paid for at least one course. Set
-    // automatically from course_access, not a toggle anyone has to
-    // remember to flip -- it can't drift out of date and it can't be
-    // granted by mistake.
+    // Verified = has actually paid for at least one course, OR an admin
+    // manually granted verified status (e.g. a family/staff/comp
+    // account) -- same is_paid_student() definition used everywhere
+    // else (admin panel badge, certificate photo eligibility).
     const { data: accessRows } = await supabaseClient
       .from('course_access')
       .select('id')
@@ -1326,7 +1326,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       .eq('has_access', true)
       .eq('granted_by', 'payment')
       .limit(1);
-    currentIsVerified = !!(accessRows && accessRows.length);
+    currentIsVerified = !!(accessRows && accessRows.length) || !!(profile && profile.admin_verified_override);
 
     document.getElementById('loading').style.display = 'none';
 

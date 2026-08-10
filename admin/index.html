@@ -200,7 +200,7 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
           <table id="students-table">
             <thead>
               <tr>
-                <th>Photo</th><th>Name</th><th>Email</th><th>Country</th><th>Admin</th><th>Chat Ban</th>
+                <th>Photo</th><th>Name</th><th>Email</th><th>Country</th><th>Verified</th><th>Admin</th><th>Chat Ban</th>
                 <th>Beg-Stk</th><th>Beg-Fx</th><th>Int-Stk</th><th>Int-Fx</th>
                 <th>Adv-Stk</th><th>Adv-Fx</th><th>Elite</th><th>Trade Grp</th><th>2FA</th>
               </tr>
@@ -543,13 +543,18 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
 
     allProfiles.forEach(function(p) {
       const row = document.createElement('tr');
-      const isPaid = accessList.some(a => a.user_id === p.id && a.granted_by === 'payment' && a.has_access);
+      // Mirrors is_paid_student() server-side: real payment on any course,
+      // OR an admin's manual verified override (e.g. a comp'd/family
+      // account) -- same definition everywhere, just computed here from
+      // data already in scope instead of a round trip per row.
+      const isPaid = accessList.some(a => a.user_id === p.id && a.granted_by === 'payment' && a.has_access) || !!p.admin_verified_override;
       const badgeHtml = isPaid ? '<span class="verified-badge" title="Verified — paid student">&#10003;</span>' : '';
       const photoHtml = p.avatar_url
         ? '<img src="' + escapeHtml(p.avatar_url) + '" alt="">'
         : '<span class="admin-avatar-fallback">' + escapeHtml((p.full_name || '?').trim().charAt(0).toUpperCase()) + '</span>';
       let cells = '<td><span class="admin-avatar-wrap">' + photoHtml + badgeHtml + '</span></td>';
       cells += '<td>' + escapeHtml(p.full_name || '—') + '</td><td>' + escapeHtml(p.email || '—') + '</td><td>' + escapeHtml(p.country || '—') + '</td>';
+      cells += '<td><input type="checkbox" class="course-check verified-check" data-user="' + p.id + '" data-field="admin_verified_override" ' + (p.admin_verified_override ? 'checked' : '') + ' title="Grant paid/verified status without a real payment (e.g. family, staff, comp accounts)"></td>';
       cells += '<td><input type="checkbox" class="course-check admin-check" data-user="' + p.id + '" data-field="admin" ' + (p.is_admin ? 'checked' : '') + '></td>';
       cells += '<td><input type="checkbox" class="course-check ban-check" data-user="' + p.id + '" data-field="chat_banned" ' + (p.chat_banned ? 'checked' : '') + '></td>';
 
@@ -605,24 +610,49 @@ th{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transfo
       });
     });
 
+    // is_admin, chat_banned, and admin_verified_override all route through
+    // one admin-only RPC rather than a direct table .update() -- profiles'
+    // column-level UPDATE grant only covers self-service fields (phone,
+    // country, avatar_url, chat_rules_accepted_at), so a direct update to
+    // any of these three would fail with a permission error no matter who's
+    // calling it. The RPC runs as its owner and checks is_admin() itself.
     document.querySelectorAll('.course-check[data-field="admin"]').forEach(function(cb) {
       cb.addEventListener('change', async function() {
         const msg = document.getElementById('students-msg');
-        const { error } = await supabaseClient.from('profiles').update({ is_admin: cb.checked }).eq('id', cb.getAttribute('data-user'));
+        const { error } = await supabaseClient.rpc('admin_set_profile_flag', { p_user_id: cb.getAttribute('data-user'), p_field: 'is_admin', p_value: cb.checked });
         msg.className = error ? 'msg error' : 'msg success';
-        msg.textContent = error ? 'Could not update admin status.' : 'Admin status updated.';
+        msg.textContent = error ? (error.message || 'Could not update admin status.') : 'Admin status updated.';
+        if (error) cb.checked = !cb.checked;
       });
     });
 
     document.querySelectorAll('.course-check[data-field="chat_banned"]').forEach(function(cb) {
       cb.addEventListener('change', async function() {
         const msg = document.getElementById('students-msg');
-        const { error } = await supabaseClient.from('profiles').update({ chat_banned: cb.checked }).eq('id', cb.getAttribute('data-user'));
+        const { error } = await supabaseClient.rpc('admin_set_profile_flag', { p_user_id: cb.getAttribute('data-user'), p_field: 'chat_banned', p_value: cb.checked });
         msg.className = error ? 'msg error' : 'msg success';
-        msg.textContent = error ? 'Could not update Global Chat ban status.' : (cb.checked ? 'Student restricted from Global Chat.' : 'Global Chat restriction lifted.');
-        if (!error) {
+        msg.textContent = error ? (error.message || 'Could not update Global Chat ban status.') : (cb.checked ? 'Student restricted from Global Chat.' : 'Global Chat restriction lifted.');
+        if (error) {
+          cb.checked = !cb.checked;
+        } else {
           const p = allProfiles.find(function(x) { return x.id === cb.getAttribute('data-user'); });
           if (p) p.chat_banned = cb.checked;
+        }
+      });
+    });
+
+    document.querySelectorAll('.course-check[data-field="admin_verified_override"]').forEach(function(cb) {
+      cb.addEventListener('change', async function() {
+        const msg = document.getElementById('students-msg');
+        const { error } = await supabaseClient.rpc('admin_set_profile_flag', { p_user_id: cb.getAttribute('data-user'), p_field: 'admin_verified_override', p_value: cb.checked });
+        msg.className = error ? 'msg error' : 'msg success';
+        msg.textContent = error ? (error.message || 'Could not update verified status.') : (cb.checked ? 'Student marked verified (no payment record required).' : 'Verified override removed -- still verified if they have a real payment on file.');
+        if (error) {
+          cb.checked = !cb.checked;
+        } else {
+          const p = allProfiles.find(function(x) { return x.id === cb.getAttribute('data-user'); });
+          if (p) p.admin_verified_override = cb.checked;
+          await loadStudents();
         }
       });
     });

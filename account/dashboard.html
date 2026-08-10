@@ -948,7 +948,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       .eq('user_id', userId)
       .eq('has_access', true);
 
-    currentIsPaid = (access || []).some(a => a.granted_by === 'payment');
+    // Same is_paid_student() definition used everywhere else: a real
+    // payment on any course, or an admin's manual verified override.
+    currentIsPaid = (access || []).some(a => a.granted_by === 'payment') || !!profile.admin_verified_override;
     applyAvatarLockUI();
 
     const unlockedKeys = (access || []).map(a => a.course_key);
