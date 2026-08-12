@@ -19,7 +19,7 @@ html{overflow-x:hidden; max-width:100%;}
 body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
 a{color:inherit;}
 .wrap{max-width:720px;margin:0 auto;padding:0 24px;}
-header{background:var(--navy-deep); color:var(--ivory);}
+header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,0.15);}
 .brand-row{display:flex; align-items:center; justify-content:space-between; padding-top:16px; padding-bottom:16px; gap:12px; flex-wrap:wrap;}
 .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
 .brand .mark{width:30px;height:30px;border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1.5px var(--gold);}
@@ -35,11 +35,14 @@ header{background:var(--navy-deep); color:var(--ivory);}
 .eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
 .page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,34px); color:var(--navy-deep);}
 .page-head p{color:var(--ink-soft); font-size:14.5px; margin-top:8px;}
+.guidelines-link{display:inline-block; margin-top:10px; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); text-decoration:none; border-bottom:1px solid var(--gold);}
+.guidelines-link:hover{color:var(--navy-deep); border-color:var(--navy-deep);}
 
 section{padding:24px 0;}
 
 .ban-banner{background:#fbf0ee; border:1px solid rgba(138,59,46,0.3); border-left:3px solid var(--bad); color:var(--bad); font-size:13.5px; padding:14px 16px; margin-bottom:16px;}
 .composer{background:#fff; border:1px solid var(--hair); padding:18px;}
+.composer-note{color:var(--ink-soft); font-size:14px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--hair);}
 .composer textarea{
   width:100%; min-height:70px; padding:12px 14px; font-family:'EB Garamond', serif; font-size:15px;
   border:1px solid var(--hair); background:var(--paper); color:var(--ink); resize:vertical;
@@ -288,7 +291,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <div>
         <p class="eyebrow">Community</p>
         <h1>Global Chat</h1>
-        <p>Post, react, and reply with other students. Long-press a message for more options. Be respectful — posts can be removed by admins. Read our <a href="../legal/community-guidelines.html" target="_blank" rel="noopener" style="color:var(--gold); text-decoration:underline;">Community Guidelines</a>.</p>
+        <a href="../legal/community-guidelines.html" target="_blank" rel="noopener" class="guidelines-link">Read our Community Guidelines &rarr;</a>
       </div>
       <img src="../assets/images/global-chat-logo.png" alt="Global Chat" class="mark-lg">
     </div>
@@ -298,6 +301,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         You've been restricted from posting, commenting, reacting, and reposting in Global Chat by an admin. You can still read posts. Contact support if you think this is a mistake.
       </div>
       <div class="composer">
+        <p class="composer-note">Post, react, and reply with other students. Long-press a message for more options. Be respectful — posts can be removed by admins.</p>
         <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
 
         <div class="media-preview" id="composer-media-preview" style="display:none;"></div>
