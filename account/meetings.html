@@ -97,6 +97,12 @@ main{padding:20px 0 60px;}
 .room-view{display:none;}
 .room-view.open{display:block;}
 .room-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+.invite-box{
+  display:flex; align-items:center; gap:10px; background:var(--paper); border:1px solid var(--hair);
+  padding:12px 14px; margin-bottom:14px; flex-wrap:wrap;
+}
+.invite-label{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); flex-shrink:0;}
+.invite-value{font-family:'Cinzel', serif; font-size:15px; letter-spacing:1.5px; color:var(--navy-deep); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .room-head h2{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; color:var(--navy-deep);}
 .room-messages{
   background:#fff; border:1px solid var(--hair); height:420px; overflow-y:auto;
@@ -207,6 +213,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         <h2 id="room-title"></h2>
         <button type="button" class="panel-btn" id="leave-room-btn">&larr; Back to Meetings</button>
       </div>
+      <div class="invite-box" id="invite-box" style="display:none;">
+        <span class="invite-label" id="invite-label"></span>
+        <span class="invite-value" id="invite-value"></span>
+        <button type="button" class="panel-btn" id="invite-copy-btn">Copy</button>
+      </div>
       <div class="room-messages" id="room-messages"></div>
       <div class="room-composer">
         <textarea id="room-text" placeholder="Write a message..." maxlength="2000"></textarea>
@@ -282,6 +293,23 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('page-content').style.display = 'block';
 
     await loadMeetings();
+
+    // Deep link from a shared free-entry invite (?join=<meeting_id>) --
+    // join_meeting() already handles free entry with no code needed,
+    // and (being SECURITY DEFINER) can resolve the id even though RLS
+    // would otherwise hide a private meeting from a non-participant.
+    const params = new URLSearchParams(window.location.search);
+    const joinId = params.get('join');
+    if (joinId) {
+      history.replaceState(null, '', 'meetings.html');
+      const { error } = await supabaseClient.rpc('join_meeting', { p_meeting_id: joinId, p_code: null });
+      if (error) {
+        showToast(error.message === 'Incorrect code' ? 'This meeting requires a code -- ask the host for it.' : 'Could not join that meeting.');
+      } else {
+        await loadMeetings();
+        openRoom(joinId);
+      }
+    }
   }
 
   function meetingCardHtml(m, joined) {
@@ -502,10 +530,29 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     currentRoomId = meetingId;
     document.getElementById('list-view').style.display = 'none';
     createPanel.classList.remove('open');
+    joinPanel.classList.remove('open');
     document.getElementById('room-view').classList.add('open');
 
-    const { data: meeting } = await supabaseClient.from('chat_meetings').select('title').eq('id', meetingId).single();
+    const { data: meeting } = await supabaseClient
+      .from('chat_meetings')
+      .select('title, host_id, kind, entry_mode, join_code')
+      .eq('id', meetingId)
+      .single();
     document.getElementById('room-title').textContent = (meeting && meeting.title) || 'Meeting';
+
+    // Only the host (or an admin moderating) needs the invite box --
+    // it's how anyone else is ever going to find their way in, since
+    // a private meeting stays invisible via RLS to non-participants.
+    const inviteBox = document.getElementById('invite-box');
+    if (meeting && meeting.kind === 'private' && (meeting.host_id === currentUserId || currentIsAdmin)) {
+      document.getElementById('invite-label').textContent = meeting.entry_mode === 'code' ? 'Code' : 'Invite Link';
+      document.getElementById('invite-value').textContent = meeting.entry_mode === 'code'
+        ? meeting.join_code
+        : (window.location.origin + window.location.pathname + '?join=' + meetingId);
+      inviteBox.style.display = 'flex';
+    } else {
+      inviteBox.style.display = 'none';
+    }
 
     await loadRoomMessages();
     if (roomPollTimer) clearInterval(roomPollTimer);
@@ -520,6 +567,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     loadMeetings();
   }
   document.getElementById('leave-room-btn').addEventListener('click', closeRoom);
+
+  document.getElementById('invite-copy-btn').addEventListener('click', function() {
+    navigator.clipboard.writeText(document.getElementById('invite-value').textContent || '');
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = 'Copy'; }, 1500);
+  });
 
   async function loadRoomMessages() {
     if (!currentRoomId) return;
