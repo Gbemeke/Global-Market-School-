@@ -593,7 +593,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <input type="text" id="referral-link" readonly>
           <button class="copy-btn" id="copy-referral">Copy</button>
         </div>
-        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 10% commission whenever someone you refer completes a paid enrollment.</p>
+        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 10% commission whenever someone you refer completes a paid enrollment. This applies to every account, unchanged, and stays valid for withdrawal.</p>
         <div class="earnings-stat">
           <div><p>Referrals</p><p id="referral-count">0</p></div>
           <div><p>Earning</p><p id="referral-earning">$0</p></div>
@@ -1073,7 +1073,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     if (pendingBonus > 0) {
       parts.push('a further $' + pendingBonus.toFixed(0) + ' signup bonus that unlocks for withdrawal once 3 people you refer complete a paid enrollment');
     }
-    note.textContent = 'You have ' + parts.join(', and ') + '.';
+    // Explicit on purpose: this bonus program is additional, not a
+    // replacement -- existing accounts keep every dollar of 10%
+    // referral commission already earned, still fully withdrawable.
+    note.textContent = 'You have ' + parts.join(', and ') + '. This is in addition to your 10% referral commission, which remains fully valid for withdrawal.';
     note.style.display = 'block';
   }
 
