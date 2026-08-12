@@ -110,6 +110,12 @@ section{padding:28px 0;}
 .earnings-btn-alt{background:#fff; color:var(--navy-deep);}
 .earnings-btn-alt:hover{background:var(--ivory);}
 .earnings-btn:disabled{opacity:0.5; cursor:not-allowed;}
+.toolkit-grid{display:flex; gap:16px; flex-wrap:wrap;}
+.toolkit-card{flex:1 1 220px; background:#fff; border:1px solid var(--hair); padding:20px; text-decoration:none; display:block; transition:border-color .15s;}
+.toolkit-card:hover{border-color:var(--gold);}
+.toolkit-card h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:19px; color:var(--navy-deep); margin-bottom:8px;}
+.toolkit-card p{font-size:14px; color:var(--ink-soft); line-height:1.55; margin-bottom:14px;}
+.toolkit-btn{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold);}
 .currency-balance-row{display:flex; align-items:center; justify-content:space-between; gap:14px; background:var(--paper); border:1px solid var(--hair); padding:14px 16px; margin-top:10px; flex-wrap:wrap;}
 .currency-balance-row .cbr-amount{font-family:'Cormorant Garamond', serif; font-size:21px; color:var(--navy-deep);}
 .currency-balance-row .cbr-pending{font-size:12px; color:var(--ink-soft); margin-top:3px;}
@@ -618,6 +624,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <section>
       <p class="section-title">Your Courses</p>
       <div class="tier-grid" id="tier-grid"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Free Tools</p>
+      <div class="toolkit-grid">
+        <a href="../learn/practice/chart.html" class="toolkit-card">
+          <h3>Live Practice Chart</h3>
+          <p>Real, live market data — practice reading trends and patterns with zero risk.</p>
+          <span class="toolkit-btn">Open Chart &rarr;</span>
+        </a>
+        <a href="../learn/trading-basics/lesson-1.html" class="toolkit-card">
+          <h3>Trading Toolkit</h3>
+          <p>Candlesticks, support &amp; resistance, indicators, and a real pre-trade checklist — with quizzes to test yourself.</p>
+          <span class="toolkit-btn">Start Toolkit &rarr;</span>
+        </a>
+      </div>
     </section>
 
   </div>
