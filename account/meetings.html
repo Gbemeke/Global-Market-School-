@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Meetings — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
+a{color:inherit;}
+.wrap{max-width:640px;margin:0 auto;padding:0 24px;}
+header{background:var(--navy-deep); border-bottom:1px solid var(--hair);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding-top:22px; padding-bottom:22px; flex-wrap:wrap; gap:8px 12px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:28px;height:28px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:8.7px; color:var(--gold); letter-spacing:-0.2px;}
+.back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
+
+.page-head{padding:36px 0 8px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,32px); color:var(--navy-deep);}
+.page-head p{font-size:15px; color:var(--ink-soft); margin-top:8px; max-width:46ch;}
+.create-btn{
+  flex-shrink:0; font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:12px 20px; cursor:pointer;
+}
+.create-btn:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+
+main{padding:20px 0 60px;}
+.section-title{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-soft); margin:26px 0 12px;}
+.section-title:first-child{margin-top:0;}
+
+.meeting-list{display:flex; flex-direction:column; gap:12px;}
+.meeting-card{
+  background:#fff; border:1px solid var(--hair); padding:16px 18px;
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+}
+.meeting-info h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:19px; color:var(--navy-deep);}
+.meeting-meta{display:flex; align-items:center; gap:8px; margin-top:4px; font-size:12.5px; color:var(--ink-soft); flex-wrap:wrap;}
+.meeting-tag{
+  font-family:'Cinzel', serif; font-size:9px; letter-spacing:1px; text-transform:uppercase;
+  padding:2px 7px; border-radius:3px; background:var(--paper); border:1px solid var(--hair); color:var(--ink-soft);
+}
+.meeting-tag.tag-general{color:var(--good); border-color:var(--good);}
+.meeting-tag.tag-private{color:var(--gold); border-color:var(--gold);}
+.meeting-tag.tag-code{color:var(--navy-deep); border-color:var(--navy-deep);}
+.meeting-tag.tag-ended{color:var(--bad); border-color:var(--bad);}
+.join-btn{
+  flex-shrink:0; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase;
+  background:none; color:var(--navy-deep); border:1px solid var(--gold); padding:9px 16px; cursor:pointer; text-decoration:none;
+}
+.join-btn:hover{background:var(--gold); color:var(--navy-deep);}
+.join-btn:disabled{opacity:0.5; cursor:not-allowed;}
+.empty-note{color:var(--ink-soft); font-size:14px; padding:14px 0;}
+
+/* Create-meeting panel */
+.create-panel{background:#fff; border:1px solid var(--hair); padding:22px 24px; margin-bottom:26px; display:none;}
+.create-panel.open{display:block;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-family:'Cinzel', serif; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:7px;}
+.field input[type="text"]{width:100%; padding:12px 14px; font-family:'EB Garamond', serif; font-size:16px; border:1px solid var(--hair); background:var(--paper); color:var(--ink);}
+.field input:focus{outline:none; border-color:var(--gold);}
+.radio-row{display:flex; gap:18px; flex-wrap:wrap;}
+.radio-row label{display:flex; align-items:center; gap:7px; font-size:14.5px; color:var(--ink); text-transform:none; font-family:'EB Garamond', serif; letter-spacing:0; margin-bottom:0; cursor:pointer;}
+.radio-row input{margin:0;}
+.code-display{
+  display:none; align-items:center; gap:10px; background:var(--paper); border:1px solid var(--hair);
+  padding:14px 16px; margin-top:6px;
+}
+.code-display.show{display:flex;}
+.code-display .code-value{font-family:'Cinzel', serif; font-size:20px; letter-spacing:3px; color:var(--navy-deep); flex:1;}
+.panel-actions{display:flex; gap:10px; margin-top:6px;}
+.panel-btn{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:11px 18px; cursor:pointer; border:1px solid var(--hair); background:none; color:var(--ink-soft);}
+.panel-btn.primary{background:var(--navy-deep); color:var(--ivory); border-color:var(--navy-deep);}
+.panel-btn.primary:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.panel-btn.primary:disabled{opacity:0.5; cursor:not-allowed;}
+.msg{font-size:13.5px; padding:10px 0; display:none;}
+.msg.error{color:var(--bad); display:block;}
+.msg.success{color:var(--good); display:block;}
+
+/* Meeting room */
+.room-view{display:none;}
+.room-view.open{display:block;}
+.room-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+.room-head h2{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:24px; color:var(--navy-deep);}
+.room-messages{
+  background:#fff; border:1px solid var(--hair); height:420px; overflow-y:auto;
+  padding:16px 18px; display:flex; flex-direction:column; gap:12px; margin-bottom:14px;
+}
+.room-msg{max-width:80%;}
+.room-msg .msg-author{font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:0.5px; color:var(--navy-deep); margin-bottom:2px;}
+.room-msg .msg-author .admin-badge{
+  display:inline-block; font-family:'Cinzel', serif; font-size:8px; letter-spacing:0.6px; text-transform:uppercase;
+  color:var(--navy-deep); background:var(--gold-bright); border-radius:3px; padding:1px 5px; margin-left:5px; vertical-align:1px;
+}
+.room-msg .msg-bubble{background:var(--paper); border-radius:14px; padding:8px 13px; font-size:14.5px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+.room-msg.mine{align-self:flex-end;}
+.room-msg.mine .msg-bubble{background:var(--navy-deep); color:var(--ivory);}
+.room-msg .msg-time{font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+.room-empty{color:var(--ink-soft); font-size:14px; text-align:center; padding:40px 0;}
+.room-composer{display:flex; gap:8px;}
+.room-composer textarea{flex:1; min-height:44px; max-height:120px; padding:11px 14px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:#fff; color:var(--ink); resize:vertical;}
+.room-composer button{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); border:none; padding:0 20px; cursor:pointer;}
+.room-composer button:hover{background:var(--gold); color:var(--navy-deep);}
+.room-composer button:disabled{opacity:0.5; cursor:not-allowed;}
+
+.loading{text-align:center; padding:60px 0; color:var(--ink-soft);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Loading Chat Meetings...</div>
+
+<div id="page-content" style="display:none;">
+<header>
+  <div class="wrap brand-row">
+    <a href="../index.html" class="brand"><span class="mark">GMS</span>Global Market School</a>
+    <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Community</p>
+      <h1>Chat Meetings</h1>
+      <p>Join a general meeting hosted by Global Market School, or start your own private meeting for a smaller group.</p>
+    </div>
+    <button type="button" class="create-btn" id="open-create-btn">+ Create Meeting</button>
+  </div>
+
+  <main>
+    <div class="create-panel" id="create-panel">
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="meeting-title" maxlength="120" placeholder="e.g. Friday Trade Review">
+      </div>
+      <div class="field" id="kind-field">
+        <label>Type</label>
+        <div class="radio-row">
+          <label><input type="radio" name="kind" value="private" checked> Private meeting</label>
+          <label id="general-option" style="display:none;"><input type="radio" name="kind" value="general"> General meeting (open to everyone)</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Entry</label>
+        <div class="radio-row">
+          <label><input type="radio" name="entry" value="free" checked> Free entry</label>
+          <label><input type="radio" name="entry" value="code"> Generate a code</label>
+        </div>
+      </div>
+      <div class="code-display" id="code-display">
+        <span class="code-value" id="generated-code"></span>
+        <button type="button" class="panel-btn" id="copy-code-btn">Copy</button>
+      </div>
+      <p class="msg" id="create-msg"></p>
+      <div class="panel-actions">
+        <button type="button" class="panel-btn primary" id="create-submit-btn">Create Meeting</button>
+        <button type="button" class="panel-btn" id="create-cancel-btn">Cancel</button>
+      </div>
+    </div>
+
+    <div id="list-view">
+      <p class="section-title">General Meetings</p>
+      <div class="meeting-list" id="general-list"></div>
+      <p class="empty-note" id="general-empty" style="display:none;">No general meetings right now.</p>
+
+      <p class="section-title">My Meetings</p>
+      <div class="meeting-list" id="my-list"></div>
+      <p class="empty-note" id="my-empty" style="display:none;">You haven't hosted or joined a private meeting yet.</p>
+    </div>
+
+    <div class="room-view" id="room-view">
+      <div class="room-head">
+        <h2 id="room-title"></h2>
+        <button type="button" class="panel-btn" id="leave-room-btn">&larr; Back to Meetings</button>
+      </div>
+      <div class="room-messages" id="room-messages"></div>
+      <div class="room-composer">
+        <textarea id="room-text" placeholder="Write a message..." maxlength="2000"></textarea>
+        <button type="button" id="room-send-btn" disabled>Send</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>&copy; 2026 Global Market School Ltd.</footer>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  let currentUserId = null;
+  let currentUserName = 'Student';
+  let currentUserAvatarUrl = null;
+  let currentIsAdmin = false;
+  let currentRoomId = null;
+  let roomPollTimer = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function timeAgo(isoString) {
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    return days + 'd ago';
+  }
+
+  function showToast(text) {
+    const el = document.createElement('div');
+    el.textContent = text;
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy-deep);color:var(--ivory);padding:11px 20px;font-size:13.5px;border:1px solid var(--gold);z-index:95;max-width:88vw;text-align:center;';
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 3000);
+  }
+
+  async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentUserId = session.user.id;
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('full_name, avatar_url, is_admin')
+      .eq('id', currentUserId)
+      .single();
+
+    if (profile) {
+      currentUserName = profile.full_name || 'Student';
+      currentUserAvatarUrl = profile.avatar_url || null;
+      currentIsAdmin = !!profile.is_admin;
+    }
+
+    if (currentIsAdmin) {
+      document.getElementById('general-option').style.display = 'inline-flex';
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+
+    await loadMeetings();
+  }
+
+  function meetingCardHtml(m, joined) {
+    const tags = [];
+    tags.push('<span class="meeting-tag tag-' + (m.kind === 'general' ? 'general' : 'private') + '">' + m.kind + '</span>');
+    if (m.entry_mode === 'code') tags.push('<span class="meeting-tag tag-code">Code entry</span>');
+    if (!m.is_active) tags.push('<span class="meeting-tag tag-ended">Ended</span>');
+
+    const btnLabel = !m.is_active ? 'Ended' : (joined ? 'Enter' : 'Join');
+    return (
+      '<div class="meeting-card">' +
+        '<div class="meeting-info">' +
+          '<h3>' + escapeHtml(m.title) + '</h3>' +
+          '<div class="meeting-meta">' + tags.join('') + '<span>' + timeAgo(m.created_at) + '</span></div>' +
+        '</div>' +
+        '<button type="button" class="join-btn" data-id="' + m.id + '" data-code="' + (m.entry_mode === 'code' && !joined ? '1' : '0') + '"' + (!m.is_active ? ' disabled' : '') + '>' + btnLabel + '</button>' +
+      '</div>'
+    );
+  }
+
+  async function loadMeetings() {
+    const { data: meetings } = await supabaseClient
+      .from('chat_meetings')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const { data: myParticipation } = await supabaseClient
+      .from('chat_meeting_participants')
+      .select('meeting_id')
+      .eq('user_id', currentUserId);
+
+    const joinedIds = new Set((myParticipation || []).map(function(p) { return p.meeting_id; }));
+
+    const general = (meetings || []).filter(function(m) { return m.kind === 'general'; });
+    const mine = (meetings || []).filter(function(m) { return m.kind === 'private' && (m.host_id === currentUserId || joinedIds.has(m.id)); });
+
+    const generalList = document.getElementById('general-list');
+    generalList.innerHTML = general.map(function(m) { return meetingCardHtml(m, joinedIds.has(m.id) || m.host_id === currentUserId); }).join('');
+    document.getElementById('general-empty').style.display = general.length ? 'none' : 'block';
+
+    const myList = document.getElementById('my-list');
+    myList.innerHTML = mine.map(function(m) { return meetingCardHtml(m, true); }).join('');
+    document.getElementById('my-empty').style.display = mine.length ? 'none' : 'block';
+
+    wireJoinButtons();
+  }
+
+  function wireJoinButtons() {
+    document.querySelectorAll('.join-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        const meetingId = btn.getAttribute('data-id');
+        const needsCode = btn.getAttribute('data-code') === '1';
+        let code = null;
+        if (needsCode) {
+          code = window.prompt('Enter the meeting code:');
+          if (code === null) return; // cancelled
+        }
+
+        btn.disabled = true;
+        const { error } = await supabaseClient.rpc('join_meeting', { p_meeting_id: meetingId, p_code: code });
+        btn.disabled = false;
+
+        if (error) {
+          showToast(error.message === 'Incorrect code' ? 'Incorrect code. Please try again.' : 'Could not join. Please try again.');
+          return;
+        }
+        openRoom(meetingId);
+      });
+    });
+  }
+
+  // ---- Create meeting ----
+
+  const createPanel = document.getElementById('create-panel');
+  document.getElementById('open-create-btn').addEventListener('click', function() {
+    createPanel.classList.add('open');
+    document.getElementById('list-view').style.display = 'none';
+  });
+  document.getElementById('create-cancel-btn').addEventListener('click', function() {
+    closeCreatePanel();
+  });
+  function closeCreatePanel() {
+    createPanel.classList.remove('open');
+    document.getElementById('list-view').style.display = 'block';
+    document.getElementById('meeting-title').value = '';
+    document.getElementById('code-display').classList.remove('show');
+    document.getElementById('create-msg').style.display = 'none';
+  }
+
+  function randomCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I ambiguity
+    let out = '';
+    for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  let pendingCode = null;
+  document.querySelectorAll('input[name="entry"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      const codeDisplay = document.getElementById('code-display');
+      if (document.querySelector('input[name="entry"]:checked').value === 'code') {
+        pendingCode = randomCode();
+        document.getElementById('generated-code').textContent = pendingCode;
+        codeDisplay.classList.add('show');
+      } else {
+        pendingCode = null;
+        codeDisplay.classList.remove('show');
+      }
+    });
+  });
+
+  document.getElementById('copy-code-btn').addEventListener('click', function() {
+    navigator.clipboard.writeText(pendingCode || '');
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = 'Copy'; }, 1500);
+  });
+
+  document.getElementById('create-submit-btn').addEventListener('click', async function() {
+    const title = document.getElementById('meeting-title').value.trim();
+    const msg = document.getElementById('create-msg');
+    msg.style.display = 'none';
+
+    if (!title) {
+      msg.className = 'msg error';
+      msg.textContent = 'Please enter a title.';
+      return;
+    }
+
+    const kind = document.querySelector('input[name="kind"]:checked').value;
+    const entryMode = document.querySelector('input[name="entry"]:checked').value;
+    const btn = this;
+    btn.disabled = true;
+
+    const { data, error } = await supabaseClient
+      .from('chat_meetings')
+      .insert({
+        host_id: currentUserId,
+        title: title,
+        kind: kind,
+        entry_mode: entryMode,
+        join_code: entryMode === 'code' ? pendingCode : null
+      })
+      .select('id')
+      .single();
+
+    btn.disabled = false;
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = 'Could not create meeting. Please try again.';
+      return;
+    }
+
+    closeCreatePanel();
+    await loadMeetings();
+    openRoom(data.id);
+  });
+
+  // ---- Meeting room ----
+
+  async function openRoom(meetingId) {
+    currentRoomId = meetingId;
+    document.getElementById('list-view').style.display = 'none';
+    createPanel.classList.remove('open');
+    document.getElementById('room-view').classList.add('open');
+
+    const { data: meeting } = await supabaseClient.from('chat_meetings').select('title').eq('id', meetingId).single();
+    document.getElementById('room-title').textContent = (meeting && meeting.title) || 'Meeting';
+
+    await loadRoomMessages();
+    if (roomPollTimer) clearInterval(roomPollTimer);
+    roomPollTimer = setInterval(loadRoomMessages, 10000);
+  }
+
+  function closeRoom() {
+    currentRoomId = null;
+    if (roomPollTimer) { clearInterval(roomPollTimer); roomPollTimer = null; }
+    document.getElementById('room-view').classList.remove('open');
+    document.getElementById('list-view').style.display = 'block';
+    loadMeetings();
+  }
+  document.getElementById('leave-room-btn').addEventListener('click', closeRoom);
+
+  async function loadRoomMessages() {
+    if (!currentRoomId) return;
+    const { data: messages } = await supabaseClient
+      .from('chat_meeting_messages')
+      .select('*')
+      .eq('meeting_id', currentRoomId)
+      .order('created_at', { ascending: true });
+
+    const box = document.getElementById('room-messages');
+    // Don't fight the user's scroll position/typing on every 10s poll --
+    // only re-render if the message count actually changed.
+    const prevCount = Number(box.dataset.count || 0);
+    if ((messages || []).length === prevCount) return;
+    box.dataset.count = (messages || []).length;
+
+    if (!messages || !messages.length) {
+      box.innerHTML = '<p class="room-empty">No messages yet. Say hello!</p>';
+      return;
+    }
+
+    box.innerHTML = messages.map(function(m) {
+      const mine = m.user_id === currentUserId;
+      return (
+        '<div class="room-msg' + (mine ? ' mine' : '') + '">' +
+          '<div class="msg-author">' + escapeHtml(m.author_name) + (m.author_is_admin ? '<span class="admin-badge">Admin</span>' : '') + '</div>' +
+          '<div class="msg-bubble">' + escapeHtml(m.content) + '</div>' +
+          '<div class="msg-time">' + timeAgo(m.created_at) + '</div>' +
+        '</div>'
+      );
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  const roomText = document.getElementById('room-text');
+  const roomSendBtn = document.getElementById('room-send-btn');
+  roomText.addEventListener('input', function() {
+    roomSendBtn.disabled = !roomText.value.trim();
+  });
+
+  roomSendBtn.addEventListener('click', async function() {
+    const content = roomText.value.trim();
+    if (!content || !currentRoomId) return;
+
+    roomSendBtn.disabled = true;
+    const { error } = await supabaseClient.from('chat_meeting_messages').insert({
+      meeting_id: currentRoomId,
+      user_id: currentUserId,
+      author_name: currentIsAdmin ? 'Global Market School' : currentUserName,
+      author_avatar_url: currentIsAdmin ? null : currentUserAvatarUrl,
+      author_is_admin: currentIsAdmin,
+      content: content
+    });
+
+    if (!error) {
+      roomText.value = '';
+      document.getElementById('room-messages').dataset.count = '-1'; // force re-render
+      await loadRoomMessages();
+    } else {
+      showToast('Could not send. Please try again.');
+    }
+    roomSendBtn.disabled = !roomText.value.trim();
+  });
+
+  init();
+</script>
+</body>
+</html>

@@ -138,7 +138,10 @@ section{padding:24px 0;}
 .repost-tag{display:flex; align-items:center; gap:6px; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;}
 
 .post-media{margin-top:12px; border:1px solid var(--hair); background:#000; overflow:hidden;}
-.post-media img, .post-media video{width:100%; max-height:440px; object-fit:contain; display:block; background:#000;}
+.post-media img, .post-media video{
+  width:100%; max-height:440px; object-fit:contain; display:block; background:#000;
+  -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+}
 
 .quoted-post{border:1px solid var(--hair); padding:12px; margin-top:10px; background:var(--paper);}
 .quoted-content{margin-top:8px; font-size:14px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
@@ -173,6 +176,32 @@ section{padding:24px 0;}
 }
 .action-btn:hover{background:var(--paper);}
 .action-btn.liked{color:var(--gold);}
+/* Everything long-press used to reach (choosing a specific reaction,
+   or the copy/report/delete menu) now has its own plain tap target
+   instead, since press-and-hold turned out unreliable on real
+   devices. The reaction picker sits as a small badge on the Like
+   button's own corner rather than a 4th full-width column. */
+.react-btn-wrap{position:relative; flex:1; display:flex;}
+.react-btn-wrap .action-btn{flex:1;}
+/* Only the corner badge on a top-level post's Like button gets pulled
+   out of flow like this -- the same class reused inline in a comment's
+   reply-meta row (plain text-button style, like Like/Reply next to it)
+   must NOT inherit position:absolute, or it flies off to wherever the
+   nearest positioned ancestor happens to be instead of sitting next to
+   Like. */
+.react-btn-wrap .reaction-picker-btn{
+  position:absolute; top:-7px; right:4px; width:20px; height:20px; border-radius:50%;
+  background:#fff; border:1px solid var(--hair); box-shadow:0 2px 6px rgba(0,0,0,0.18);
+  display:flex; align-items:center; justify-content:center; font-size:11px; line-height:1; padding:0; cursor:pointer;
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+.react-btn-wrap .reaction-picker-btn:hover{transform:scale(1.12);}
+.post-head-right{display:flex; align-items:center; gap:10px;}
+.more-options-btn{
+  background:none; border:none; padding:2px 6px; cursor:pointer; font-size:16px; line-height:1; color:var(--ink-soft);
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+.more-options-btn:hover{color:var(--navy-deep);}
 
 /* Hidden until the comment count or the Comment button is tapped --
    both the existing thread and the box to write a new one appear
@@ -280,7 +309,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 }
 .reaction-picker.show{display:flex;}
 .reaction-picker button{background:none; border:none; font-size:23px; cursor:pointer; padding:3px 5px; line-height:1; transition:transform .12s ease; touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
-.reaction-picker button:hover, .reaction-picker button.drag-hover{transform:scale(1.3) translateY(-2px);}
+.reaction-picker button:hover{transform:scale(1.3) translateY(-2px);}
 
 .context-menu{
   position:fixed; display:none; flex-direction:column; background:#fff; border:1px solid var(--hair); min-width:160px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.4); z-index:90;
@@ -798,7 +827,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         '<div class="reply-meta">' +
           '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
           '<button class="reply-meta-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + (myReaction ? reactionMeta(myReaction).label : 'Like') + '</button>' +
+          '<button class="reply-meta-btn reaction-picker-btn" data-id="' + post.id + '" data-reaction="' + myReaction + '" aria-label="Choose a reaction">&#128522;</button>' +
           '<button class="reply-meta-btn comment-toggle" data-id="' + post.id + '">Reply</button>' +
+          '<button class="reply-meta-btn more-options-btn" data-id="' + post.id + '" aria-label="More options">&#8942;</button>' +
           (totalReactions ? '<span class="reply-like-count">' + topReactionEmojis + ' ' + formatCount(totalReactions) + '</span>' : '') +
         '</div>';
     } else {
@@ -808,7 +839,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '<div class="post-head">' +
             '<span class="post-author-row"><span class="post-avatar">' + avatarInner + '</span>' +
             '<span class="post-author-text"><span class="post-author">' + escapeHtml(displayAuthorName(post)) + '</span>' + authorBadgeHtml(post) + '</span></span>' +
-            '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
+            '<span class="post-head-right">' +
+              '<span class="post-time">' + timeAgo(post.created_at) + '</span>' +
+              '<button class="more-options-btn" data-id="' + post.id + '" aria-label="More options">&#8942;</button>' +
+            '</span>' +
           '</div>' +
           (post.content ? '<p class="post-content">' + escapeHtml(post.content) + '</p>' : '') +
           mediaHtml + quoteHtml +
@@ -823,7 +857,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           '</span>' +
         '</div>' +
         '<div class="post-actions-bar">' +
-          '<button class="action-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + reactionBtnLabel + '</button>' +
+          '<div class="react-btn-wrap">' +
+            '<button class="action-btn react-btn' + (myReaction ? ' liked' : '') + '" data-id="' + post.id + '" data-reaction="' + myReaction + '">' + reactionBtnLabel + '</button>' +
+            '<button type="button" class="reaction-picker-btn" data-id="' + post.id + '" data-reaction="' + myReaction + '" aria-label="Choose a reaction">&#128522;</button>' +
+          '</div>' +
           '<button class="action-btn comment-toggle" data-id="' + post.id + '">&#128172; Comment</button>' +
           '<button class="action-btn share-btn" data-id="' + post.id + '">&#8599; Share</button>' +
         '</div>';
@@ -1014,6 +1051,35 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.querySelectorAll('.comment-toggle').forEach(function(btn) {
       btn.addEventListener('click', function() {
         toggleComments(btn.getAttribute('data-id'));
+      });
+    });
+
+    // Plain tap toggles Like/Unlike directly -- no long-press involved.
+    document.querySelectorAll('.react-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (blockedByBan()) return;
+        const postId = btn.getAttribute('data-id');
+        const current = btn.getAttribute('data-reaction') || '';
+        if (current) removeReaction(postId);
+        else setReaction(postId, 'like');
+      });
+    });
+
+    // The small smiley badge on the Like button -- tap it to choose a
+    // specific reaction (Love, Laugh, etc.) instead of a plain Like.
+    document.querySelectorAll('.reaction-picker-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openReactionPicker(btn);
+      });
+    });
+
+    // The "⋮" button -- copy/report/delete, wherever long-press used to
+    // open the same menu.
+    document.querySelectorAll('.more-options-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openContextMenu(btn.getAttribute('data-id'), btn);
       });
     });
 
@@ -1231,7 +1297,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     stopPopupScrollWatchdog();
   }
 
-  function openContextMenu(postId, x, y) {
+  function openContextMenu(postId, btn) {
     hideReactionPicker();
     const post = postsById[postId];
     if (!post) return;
@@ -1240,6 +1306,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     let html = '<button data-action="copy">Copy</button>';
     html += '<button data-action="paste">Paste</button>';
+    if (!isOwn) html += '<button data-action="message">Message</button>';
     if (!isOwn) html += '<button data-action="report">Report</button>';
     if (canDelete(post)) html += '<button class="danger" data-action="delete">Delete</button>';
 
@@ -1248,8 +1315,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     menu.style.display = 'flex';
     const menuWidth = menu.offsetWidth || 170;
     const menuHeight = menu.offsetHeight || 140;
-    const left = Math.max(8, Math.min(x, window.innerWidth - menuWidth - 8));
-    const top = Math.max(8, Math.min(y, window.innerHeight - menuHeight - 8));
+    const rect = btn.getBoundingClientRect();
+    let left = rect.right - menuWidth; // right-align to the ⋮ button, like a dropdown
+    left = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
+    let top = rect.bottom + 6;
+    if (top + menuHeight > window.innerHeight - 8) top = rect.top - menuHeight - 6;
+    top = Math.max(8, top);
     menu.style.left = left + 'px';
     menu.style.top = top + 'px';
     menu.classList.add('show');
@@ -1281,6 +1352,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       } catch (err) {
         showToast('Paste not available on this device.');
       }
+    } else if (action === 'message') {
+      if (blockedByBan()) return;
+      const displayName = post.author_is_admin ? ADMIN_DISPLAY_NAME : (post.author_name || 'Student');
+      const params = new URLSearchParams({ user: post.user_id, name: displayName });
+      if (!post.author_is_admin && post.author_avatar_url) params.set('avatar', post.author_avatar_url);
+      window.location.href = 'private-chat.html?' + params.toString();
     } else if (action === 'report') {
       const { error } = await supabaseClient.from('global_chat_reports').insert({ post_id: postId, reporter_id: currentUserId });
       if (error) {
@@ -1301,56 +1378,32 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
   });
 
-  // ---- Press-and-hold delegation on the feed (react button + message bubble) ----
+  // ---- Reaction picker / context menu triggers ----
   //
-  // A long-press timer with no drag/scroll check fires no matter what the
-  // finger did in those 450ms -- including scrolling the feed. That let a
-  // slow scroll-while-touching a post pop the context menu open wherever
-  // the finger started, long after the page (and that post) had scrolled
-  // away underneath it -- a stray menu with nothing under it, and (since
-  // it's position:fixed) it stays pinned to that screen spot through any
-  // further scrolling too. Cancel the pending popup the moment the finger
-  // moves like a scroll, and close anything already open the moment an
-  // actual scroll happens, so a popup only ever appears over the post it
-  // belongs to.
+  // Both used to open on long-press. That turned out unreliable on real
+  // devices -- a slow scroll-while-touching could still fire the timer
+  // and pop a menu open at a stale position long after the page (and
+  // the post it belonged to) had scrolled away underneath it, and no
+  // amount of scroll/drag-cancel logic made it consistently trustworthy.
+  // Removed entirely in favor of plain, explicit tap targets: the small
+  // smiley badge on the Like button opens the reaction picker, and the
+  // "⋮" button opens the copy/report/delete menu -- see wireFeedEvents()
+  // below for the .reaction-picker-btn / .more-options-btn handlers, and
+  // the renderNode() markup for where they're placed on each post/reply.
 
-  // Keyed by pointerId rather than shared module-level variables: a
-  // single global timer meant any second touch landing before the first
-  // one lifted (two fingers, or one brushing the edge of the screen while
-  // holding the phone) could have its pointerup cancel a timer that
-  // actually belonged to a completely different finger -- dropping or
-  // corrupting whichever press lost the race. Each active touch now owns
-  // its own independent state, so overlapping presses can't touch each
-  // other's timers.
-  const activePresses = new Map(); // pointerId -> { timer, kind, fired, startX, startY, startScrollY }
-  const PRESS_MOVE_CANCEL_PX = 10;
-  // On real mobile browsers, once a touch's early movement gets recognized
-  // as a scroll gesture, the browser hands that touch off to native
-  // scrolling and stops delivering further pointermove/pointerup events to
-  // JS -- so the PRESS_MOVE_CANCEL_PX check above (which depends on those
-  // events still arriving) never runs, the 450ms timer fires anyway, and a
-  // context menu / reaction picker pops open at the touch's original,
-  // long-since-scrolled-past position. Confirmed via screen recording: the
-  // popup opened repeatedly over completely unrelated posts and stayed
-  // there through further scrolling. window.scrollY doesn't depend on
-  // event delivery the way pointermove does, so it's checked again right
-  // before actually opening, as a second signal that doesn't rely on the
-  // browser choosing to keep talking to JS during the gesture.
-  const PRESS_SCROLL_CANCEL_PX = 6;
   function pageScrollY() {
     return window.scrollY || document.documentElement.scrollTop || 0;
   }
 
-  // Belt-and-suspenders for an already-open popup: the window 'scroll'
-  // listener further down is the primary way an open context menu /
-  // reaction picker gets closed once the page moves, but a second
-  // recording showed it staying open through several seconds of visible
-  // scrolling even so -- on some mobile browsers 'scroll' dispatch can be
-  // throttled/batched heavily during a fast continuous drag, so there's a
-  // real gap between "the page visibly moved" and "a scroll event actually
-  // reached this listener". requestAnimationFrame doesn't wait on scroll
-  // event dispatch at all, so it closes things the instant scrollY
-  // actually changes, regardless of how the browser paces scroll events.
+  // An already-open picker/menu still needs to close itself the instant
+  // the page scrolls (it's position:fixed, so it would otherwise stay
+  // pinned to that screen spot while everything underneath moves).
+  // requestAnimationFrame is used instead of a 'scroll' listener alone
+  // because scroll-event dispatch can be throttled/batched by the
+  // browser during a fast continuous drag -- rAF isn't, so it catches
+  // the movement immediately regardless of how the browser paces scroll
+  // events.
+  const POPUP_SCROLL_CLOSE_PX = 6;
   let popupWatchdogId = null;
   function stopPopupScrollWatchdog() {
     if (popupWatchdogId !== null) cancelAnimationFrame(popupWatchdogId);
@@ -1360,7 +1413,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     stopPopupScrollWatchdog();
     const startY = pageScrollY();
     (function tick() {
-      if (Math.abs(pageScrollY() - startY) > PRESS_SCROLL_CANCEL_PX) {
+      if (Math.abs(pageScrollY() - startY) > POPUP_SCROLL_CLOSE_PX) {
         stopPopupScrollWatchdog();
         hideReactionPicker();
         hideContextMenu();
@@ -1370,115 +1423,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     })();
   }
 
-  function cancelPress(pointerId) {
-    const p = activePresses.get(pointerId);
-    if (p) clearTimeout(p.timer);
-    activePresses.delete(pointerId);
-  }
-
-  function cancelAllPresses() {
-    activePresses.forEach(function(p) { clearTimeout(p.timer); });
-    activePresses.clear();
-  }
-
-  // Facebook lets you slide straight from the Like button across the
-  // opened emoji row and lift on whichever one you want, in one
-  // continuous touch -- no separate second tap. Reproducing that needs
-  // the finger's still-down touch to keep reporting to us even once it
-  // physically moves over the picker, which lives outside #feed in the
-  // DOM (a plain pointermove only reaches whatever's currently under the
-  // finger). setPointerCapture pins that touch's events to the button
-  // that started the press regardless of where the finger travels;
-  // elementFromPoint is then used to work out what's actually under it.
-  function updateReactionDragHover(x, y) {
-    const hovered = document.elementFromPoint(x, y);
-    const target = hovered && hovered.closest('#reaction-picker button[data-reaction-type]');
-    document.querySelectorAll('#reaction-picker button.drag-hover').forEach(function(b) {
-      if (b !== target) b.classList.remove('drag-hover');
-    });
-    if (target) target.classList.add('drag-hover');
-    return target;
-  }
-
-  function clearReactionDragHover() {
-    document.querySelectorAll('#reaction-picker button.drag-hover').forEach(function(b) {
-      b.classList.remove('drag-hover');
-    });
-  }
-
-  document.getElementById('feed').addEventListener('pointerdown', function(e) {
-    const reactBtn = e.target.closest('.react-btn');
-    if (reactBtn) {
-      cancelPress(e.pointerId);
-      try { reactBtn.setPointerCapture(e.pointerId); } catch (err) { /* unsupported -- drag-to-select just won't engage */ }
-      const startScrollY = pageScrollY();
-      const timer = setTimeout(function() {
-        const p = activePresses.get(e.pointerId);
-        if (!p || Math.abs(pageScrollY() - startScrollY) > PRESS_SCROLL_CANCEL_PX) { activePresses.delete(e.pointerId); return; }
-        p.fired = true;
-        openReactionPicker(reactBtn);
-      }, 450);
-      activePresses.set(e.pointerId, { timer: timer, kind: 'react', fired: false, startX: e.clientX, startY: e.clientY, startScrollY: startScrollY });
-      return;
-    }
-
-    const msgEl = e.target.closest('.msg-target');
-    if (msgEl) {
-      cancelPress(e.pointerId);
-      const x = e.clientX, y = e.clientY;
-      const startScrollY = pageScrollY();
-      const timer = setTimeout(function() {
-        const p = activePresses.get(e.pointerId);
-        if (!p || Math.abs(pageScrollY() - startScrollY) > PRESS_SCROLL_CANCEL_PX) { activePresses.delete(e.pointerId); return; }
-        p.fired = true;
-        openContextMenu(msgEl.getAttribute('data-id'), x, y);
-      }, 450);
-      activePresses.set(e.pointerId, { timer: timer, kind: 'message', fired: false, startX: x, startY: y, startScrollY: startScrollY });
-    }
-  });
-
-  document.getElementById('feed').addEventListener('pointermove', function(e) {
-    const p = activePresses.get(e.pointerId);
-    if (!p) return;
-    if (!p.fired) {
-      if (Math.abs(e.clientX - p.startX) > PRESS_MOVE_CANCEL_PX ||
-          Math.abs(e.clientY - p.startY) > PRESS_MOVE_CANCEL_PX) {
-        cancelPress(e.pointerId);
-      }
-      return;
-    }
-    if (p.kind === 'react') updateReactionDragHover(e.clientX, e.clientY);
-  });
-
-  document.getElementById('feed').addEventListener('pointerup', function(e) {
-    const p = activePresses.get(e.pointerId);
-    const reactBtn = e.target.closest('.react-btn');
-    cancelPress(e.pointerId);
-    if (p && p.kind === 'react' && p.fired) {
-      const dragTarget = updateReactionDragHover(e.clientX, e.clientY);
-      clearReactionDragHover();
-      if (dragTarget) {
-        const picker = document.getElementById('reaction-picker');
-        applyReactionChoice(picker.dataset.postId, dragTarget.getAttribute('data-reaction-type'), picker.dataset.currentReaction);
-      }
-      return;
-    }
-    if (p && reactBtn && p.kind === 'react' && !p.fired) {
-      const postId = reactBtn.getAttribute('data-id');
-      const current = reactBtn.getAttribute('data-reaction') || '';
-      if (current) removeReaction(postId);
-      else setReaction(postId, 'like');
-    }
-  });
-
-  document.getElementById('feed').addEventListener('pointercancel', function(e) {
-    cancelPress(e.pointerId);
-    clearReactionDragHover();
-  });
-
   window.addEventListener('scroll', function() {
-    cancelAllPresses();
-    clearReactionDragHover();
     hideReactionPicker();
     hideContextMenu();
   }, { passive: true, capture: true });

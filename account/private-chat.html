@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Messages — Global Market School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy-deep:#0b1b33; --navy-mid:#12233f; --ivory:#f4efe0; --paper:#faf7ee;
+  --gold:#b28e4c; --gold-bright:#d6b568; --hair:rgba(178,142,76,0.28);
+  --ink:#1c2333; --ink-soft:#4a5468; --good:#3f7a5c; --bad:#8a3b2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{overflow-x:hidden; max-width:100%;}
+body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:var(--ink); line-height:1.6;}
+a{color:inherit;}
+.wrap{max-width:640px;margin:0 auto;padding:0 24px;}
+header{background:var(--navy-deep); border-bottom:1px solid var(--hair);}
+.brand-row{display:flex; align-items:center; justify-content:space-between; padding-top:22px; padding-bottom:22px; flex-wrap:wrap; gap:8px 12px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13.5px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
+.brand .mark{width:28px;height:28px;border-radius:50%; border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:8.7px; color:var(--gold); letter-spacing:-0.2px;}
+.back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
+
+.page-head{padding:36px 0 8px;}
+.eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,32px); color:var(--navy-deep);}
+.page-head p{font-size:15px; color:var(--ink-soft); margin-top:8px; max-width:46ch;}
+
+main{padding:20px 0 60px;}
+.empty-note{color:var(--ink-soft); font-size:14px; padding:14px 0;}
+
+/* Conversation list */
+.conv-list{display:flex; flex-direction:column; gap:10px;}
+.conv-card{
+  background:#fff; border:1px solid var(--hair); padding:14px 16px;
+  display:flex; align-items:center; gap:14px; cursor:pointer;
+}
+.conv-card:hover{border-color:var(--gold);}
+.conv-avatar{
+  width:44px; height:44px; border-radius:50%; flex-shrink:0; overflow:hidden;
+  background:var(--navy-deep); color:var(--gold-bright); display:flex; align-items:center; justify-content:center;
+  font-family:'Cinzel', serif; font-size:16px;
+}
+.conv-avatar img{width:100%; height:100%; object-fit:cover;}
+.conv-info{flex:1; min-width:0;}
+.conv-info h3{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:18px; color:var(--navy-deep);}
+.conv-info p{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+
+/* Thread view */
+.thread-view{display:none;}
+.thread-view.open{display:block;}
+.thread-head{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+.thread-head .conv-avatar{width:38px; height:38px; font-size:14px;}
+.thread-head h2{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:21px; color:var(--navy-deep); flex:1; min-width:0;}
+.back-btn{
+  font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase;
+  background:none; color:var(--ink-soft); border:1px solid var(--hair); padding:8px 14px; cursor:pointer;
+}
+.back-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
+.privacy-note{
+  font-size:12px; color:var(--ink-soft); background:var(--paper); border:1px solid var(--hair);
+  padding:9px 12px; margin-bottom:14px;
+}
+.thread-messages{
+  background:#fff; border:1px solid var(--hair); height:420px; overflow-y:auto;
+  padding:16px 18px; display:flex; flex-direction:column; gap:12px; margin-bottom:14px;
+}
+.thread-msg{max-width:80%;}
+.thread-msg .msg-bubble{background:var(--paper); border-radius:14px; padding:8px 13px; font-size:14.5px; color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+.thread-msg.mine{align-self:flex-end;}
+.thread-msg.mine .msg-bubble{background:var(--navy-deep); color:var(--ivory);}
+.thread-msg .msg-time{font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+.thread-msg.mine .msg-time{text-align:right;}
+.thread-empty{color:var(--ink-soft); font-size:14px; text-align:center; padding:40px 0;}
+.thread-composer{display:flex; gap:8px;}
+.thread-composer textarea{flex:1; min-height:44px; max-height:120px; padding:11px 14px; font-family:'EB Garamond', serif; font-size:15px; border:1px solid var(--hair); background:#fff; color:var(--ink); resize:vertical;}
+.thread-composer button{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; background:var(--navy-deep); color:var(--ivory); border:none; padding:0 20px; cursor:pointer;}
+.thread-composer button:hover{background:var(--gold); color:var(--navy-deep);}
+.thread-composer button:disabled{opacity:0.5; cursor:not-allowed;}
+
+.loading{text-align:center; padding:60px 0; color:var(--ink-soft);}
+footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:center; padding:24px 0; font-size:12px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Loading Private Messages...</div>
+
+<div id="page-content" style="display:none;">
+<header>
+  <div class="wrap brand-row">
+    <a href="../index.html" class="brand"><span class="mark">GMS</span>Global Market School</a>
+    <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <p class="eyebrow">Community</p>
+    <h1>Private Messages</h1>
+    <p>Message another student directly. Conversations are encrypted, and may be reviewed by Global Market School for safety.</p>
+  </div>
+
+  <main>
+    <div id="list-view">
+      <div class="conv-list" id="conv-list"></div>
+      <p class="empty-note" id="conv-empty" style="display:none;">No conversations yet. Tap "Message" on someone's post in Global Chat to start one.</p>
+    </div>
+
+    <div class="thread-view" id="thread-view">
+      <div class="thread-head">
+        <button type="button" class="back-btn" id="leave-thread-btn">&larr; Back</button>
+        <div class="conv-avatar" id="thread-avatar"></div>
+        <h2 id="thread-name"></h2>
+      </div>
+      <p class="privacy-note">Messages here are encrypted and may be reviewed by Global Market School for safety.</p>
+      <div class="thread-messages" id="thread-messages"></div>
+      <div class="thread-composer">
+        <textarea id="thread-text" placeholder="Write a message..." maxlength="2000"></textarea>
+        <button type="button" id="thread-send-btn" disabled>Send</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>&copy; 2026 Global Market School Ltd.</footer>
+</div>
+
+<script>
+  const API_BASE = 'https://global-market-school.vercel.app/api/private-chat';
+
+  const supabaseClient = supabase.createClient(
+    'https://djkctbtxnpdkstvznjlf.supabase.co',
+    'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
+  );
+
+  let currentUserId = null;
+  let currentThreadOtherId = null;
+  let currentConversationId = null;
+  let threadPollTimer = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  function timeAgo(isoString) {
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    return days + 'd ago';
+  }
+
+  function showToast(text) {
+    const el = document.createElement('div');
+    el.textContent = text;
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy-deep);color:var(--ivory);padding:11px 20px;font-size:13.5px;border:1px solid var(--gold);z-index:95;max-width:88vw;text-align:center;';
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 3000);
+  }
+
+  function avatarHtml(name, url) {
+    return url ? '<img src="' + escapeHtml(url) + '" alt="">' : escapeHtml((name || 'Student').charAt(0).toUpperCase());
+  }
+
+  async function callApi(action, extra) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return { error: 'Not signed in' }; }
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ access_token: session.access_token, action: action }, extra || {}))
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { error: (result && result.error) || 'Something went wrong. Please try again.' };
+      }
+      return result;
+    } catch (err) {
+      return { error: 'Could not reach the chat service. Please try again.' };
+    }
+  }
+
+  async function init() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+    currentUserId = session.user.id;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page-content').style.display = 'block';
+
+    const conversations = await loadConversations();
+
+    // Deep link from Global Chat's "Message" action: ?user=<id>&name=<name>&avatar=<url>
+    const params = new URLSearchParams(window.location.search);
+    const targetUser = params.get('user');
+    if (targetUser && targetUser !== currentUserId) {
+      const targetName = params.get('name') || 'Student';
+      const targetAvatar = params.get('avatar') || null;
+      const existing = (conversations || []).find(function(c) { return c.other_user_id === targetUser; });
+      if (existing) {
+        openThread(existing.other_user_id, existing.other_name, existing.other_avatar_url, existing.conversation_id);
+      } else {
+        openThread(targetUser, targetName, targetAvatar, null);
+      }
+      history.replaceState(null, '', 'private-chat.html');
+    }
+  }
+
+  function conversationCardHtml(c) {
+    return (
+      '<div class="conv-card" data-user="' + c.other_user_id + '" data-name="' + escapeHtml(c.other_name) + '" data-avatar="' + escapeHtml(c.other_avatar_url || '') + '" data-conv="' + c.conversation_id + '">' +
+        '<div class="conv-avatar">' + avatarHtml(c.other_name, c.other_avatar_url) + '</div>' +
+        '<div class="conv-info"><h3>' + escapeHtml(c.other_name) + '</h3><p>' + timeAgo(c.last_message_at) + '</p></div>' +
+      '</div>'
+    );
+  }
+
+  async function loadConversations() {
+    const result = await callApi('list');
+    if (result.error) {
+      showToast(result.error);
+      return [];
+    }
+    const conversations = result.conversations || [];
+    const list = document.getElementById('conv-list');
+    list.innerHTML = conversations.map(conversationCardHtml).join('');
+    document.getElementById('conv-empty').style.display = conversations.length ? 'none' : 'block';
+
+    list.querySelectorAll('.conv-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        openThread(card.dataset.user, card.dataset.name, card.dataset.avatar || null, card.dataset.conv);
+      });
+    });
+
+    return conversations;
+  }
+
+  // ---- Thread view ----
+
+  function openThread(otherId, otherName, otherAvatar, conversationId) {
+    currentThreadOtherId = otherId;
+    currentConversationId = conversationId || null;
+
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('thread-view').classList.add('open');
+    document.getElementById('thread-name').textContent = otherName || 'Student';
+    document.getElementById('thread-avatar').innerHTML = avatarHtml(otherName, otherAvatar);
+
+    const box = document.getElementById('thread-messages');
+    box.innerHTML = '';
+    box.dataset.count = '0';
+
+    if (currentConversationId) {
+      loadThreadMessages();
+      if (threadPollTimer) clearInterval(threadPollTimer);
+      threadPollTimer = setInterval(loadThreadMessages, 5000);
+    } else {
+      box.innerHTML = '<p class="thread-empty">Send a message to start the conversation.</p>';
+    }
+  }
+
+  function closeThread() {
+    currentThreadOtherId = null;
+    currentConversationId = null;
+    if (threadPollTimer) { clearInterval(threadPollTimer); threadPollTimer = null; }
+    document.getElementById('thread-view').classList.remove('open');
+    document.getElementById('list-view').style.display = 'block';
+    loadConversations();
+  }
+  document.getElementById('leave-thread-btn').addEventListener('click', closeThread);
+
+  async function loadThreadMessages() {
+    if (!currentConversationId) return;
+    const result = await callApi('messages', { conversation_id: currentConversationId });
+    if (result.error) return;
+
+    const messages = result.messages || [];
+    const box = document.getElementById('thread-messages');
+    // Don't fight the user's scroll position/typing on every poll --
+    // only re-render if the message count actually changed.
+    const prevCount = Number(box.dataset.count || 0);
+    if (messages.length === prevCount) return;
+    box.dataset.count = messages.length;
+
+    if (!messages.length) {
+      box.innerHTML = '<p class="thread-empty">Send a message to start the conversation.</p>';
+      return;
+    }
+
+    box.innerHTML = messages.map(function(m) {
+      const mine = m.sender_id === currentUserId;
+      return (
+        '<div class="thread-msg' + (mine ? ' mine' : '') + '">' +
+          '<div class="msg-bubble">' + escapeHtml(m.content) + '</div>' +
+          '<div class="msg-time">' + timeAgo(m.created_at) + '</div>' +
+        '</div>'
+      );
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  const threadText = document.getElementById('thread-text');
+  const threadSendBtn = document.getElementById('thread-send-btn');
+  threadText.addEventListener('input', function() {
+    threadSendBtn.disabled = !threadText.value.trim();
+  });
+
+  threadSendBtn.addEventListener('click', async function() {
+    const content = threadText.value.trim();
+    if (!content || !currentThreadOtherId) return;
+
+    threadSendBtn.disabled = true;
+    const result = await callApi('send', { recipient_id: currentThreadOtherId, content: content });
+
+    if (!result.error) {
+      threadText.value = '';
+      if (!currentConversationId) {
+        currentConversationId = result.conversation_id;
+      }
+      document.getElementById('thread-messages').dataset.count = '-1'; // force re-render
+      if (!threadPollTimer) {
+        threadPollTimer = setInterval(loadThreadMessages, 5000);
+      }
+      await loadThreadMessages();
+    } else {
+      showToast(result.error);
+    }
+    threadSendBtn.disabled = !threadText.value.trim();
+  });
+
+  init();
+</script>
+</body>
+</html>
