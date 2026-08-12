@@ -1306,6 +1306,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     let html = '<button data-action="copy">Copy</button>';
     html += '<button data-action="paste">Paste</button>';
+    if (!isOwn) html += '<button data-action="message">Message</button>';
     if (!isOwn) html += '<button data-action="report">Report</button>';
     if (canDelete(post)) html += '<button class="danger" data-action="delete">Delete</button>';
 
@@ -1351,6 +1352,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       } catch (err) {
         showToast('Paste not available on this device.');
       }
+    } else if (action === 'message') {
+      if (blockedByBan()) return;
+      const displayName = post.author_is_admin ? ADMIN_DISPLAY_NAME : (post.author_name || 'Student');
+      const params = new URLSearchParams({ user: post.user_id, name: displayName });
+      if (!post.author_is_admin && post.author_avatar_url) params.set('avatar', post.author_avatar_url);
+      window.location.href = 'private-chat.html?' + params.toString();
     } else if (action === 'report') {
       const { error } = await supabaseClient.from('global_chat_reports').insert({ post_id: postId, reporter_id: currentUserId });
       if (error) {
