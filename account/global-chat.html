@@ -155,6 +155,15 @@ section{padding:24px 0;}
 }
 .like-badge-icon span:first-child{margin-left:0;}
 .counts-summary{display:flex; gap:12px;}
+/* The like/comment/share figures are the only thing visible by
+   default -- who actually reacted or shared, and the comment thread
+   itself, all stay tucked away until someone taps the number to go
+   look, same as tapping a count on Facebook. */
+.likes-summary-btn, .count-btn{
+  background:none; border:none; padding:0; margin:0; font:inherit; color:inherit; cursor:pointer;
+  display:flex; align-items:center; gap:6px; touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+.likes-summary-btn:hover, .count-btn:hover{text-decoration:underline;}
 
 .post-actions-bar{display:flex; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); margin-top:10px;}
 .action-btn{
@@ -165,7 +174,11 @@ section{padding:24px 0;}
 .action-btn:hover{background:var(--paper);}
 .action-btn.liked{color:var(--gold);}
 
-.replies{margin-top:14px; padding-left:14px; border-left:2px solid var(--hair); display:flex; flex-direction:column; gap:10px;}
+/* Hidden until the comment count or the Comment button is tapped --
+   both the existing thread and the box to write a new one appear
+   together at that point, not before. */
+.replies{display:none; margin-top:14px; padding-left:14px; border-left:2px solid var(--hair); flex-direction:column; gap:10px;}
+.replies.open{display:flex;}
 .replies:empty{margin-top:0; border-left:none;}
 
 /* Comments (replies) skip the card look entirely -- a small rounded
@@ -292,6 +305,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .modal-btn.confirm:hover{background:var(--gold); color:var(--navy-deep); border-color:var(--gold);}
 .modal-btn.confirm.danger{background:var(--bad); border-color:var(--bad);}
 .modal-btn.confirm.danger:hover{background:#a8483a; border-color:#a8483a;}
+
+/* "Who reacted" / "Who shared" -- a plain scrollable name list, opened
+   by tapping the like or share count on a post. */
+.list-modal-body{max-height:50vh; overflow-y:auto; margin:-4px 0 14px; display:flex; flex-direction:column;}
+.list-modal-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--hair);}
+.list-modal-row:last-child{border-bottom:none;}
+.list-modal-name{font-size:14.5px; color:var(--ink); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.list-modal-reaction{font-size:16px; flex-shrink:0;}
+.list-modal-empty{color:var(--ink-soft); font-size:14px; text-align:center; padding:20px 0;}
 </style>
 </head>
 <body>
@@ -392,6 +414,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <div class="modal-actions">
       <button type="button" class="modal-btn cancel" id="modal-cancel">Cancel</button>
       <button type="button" class="modal-btn confirm" id="modal-confirm">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="list-modal-overlay">
+  <div class="modal-box">
+    <p class="modal-title" id="list-modal-title"></p>
+    <div class="list-modal-body" id="list-modal-body"></div>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="list-modal-close">Close</button>
     </div>
   </div>
 </div>
@@ -516,6 +548,44 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       if (opts.showInput) input.focus();
     });
   }
+
+  // "Who reacted" / "Who shared" -- a plain name list, opened by
+  // tapping the like or share count on a post. `withReaction` controls
+  // whether each row shows the person's reaction emoji (likes) or not
+  // (shares, which don't have one).
+  function openListModal(title, rows, withReaction) {
+    document.getElementById('list-modal-title').textContent = title;
+    const body = document.getElementById('list-modal-body');
+
+    if (!rows.length) {
+      body.innerHTML = '<p class="list-modal-empty">Nobody yet.</p>';
+    } else {
+      body.innerHTML = rows.map(function(r) {
+        const name = r.author_is_admin ? ADMIN_DISPLAY_NAME : (r.author_name || 'Student');
+        const avatar = r.author_is_admin
+          ? '<span class="admin-avatar-mark">GMS</span>'
+          : (r.author_avatar_url ? '<img src="' + escapeHtml(r.author_avatar_url) + '" alt="">' : escapeHtml(name.charAt(0).toUpperCase()));
+        const reactionEmoji = withReaction && r.reaction ? reactionMeta(r.reaction).emoji : '';
+        return (
+          '<div class="list-modal-row">' +
+            '<span class="post-avatar">' + avatar + '</span>' +
+            '<span class="list-modal-name">' + escapeHtml(name) + '</span>' +
+            (reactionEmoji ? '<span class="list-modal-reaction">' + reactionEmoji + '</span>' : '') +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    document.getElementById('list-modal-overlay').classList.add('show');
+  }
+
+  function closeListModal() {
+    document.getElementById('list-modal-overlay').classList.remove('show');
+  }
+  document.getElementById('list-modal-close').addEventListener('click', closeListModal);
+  document.getElementById('list-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeListModal();
+  });
 
   function formatCount(n) {
     n = n || 0;
@@ -744,10 +814,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           mediaHtml + quoteHtml +
         '</div>' +
         '<div class="engagement-summary">' +
-          '<span class="likes-summary">' + (totalReactions ? '<span class="like-badge-icon">' + topReactionEmojis + '</span>' + formatCount(totalReactions) : '') + '</span>' +
+          (totalReactions
+            ? '<button type="button" class="likes-summary likes-summary-btn" data-id="' + post.id + '"><span class="like-badge-icon">' + topReactionEmojis + '</span>' + formatCount(totalReactions) + '</button>'
+            : '<span class="likes-summary"></span>') +
           '<span class="counts-summary">' +
-            (commentCount ? '<span>&#128172; ' + formatCount(commentCount) + '</span>' : '') +
-            (shareCount ? '<span>&#8599; ' + formatCount(shareCount) + '</span>' : '') +
+            (commentCount ? '<button type="button" class="count-btn comment-toggle" data-id="' + post.id + '">&#128172; ' + formatCount(commentCount) + '</button>' : '') +
+            (shareCount ? '<button type="button" class="count-btn share-count-btn" data-id="' + post.id + '">&#8599; ' + formatCount(shareCount) + '</button>' : '') +
           '</span>' +
         '</div>' +
         '<div class="post-actions-bar">' +
@@ -820,8 +892,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
 
     const [{ data: likes }, { data: shares }] = await Promise.all([
-      supabaseClient.from('global_chat_likes').select('post_id, user_id, reaction'),
-      supabaseClient.from('global_chat_shares').select('post_id, user_id')
+      supabaseClient.from('global_chat_likes').select('post_id, user_id, reaction, author_name, author_avatar_url, author_is_admin'),
+      supabaseClient.from('global_chat_shares').select('post_id, user_id, author_name, author_avatar_url, author_is_admin')
     ]);
 
     postsById = {};
@@ -851,6 +923,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const openReplyBoxes = new Set(
       Array.from(document.querySelectorAll('.reply-box.open')).map(function(el) { return el.id; })
     );
+    const openReplies = new Set(
+      Array.from(document.querySelectorAll('.replies.open')).map(function(el) { return el.id; })
+    );
 
     // This runs on every reaction/comment/share, on a delete, and on a
     // 20-second timer while the tab just sits open -- any of which can
@@ -876,15 +951,46 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       const box = document.getElementById(id);
       if (box) box.classList.add('open');
     });
+    openReplies.forEach(function(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('open');
+    });
 
     wireFeedEvents();
+  }
+
+  // Shared by the "Comment" action button, the clickable comment count,
+  // and each comment's own "Reply" link (for opening a nested reply) --
+  // whichever one is tapped, the existing thread and the box to write
+  // into it open together, since there'd otherwise be nowhere to see
+  // what you're replying to.
+  function toggleComments(postId) {
+    const box = document.getElementById('reply-box-' + postId);
+    const replies = document.getElementById('replies-' + postId);
+    if (!box) return;
+    const opening = !box.classList.contains('open');
+    box.classList.toggle('open', opening);
+    if (replies) replies.classList.toggle('open', opening);
   }
 
   function wireFeedEvents() {
     document.querySelectorAll('.comment-toggle').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        const box = document.getElementById('reply-box-' + btn.getAttribute('data-id'));
-        box.classList.toggle('open');
+        toggleComments(btn.getAttribute('data-id'));
+      });
+    });
+
+    document.querySelectorAll('.likes-summary-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const postId = btn.getAttribute('data-id');
+        openListModal('Reactions', likesByPost[postId] || [], true);
+      });
+    });
+
+    document.querySelectorAll('.share-count-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const postId = btn.getAttribute('data-id');
+        openListModal('Shared by', sharesByPost[postId] || [], false);
       });
     });
 
@@ -936,7 +1042,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         try {
           const { error: shareLogError } = await supabaseClient
             .from('global_chat_shares')
-            .insert({ post_id: postId, user_id: currentUserId });
+            .insert({
+              post_id: postId,
+              user_id: currentUserId,
+              author_name: currentIsAdmin ? ADMIN_DISPLAY_NAME : currentUserName,
+              author_avatar_url: currentIsAdmin ? null : currentUserAvatarUrl,
+              author_is_admin: currentIsAdmin
+            });
           if (shareLogError) console.error('Share log insert failed:', shareLogError.message);
 
           const { error } = await supabaseClient.from('global_chat_posts').insert({
@@ -996,7 +1108,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   async function setReaction(postId, type) {
     if (blockedByBan()) return;
     await supabaseClient.from('global_chat_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
-    await supabaseClient.from('global_chat_likes').insert({ post_id: postId, user_id: currentUserId, reaction: type });
+    await supabaseClient.from('global_chat_likes').insert({
+      post_id: postId,
+      user_id: currentUserId,
+      reaction: type,
+      author_name: currentIsAdmin ? ADMIN_DISPLAY_NAME : currentUserName,
+      author_avatar_url: currentIsAdmin ? null : currentUserAvatarUrl,
+      author_is_admin: currentIsAdmin
+    });
     await loadFeed();
   }
 
