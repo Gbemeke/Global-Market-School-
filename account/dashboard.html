@@ -593,11 +593,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           <input type="text" id="referral-link" readonly>
           <button class="copy-btn" id="copy-referral">Copy</button>
         </div>
-        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 10% commission whenever someone you refer completes a paid enrollment.</p>
+        <p style="font-size:14.5px; color:var(--ink-soft);">Share your link above — earn 10% commission whenever someone you refer completes a paid enrollment. This applies to every account, unchanged, and stays valid for withdrawal.</p>
         <div class="earnings-stat">
           <div><p>Referrals</p><p id="referral-count">0</p></div>
           <div><p>Earning</p><p id="referral-earning">$0</p></div>
         </div>
+        <p id="signup-bonus-note" style="font-size:13px; color:var(--ink-soft); margin-top:12px; padding-top:12px; border-top:1px solid var(--hair); display:none;"></p>
         <div class="earnings-actions">
           <a href="withdrawal.html" class="earnings-btn" id="withdrawal-btn">Withdrawal</a>
           <a href="#tier-grid" class="earnings-btn earnings-btn-alt" id="invest-btn">Invest in a Course</a>
@@ -1002,6 +1003,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('join-fab').style.display = unlockedTierKeys.length ? '' : 'none';
 
     await loadReferralBalances(userId);
+    renderSignupBonusNote(profile);
 
     await refreshMfaStatus();
 
@@ -1032,11 +1034,17 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   async function loadReferralBalances(userId) {
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
-      .select('commission_amount, currency')
+      .select('commission_amount, currency, referred_user_id')
       .eq('referrer_id', userId);
 
     const rows = earnings || [];
-    document.getElementById('referral-count').textContent = rows.length;
+
+    // The $5 signup referral bonus (granted after a student's 3rd
+    // successful referral) is inserted as a referred_user_id = null row
+    // -- it's real money in the Earning total, but it isn't itself "a
+    // referral", so it must not inflate the Referrals count.
+    const referralRows = rows.filter(function(e) { return e.referred_user_id !== null; });
+    document.getElementById('referral-count').textContent = referralRows.length;
 
     const byCurrency = {};
     rows.forEach(function(e) {
@@ -1045,6 +1053,31 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     const best = Object.entries(byCurrency).sort(function(a, b) { return b[1] - a[1]; })[0];
     document.getElementById('referral-earning').textContent = best ? formatTickerAmount(best[0], best[1]) : '$0';
+  }
+
+  // Explains the two separate $5 signup bonuses, only once there's
+  // something live to report: an unspent course-purchase credit, and/or
+  // an unlocked-but-not-yet-granted referral bonus still waiting on
+  // more referrals. Once a bonus is spent/granted it naturally stops
+  // showing here (the underlying column drops to 0).
+  function renderSignupBonusNote(profile) {
+    const credit = Number(profile.signup_course_credit || 0);
+    const pendingBonus = Number(profile.signup_referral_bonus || 0);
+    const note = document.getElementById('signup-bonus-note');
+    if (!(credit > 0 || pendingBonus > 0)) return;
+
+    const parts = [];
+    if (credit > 0) {
+      parts.push('a $' + credit.toFixed(0) + ' signup credit ready to use instantly at checkout toward any course');
+    }
+    if (pendingBonus > 0) {
+      parts.push('a further $' + pendingBonus.toFixed(0) + ' signup bonus that unlocks for withdrawal once 3 people you refer complete a paid enrollment');
+    }
+    // Explicit on purpose: this bonus program is additional, not a
+    // replacement -- existing accounts keep every dollar of 10%
+    // referral commission already earned, still fully withdrawable.
+    note.textContent = 'You have ' + parts.join(', and ') + '. This is in addition to your 10% referral commission, which remains fully valid for withdrawal.';
+    note.style.display = 'block';
   }
 
   document.getElementById('copy-referral').addEventListener('click', function() {

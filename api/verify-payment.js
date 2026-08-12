@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ verified: false, error: "Method not allowed" });
   }
 
-  const { transaction_id, expected_amount, expected_currency, user_id, tier } = req.body || {};
+  const { transaction_id, expected_amount, expected_currency, user_id, tier, applied_signup_credit } = req.body || {};
 
   if (!transaction_id) {
     return res.status(400).json({ verified: false, error: "Missing transaction_id" });
@@ -119,11 +119,12 @@ export default async function handler(req, res) {
         }
 
         // 3. If this user was referred by someone, credit 10% commission
-        const profileRes = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user_id}&select=referred_by`, {
+        const profileRes = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user_id}&select=referred_by,signup_course_credit`, {
           headers: supabaseHeaders
         });
         const profileData = await profileRes.json();
         const referredBy = profileData && profileData[0] ? profileData[0].referred_by : null;
+        const realSignupCredit = profileData && profileData[0] ? Number(profileData[0].signup_course_credit || 0) : 0;
 
         if (referredBy && transactionRecord) {
           const commission = Number(tx.amount) * 0.10;
@@ -138,6 +139,31 @@ export default async function handler(req, res) {
               currency: tx.currency,
               paid_out: false
             })
+          });
+
+          // This purchase may be the buyer's referrer's 3rd successful
+          // referral -- check eligibility and grant the $5 signup
+          // referral bonus if so. The function itself re-checks
+          // everything from real committed data, so this call is safe
+          // to make on every referred purchase; it's a no-op otherwise.
+          await fetch(`${supabaseUrl}/rest/v1/rpc/grant_signup_referral_bonus_if_eligible`, {
+            method: "POST",
+            headers: supabaseHeaders,
+            body: JSON.stringify({ p_referrer_id: referredBy })
+          });
+        }
+
+        // 4. Consume the buyer's own $5 signup course-purchase credit,
+        // if any was applied at checkout. We never trust the client's
+        // claimed amount alone -- only ever deduct up to what the
+        // buyer's real, server-side balance actually holds.
+        const claimedCredit = Number(applied_signup_credit) || 0;
+        if (claimedCredit > 0 && realSignupCredit > 0) {
+          const consumed = Math.min(realSignupCredit, claimedCredit);
+          await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user_id}`, {
+            method: "PATCH",
+            headers: supabaseHeaders,
+            body: JSON.stringify({ signup_course_credit: realSignupCredit - consumed })
           });
         }
       } catch (dbErr) {
