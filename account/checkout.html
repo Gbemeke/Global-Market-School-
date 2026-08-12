@@ -94,6 +94,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <p>Email: <strong id="summary-email"></strong></p>
       <p style="margin-top:14px; padding-top:14px; border-top:1px solid var(--hair);">Program: <strong id="summary-tier"></strong></p>
       <p>Price: <strong id="summary-price"></strong></p>
+      <p id="summary-credit-row" style="display:none; color:var(--good);">Signup bonus credit: <strong id="summary-credit">&minus;$0.00</strong></p>
+      <p id="summary-total-row" style="display:none; margin-top:6px; padding-top:6px; border-top:1px solid var(--hair);">You pay: <strong id="summary-total"></strong></p>
     </div>
 
     <button class="pay-btn" id="pay-btn" disabled>Loading order details...</button>
@@ -141,6 +143,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentProfile = null;
   let selectedTier = null;
   let selectedPrice = null;
+  let signupCredit = 0;
+  let finalPrice = null;
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -288,15 +292,33 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     document.getElementById('summary-tier').textContent = TIER_PRICES[tierParam].label;
     document.getElementById('summary-price').textContent = '$' + selectedPrice.toLocaleString();
 
+    // The $5 signup bonus credit -- instantly usable on a student's own
+    // first purchase. Read straight from the profile row already loaded
+    // in init(); the server independently re-checks and consumes it on
+    // successful payment (see verify-payment.js), so this client-side
+    // number only ever controls what's *displayed* and what Flutterwave
+    // is asked to charge, never what actually gets marked as spent.
+    signupCredit = Math.min(Number((currentProfile && currentProfile.signup_course_credit) || 0), selectedPrice);
+    finalPrice = selectedPrice - signupCredit;
+
+    if (signupCredit > 0) {
+      document.getElementById('summary-credit-row').style.display = 'block';
+      document.getElementById('summary-credit').textContent = '−$' + signupCredit.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('summary-total-row').style.display = 'block';
+      document.getElementById('summary-total').textContent = '$' + finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 });
+    }
+
     btn.disabled = false;
-    btn.textContent = 'Pay Now — $' + selectedPrice.toLocaleString();
+    btn.textContent = 'Pay Now — $' + finalPrice.toLocaleString(undefined, { minimumFractionDigits: finalPrice % 1 ? 2 : 0 });
   }
 
   document.getElementById('pay-btn').addEventListener('click', function() {
     if (!selectedTier || !currentUser) return;
 
     const country = (currentProfile && currentProfile.country) || '';
-    let checkoutAmount = selectedPrice;
+    // Charge the discounted price -- the signup course credit (if any)
+    // has already been subtracted into finalPrice by loadTierFromUrl().
+    let checkoutAmount = finalPrice;
     let checkoutCurrency = "USD";
     // Everyone outside the local-currency countries below still pays in
     // USD (we don't have a verified live exchange rate for every world
@@ -308,7 +330,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     if (AFRICA_CURRENCY[country]) {
       const local = AFRICA_CURRENCY[country];
-      checkoutAmount = Math.round(Number(selectedPrice) * local.rate);
+      checkoutAmount = Math.round(Number(finalPrice) * local.rate);
       checkoutCurrency = local.currency;
       checkoutOptions = local.options;
     }
@@ -344,6 +366,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
               expected_currency: checkoutCurrency,
               user_id: currentUser.id,
               tier: selectedTier,
+              // USD value of the signup course credit applied at checkout,
+              // if any -- the server independently re-checks the user's
+              // real balance before consuming it, this is only a hint.
+              applied_signup_credit: signupCredit > 0 ? signupCredit : 0,
             }),
           });
 
@@ -355,7 +381,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           } else {
             alert("We could not confirm your payment. If you were charged, please contact info@globalmarketschool.com with your transaction reference.");
             btn.disabled = false;
-            btn.textContent = 'Pay Now — $' + Number(selectedPrice).toLocaleString();
+            btn.textContent = 'Pay Now — $' + Number(finalPrice).toLocaleString();
           }
         } catch (err) {
           alert("We could not confirm your payment right now. Please contact info@globalmarketschool.com.");
