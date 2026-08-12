@@ -60,7 +60,7 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 .guidelines-link{display:inline-block; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none; border-bottom:1px solid var(--gold-bright);}
 .guidelines-link:hover{color:var(--ivory); border-color:var(--ivory);}
 
-.header-profile{position:absolute; top:58px; right:24px; display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center;}
+.header-profile{position:absolute; top:126px; right:24px; display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center;}
 .header-profile-pic{
   width:52px; height:52px; border-radius:50%; border:2px solid var(--gold-bright); background:var(--navy-mid);
   color:var(--gold-bright); font-family:'Cinzel', serif; font-size:18px; font-weight:600;
@@ -80,7 +80,7 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 }
 .scroll-top-btn:hover{background:var(--gold); color:var(--navy-deep);}
 @media (max-width:480px){
-  .header-profile{top:54px; right:16px; gap:5px;}
+  .header-profile{top:162px; right:16px; gap:5px;}
   .header-profile-pic{width:44px; height:44px; font-size:15px;}
   .header-profile-name{font-size:9.5px;}
   .scroll-top-btn{width:24px; height:24px; font-size:12px;}
@@ -293,6 +293,47 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--navy-deep); color:var(--ivory); padding:11px 20px; font-size:13.5px; border:1px solid var(--gold); z-index:95; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88vw; text-align:center;}
 .toast.show{opacity:1;}
 
+.chat-nav-bar{display:flex; gap:10px; padding-bottom:14px;}
+.chat-nav-btn{
+  flex:1; display:flex; align-items:center; justify-content:center; gap:7px;
+  font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  color:var(--ivory); background:rgba(244,239,224,0.06); border:1px solid var(--hair);
+  padding:11px 12px; text-decoration:none; position:relative;
+}
+.chat-nav-btn:hover{border-color:var(--gold); background:rgba(244,239,224,0.12);}
+.chat-nav-btn .nav-icon{font-size:14px;}
+.nav-badge{
+  position:absolute; top:-7px; right:-7px; min-width:18px; height:18px; border-radius:9px;
+  background:var(--bad); color:#fff; font-family:'EB Garamond', serif; font-size:11px; font-weight:600;
+  display:flex; align-items:center; justify-content:center; padding:0 5px; box-shadow:0 0 0 2px var(--navy-deep);
+}
+@media (max-width:480px){
+  .chat-nav-bar{gap:8px;}
+  .chat-nav-btn{font-size:9.5px; padding:9px 6px; gap:5px;}
+}
+
+/* Messenger-style popup for a new private message, distinct from the
+   plain text .toast -- has an avatar, name, and is clickable through
+   to the conversation, so it needs its own layout. */
+.dm-notify{
+  position:fixed; bottom:24px; right:16px; left:16px; max-width:360px; margin-left:auto;
+  background:#fff; border:1px solid var(--hair); border-left:4px solid var(--gold);
+  box-shadow:0 8px 24px rgba(11,27,51,0.25); padding:14px 16px; z-index:150; cursor:pointer;
+  display:flex; align-items:center; gap:12px;
+  transform:translateY(20px); opacity:0; pointer-events:none; transition:transform .25s ease, opacity .25s ease;
+}
+.dm-notify.show{transform:translateY(0); opacity:1; pointer-events:auto;}
+.dm-notify-avatar{
+  width:38px; height:38px; border-radius:50%; flex-shrink:0; overflow:hidden;
+  background:var(--navy-deep); color:var(--gold-bright); display:flex; align-items:center; justify-content:center;
+  font-family:'Cinzel', serif; font-size:14px;
+}
+.dm-notify-avatar img{width:100%; height:100%; object-fit:cover;}
+.dm-notify-body{flex:1; min-width:0;}
+.dm-notify-title{font-family:'Cinzel', serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:2px;}
+.dm-notify-text{font-size:13.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.dm-notify-close{background:none; border:none; color:var(--ink-soft); font-size:18px; line-height:1; cursor:pointer; padding:0 2px; flex-shrink:0;}
+
 /* Sits behind the reaction picker / context menu, invisible, covering
    the whole screen, whenever either is open. This is what actually
    makes them dismissable -- not guessing whether a given tap landed
@@ -382,6 +423,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       </div>
       <button class="logout-btn" id="logout-btn">Log Out</button>
     </div>
+    <div class="wrap chat-nav-bar">
+      <a href="private-chat.html" class="chat-nav-btn" id="messages-nav-btn">
+        <span class="nav-icon">&#128172;</span> Messages
+        <span class="nav-badge" id="messages-badge" style="display:none;">0</span>
+      </a>
+      <a href="meetings.html" class="chat-nav-btn">
+        <span class="nav-icon">&#128101;</span> Meetings
+      </a>
+    </div>
     <div class="wrap">
       <p class="chat-title-glow">Global Chat</p>
     </div>
@@ -431,6 +481,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="dm-notify" id="dm-notify">
+  <div class="dm-notify-avatar" id="dm-notify-avatar"></div>
+  <div class="dm-notify-body">
+    <p class="dm-notify-title">New Message</p>
+    <p class="dm-notify-text" id="dm-notify-text"></p>
+  </div>
+  <button type="button" class="dm-notify-close" id="dm-notify-close" aria-label="Dismiss">&times;</button>
+</div>
 <div class="popup-backdrop" id="popup-backdrop"></div>
 <div class="reaction-picker" id="reaction-picker"></div>
 <div class="context-menu" id="context-menu"></div>
@@ -462,6 +520,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'https://djkctbtxnpdkstvznjlf.supabase.co',
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
+
+  const PRIVATE_CHAT_API = 'https://global-market-school.vercel.app/api/private-chat';
 
   const REACTIONS = [
     { key: 'like',  emoji: '\u{1F44D}', label: 'Like' },
@@ -1528,6 +1588,73 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     } catch (e) { /* non-critical */ }
   }
 
+  // ---- Private Chat: unread badge + Messenger-style popup ----
+  //
+  // Polls the same api/private-chat.js "list" action the inbox page
+  // itself uses, on the same 20s cadence as the feed refresh. Only
+  // pops a notification for a conversation that just BECAME unread
+  // during this page's lifetime -- previousUnreadIds starts as null
+  // so the very first poll (which may already contain unread messages
+  // from before this page loaded) only seeds the badge, never a popup.
+  let previousUnreadIds = null;
+
+  async function pollPrivateMessages() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return;
+    try {
+      const res = await fetch(PRIVATE_CHAT_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session.access_token, action: 'list' })
+      });
+      if (!res.ok) return;
+      const result = await res.json();
+      const conversations = result.conversations || [];
+      const unreadNow = conversations.filter(function(c) { return c.unread; });
+      const unreadIdsNow = new Set(unreadNow.map(function(c) { return c.conversation_id; }));
+
+      const badge = document.getElementById('messages-badge');
+      if (unreadNow.length) {
+        badge.textContent = unreadNow.length > 9 ? '9+' : String(unreadNow.length);
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      if (previousUnreadIds) {
+        const newlyUnread = unreadNow.find(function(c) { return !previousUnreadIds.has(c.conversation_id); });
+        if (newlyUnread) showDmNotification(newlyUnread);
+      }
+      previousUnreadIds = unreadIdsNow;
+    } catch (err) {
+      // Silent -- this is a background poll, not a user-triggered action.
+    }
+  }
+
+  function showDmNotification(c) {
+    const el = document.getElementById('dm-notify');
+    document.getElementById('dm-notify-avatar').innerHTML = c.other_avatar_url
+      ? '<img src="' + escapeHtml(c.other_avatar_url) + '" alt="">'
+      : escapeHtml((c.other_name || 'Student').charAt(0).toUpperCase());
+    document.getElementById('dm-notify-text').textContent = c.other_name + ' sent you a message.';
+    el.dataset.user = c.other_user_id;
+    el.dataset.name = c.other_name;
+    el.dataset.avatar = c.other_avatar_url || '';
+    el.classList.add('show');
+    clearTimeout(showDmNotification._t);
+    showDmNotification._t = setTimeout(function() { el.classList.remove('show'); }, 8000);
+  }
+
+  document.getElementById('dm-notify').addEventListener('click', function(e) {
+    if (e.target.id === 'dm-notify-close') {
+      this.classList.remove('show');
+      return;
+    }
+    const params = new URLSearchParams({ user: this.dataset.user, name: this.dataset.name });
+    if (this.dataset.avatar) params.set('avatar', this.dataset.avatar);
+    window.location.href = 'private-chat.html?' + params.toString();
+  });
+
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
@@ -1591,11 +1718,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     await loadFeed();
     startPresence();
     markChatAsSeen();
+    pollPrivateMessages();
 
     document.getElementById('rules-gate').style.display = 'none';
     document.getElementById('chat-page').style.display = 'block';
 
-    refreshTimer = setInterval(function() { loadFeed(); markChatAsSeen(); }, 20000);
+    refreshTimer = setInterval(function() { loadFeed(); markChatAsSeen(); pollPrivateMessages(); }, 20000);
   }
 
   document.getElementById('rules-agree-checkbox').addEventListener('change', function(e) {
