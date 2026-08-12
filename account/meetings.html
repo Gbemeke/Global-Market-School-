@@ -29,11 +29,17 @@ header{background:var(--navy-deep); border-bottom:1px solid var(--hair);}
 .eyebrow{font-family:'Cinzel', serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
 .page-head h1{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,4vw,32px); color:var(--navy-deep);}
 .page-head p{font-size:15px; color:var(--ink-soft); margin-top:8px; max-width:46ch;}
+.page-head-actions{display:flex; gap:10px; flex-wrap:wrap;}
 .create-btn{
   flex-shrink:0; font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
   background:var(--navy-deep); color:var(--ivory); border:1px solid var(--navy-deep); padding:12px 20px; cursor:pointer;
 }
 .create-btn:hover{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.join-code-btn{
+  flex-shrink:0; font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  background:none; color:var(--navy-deep); border:1px solid var(--gold); padding:12px 20px; cursor:pointer;
+}
+.join-code-btn:hover{background:var(--gold); color:var(--navy-deep);}
 
 main{padding:20px 0 60px;}
 .section-title{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-soft); margin:26px 0 12px;}
@@ -136,10 +142,26 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <h1>Chat Meetings</h1>
       <p>Join a general meeting hosted by Global Market School, or start your own private meeting for a smaller group.</p>
     </div>
-    <button type="button" class="create-btn" id="open-create-btn">+ Create Meeting</button>
+    <div class="page-head-actions">
+      <button type="button" class="join-code-btn" id="open-join-btn">Join with Code</button>
+      <button type="button" class="create-btn" id="open-create-btn">+ Create Meeting</button>
+    </div>
   </div>
 
   <main>
+    <div class="create-panel" id="join-panel">
+      <p style="font-size:14px; color:var(--ink-soft); margin-bottom:14px;">Enter the code someone shared with you to join their private meeting.</p>
+      <div class="field">
+        <label>Meeting Code</label>
+        <input type="text" id="join-code-input" maxlength="12" placeholder="e.g. AB3D9F" style="text-transform:uppercase;">
+      </div>
+      <p class="msg" id="join-msg"></p>
+      <div class="panel-actions">
+        <button type="button" class="panel-btn primary" id="join-submit-btn">Join Meeting</button>
+        <button type="button" class="panel-btn" id="join-cancel-btn">Cancel</button>
+      </div>
+    </div>
+
     <div class="create-panel" id="create-panel">
       <div class="field">
         <label>Title</label>
@@ -331,10 +353,66 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     });
   }
 
+  // ---- Join meeting by code ----
+  //
+  // The per-card "Join"/"Enter" buttons in wireJoinButtons() only work
+  // for meetings the student can already see -- but a private,
+  // code-gated meeting is invisible via RLS to anyone who isn't
+  // already the host/participant/admin, so someone who was just
+  // handed a code with nothing else had no way to reach it at all.
+  // This calls join_meeting_by_code(), which resolves a code straight
+  // to a meeting server-side (bypassing that same RLS check) and
+  // joins in one step.
+
+  const joinPanel = document.getElementById('join-panel');
+  document.getElementById('open-join-btn').addEventListener('click', function() {
+    closeCreatePanel();
+    joinPanel.classList.add('open');
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('join-code-input').focus();
+  });
+  document.getElementById('join-cancel-btn').addEventListener('click', function() {
+    closeJoinPanel();
+  });
+  function closeJoinPanel() {
+    joinPanel.classList.remove('open');
+    document.getElementById('list-view').style.display = 'block';
+    document.getElementById('join-code-input').value = '';
+    document.getElementById('join-msg').style.display = 'none';
+  }
+
+  document.getElementById('join-submit-btn').addEventListener('click', async function() {
+    const code = document.getElementById('join-code-input').value.trim();
+    const msg = document.getElementById('join-msg');
+    msg.style.display = 'none';
+
+    if (!code) {
+      msg.className = 'msg error';
+      msg.textContent = 'Please enter a code.';
+      return;
+    }
+
+    const btn = this;
+    btn.disabled = true;
+    const { data, error } = await supabaseClient.rpc('join_meeting_by_code', { p_code: code });
+    btn.disabled = false;
+
+    if (error) {
+      msg.className = 'msg error';
+      msg.textContent = error.message === 'Incorrect code' ? 'Incorrect code. Please check it and try again.' : (error.message || 'Could not join. Please try again.');
+      return;
+    }
+
+    closeJoinPanel();
+    await loadMeetings();
+    openRoom(data);
+  });
+
   // ---- Create meeting ----
 
   const createPanel = document.getElementById('create-panel');
   document.getElementById('open-create-btn').addEventListener('click', function() {
+    closeJoinPanel();
     createPanel.classList.add('open');
     document.getElementById('list-view').style.display = 'none';
   });
