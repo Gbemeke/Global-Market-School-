@@ -68,8 +68,11 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
   box-shadow:0 0 10px rgba(214,181,104,0.55);
 }
 .header-profile-pic img{width:100%; height:100%; object-fit:cover; display:block;}
-.header-profile-name{font-family:'Cinzel', serif; font-weight:600; font-size:11px; letter-spacing:0.5px; color:var(--gold-bright); max-width:110px; white-space:normal; word-break:break-word;}
-.header-profile-name .verified-badge{margin-left:3px;}
+.header-profile-name{
+  font-family:'Cinzel', serif; font-weight:600; font-size:11px; letter-spacing:0.5px; color:var(--gold-bright);
+  white-space:nowrap; display:flex; align-items:center; justify-content:center;
+}
+.header-profile-name .verified-badge{margin-left:3px; flex-shrink:0;}
 .scroll-top-btn{
   width:26px; height:26px; border-radius:50%; border:1px solid var(--gold); background:rgba(244,239,224,0.06);
   color:var(--gold-bright); font-size:13px; line-height:1; cursor:pointer; padding:0;
@@ -79,7 +82,7 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 @media (max-width:480px){
   .header-profile{top:54px; right:16px; gap:5px;}
   .header-profile-pic{width:44px; height:44px; font-size:15px;}
-  .header-profile-name{font-size:9.5px; max-width:88px;}
+  .header-profile-name{font-size:9.5px;}
   .scroll-top-btn{width:24px; height:24px; font-size:12px;}
 }
 
