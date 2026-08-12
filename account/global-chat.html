@@ -265,6 +265,12 @@ section{padding:24px 0;}
 .emoji-quickpicker button:hover{transform:scale(1.2);}
 
 .empty-note{text-align:center; color:var(--ink-soft); font-size:14px; padding:32px 0;}
+.load-older-btn{
+  display:block; margin:6px auto 0; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  background:none; border:1px solid var(--hair); color:var(--ink-soft); padding:11px 22px; cursor:pointer;
+}
+.load-older-btn:hover{border-color:var(--gold); color:var(--navy-deep);}
+.load-older-btn:disabled{opacity:0.5; cursor:not-allowed;}
 .loading{text-align:center; padding:80px 0; color:var(--ink-soft);}
 
 .rules-gate{display:none;}
@@ -474,6 +480,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     <section>
       <div class="feed" id="feed"></div>
       <p class="empty-note" id="empty-note" style="display:none;">No posts yet — be the first to share something.</p>
+      <button type="button" class="load-older-btn" id="load-older-btn" style="display:none;">Load Older Posts</button>
     </section>
   </div>
 
@@ -569,6 +576,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   let currentIsBanned = false;
   let refreshTimer = null;
   let presenceChannel = null;
+
+  // loadFeed() used to select('*') with no limit on every call -- the
+  // 20s poll re-downloaded the ENTIRE chat history to every open tab,
+  // a payload that only grows as the chat accumulates posts (already
+  // measured at ~19MB/user/hour on real numbers, against a 5GB/month
+  // total project bandwidth cap). Bounding each fetch to a window --
+  // "the most recent posts, plus however much further back this user
+  // has explicitly scrolled" -- keeps the query size roughly constant
+  // instead of unbounded by the whole platform's lifetime history.
+  const FEED_PAGE_SIZE = 30; // top-level posts per page
+  let loadedTopLevelLimit = FEED_PAGE_SIZE;
+  let hasMoreOlderPosts = false;
 
   // Rebuilt on every loadFeed() so the delegated handlers below can look
   // up post data without re-querying Supabase for every interaction.
@@ -978,20 +997,67 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   }
 
   async function loadFeed() {
-    const { data: posts, error } = await supabaseClient
+    // Fetch one more than the current window so we can tell whether
+    // there's still an older post beyond it (for the "Load Older
+    // Posts" button) without a separate count query.
+    const { data: topLevelPage, error: topLevelError } = await supabaseClient
       .from('global_chat_posts')
       .select('*')
-      .order('created_at', { ascending: false });
+      .is('parent_id', null)
+      .order('created_at', { ascending: false })
+      .limit(loadedTopLevelLimit + 1);
 
-    if (error) {
-      console.error('Failed to load chat:', error.message);
+    if (topLevelError) {
+      console.error('Failed to load chat:', topLevelError.message);
       return;
     }
 
-    const [{ data: likes }, { data: shares }] = await Promise.all([
-      supabaseClient.from('global_chat_likes').select('post_id, user_id, reaction, author_name, author_avatar_url, author_is_admin'),
-      supabaseClient.from('global_chat_shares').select('post_id, user_id, author_name, author_avatar_url, author_is_admin')
-    ]);
+    hasMoreOlderPosts = (topLevelPage || []).length > loadedTopLevelLimit;
+    const loadedTopLevel = (topLevelPage || []).slice(0, loadedTopLevelLimit);
+    const loadedTopLevelIds = loadedTopLevel.map(function(p) { return p.id; });
+
+    // Replies are only ever fetched for the top-level posts currently
+    // in view -- not the whole table -- so a reply to a post several
+    // pages back (that this user hasn't loaded) doesn't get pulled
+    // down until that page does. Comments can nest arbitrarily deep
+    // (a reply to a reply, etc. -- renderNode() recurses), and
+    // PostgREST has no recursive-CTE fetch from the client, so this
+    // walks down one level of the tree at a time until a level turns
+    // up nothing new. In practice thread depth is shallow (1-2 levels)
+    // so this is a couple of small, tightly-scoped extra round trips,
+    // not an unbounded one.
+    let replies = [];
+    let frontierIds = loadedTopLevelIds;
+    const seenReplyIds = new Set();
+    while (frontierIds.length) {
+      const { data: levelRows, error: replyError } = await supabaseClient
+        .from('global_chat_posts')
+        .select('*')
+        .in('parent_id', frontierIds);
+      if (replyError) {
+        console.error('Failed to load replies:', replyError.message);
+        return;
+      }
+      const newRows = (levelRows || []).filter(function(r) { return !seenReplyIds.has(r.id); });
+      if (!newRows.length) break;
+      newRows.forEach(function(r) { seenReplyIds.add(r.id); });
+      replies = replies.concat(newRows);
+      frontierIds = newRows.map(function(r) { return r.id; });
+    }
+
+    const posts = loadedTopLevel.concat(replies);
+    const allPostIds = posts.map(function(p) { return p.id; });
+
+    // Likes/shares scoped to exactly the posts on screen, same reason.
+    let likes = [], shares = [];
+    if (allPostIds.length) {
+      const [likesRes, sharesRes] = await Promise.all([
+        supabaseClient.from('global_chat_likes').select('post_id, user_id, reaction, author_name, author_avatar_url, author_is_admin').in('post_id', allPostIds),
+        supabaseClient.from('global_chat_shares').select('post_id, user_id, author_name, author_avatar_url, author_is_admin').in('post_id', allPostIds)
+      ]);
+      likes = likesRes.data || [];
+      shares = sharesRes.data || [];
+    }
 
     postsById = {};
     (posts || []).forEach(function(p) { postsById[p.id] = p; });
@@ -1064,6 +1130,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     topLevel.forEach(function(post) {
       feed.appendChild(renderNode(post, 0));
     });
+
+    const loadOlderBtn = document.getElementById('load-older-btn');
+    loadOlderBtn.style.display = hasMoreOlderPosts ? 'block' : 'none';
+    loadOlderBtn.disabled = false;
+    loadOlderBtn.textContent = 'Load Older Posts';
 
     openReplyBoxes.forEach(function(id) {
       const box = document.getElementById(id);
@@ -1559,6 +1630,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   document.getElementById('scroll-top-btn').addEventListener('click', function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.getElementById('load-older-btn').addEventListener('click', async function() {
+    this.disabled = true;
+    this.textContent = 'Loading...';
+    loadedTopLevelLimit += FEED_PAGE_SIZE;
+    await loadFeed();
   });
 
   function startPresence() {
