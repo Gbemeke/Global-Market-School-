@@ -1002,7 +1002,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     // screen with it until they actually have a class to join.
     document.getElementById('join-fab').style.display = unlockedTierKeys.length ? '' : 'none';
 
-    await loadReferralBalances(userId);
+    await loadReferralBalances(userId, profile);
     renderSignupBonusNote(profile);
 
     await refreshMfaStatus();
@@ -1031,7 +1031,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // requesting a withdrawal now lives on its own page (withdrawal.html),
   // linked from the button next to this box -- this function is purely
   // a read-out.
-  async function loadReferralBalances(userId) {
+  async function loadReferralBalances(userId, profile) {
     const { data: earnings } = await supabaseClient
       .from('referral_earnings')
       .select('commission_amount, currency, referred_user_id')
@@ -1042,7 +1042,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     // The $5 signup referral bonus (granted after a student's 3rd
     // successful referral) is inserted as a referred_user_id = null row
     // -- it's real money in the Earning total, but it isn't itself "a
-    // referral", so it must not inflate the Referrals count.
+    // referral", so it must not inflate the Referrals count. This stays
+    // at 0 for a brand-new account regardless of the two $5 bonuses
+    // below -- neither one is a referral by itself.
     const referralRows = rows.filter(function(e) { return e.referred_user_id !== null; });
     document.getElementById('referral-count').textContent = referralRows.length;
 
@@ -1050,6 +1052,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     rows.forEach(function(e) {
       byCurrency[e.currency] = (byCurrency[e.currency] || 0) + Number(e.commission_amount);
     });
+
+    // The Earning tile also carries the face value of the two $5 signup
+    // bonuses, still sitting unused on the profile (both are USD). A
+    // brand-new account with no real earnings yet shows $10 here, not
+    // $0 -- but neither $5 is actually spendable/withdrawable until its
+    // own condition is met (a purchase for the credit, 3 referrals for
+    // the bonus), which is spelled out just below in the note. Spending
+    // the course credit removes it from this total (it was never real
+    // money, just a discount); the referral bonus being granted moves
+    // it from here into a real referral_earnings row instead, so the
+    // total itself doesn't drop -- only which part of it is "unlocked"
+    // changes. Do one of the two and this $10 becomes $5 of remaining
+    // unclaimed bonus (plus whatever real earnings now exist).
+    const unclaimedBonus = Number((profile && profile.signup_course_credit) || 0) +
+      Number((profile && profile.signup_referral_bonus) || 0);
+    if (unclaimedBonus > 0) {
+      byCurrency['USD'] = (byCurrency['USD'] || 0) + unclaimedBonus;
+    }
 
     const best = Object.entries(byCurrency).sort(function(a, b) { return b[1] - a[1]; })[0];
     document.getElementById('referral-earning').textContent = best ? formatTickerAmount(best[0], best[1]) : '$0';
