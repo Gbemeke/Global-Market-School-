@@ -20,15 +20,19 @@ body{font-family:'EB Garamond', Georgia, serif; background:var(--paper); color:v
 a{color:inherit;}
 .wrap{max-width:720px;margin:0 auto;padding:0 24px;}
 header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,0.15);}
-.brand-row{display:flex; align-items:center; justify-content:space-between; padding-top:16px; padding-bottom:16px; gap:12px; flex-wrap:wrap;}
+.brand-row{position:relative; display:flex; align-items:center; justify-content:space-between; padding-top:16px; padding-bottom:16px; gap:12px; flex-wrap:wrap;}
 .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--ivory); text-decoration:none;}
 .brand .mark{width:30px;height:30px;border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1.5px var(--gold);}
-.header-actions{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+.header-actions{display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding-right:96px;}
 .online-indicator{display:flex; align-items:center; gap:7px; font-family:'Cinzel', serif; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ivory); background:rgba(244,239,224,0.08); border:1px solid var(--hair); padding:6px 12px; border-radius:20px;}
 .online-dot{width:8px; height:8px; border-radius:50%; background:#3fbf6f; box-shadow:0 0 6px #3fbf6f; flex-shrink:0; animation:online-pulse 2s ease-in-out infinite;}
 @keyframes online-pulse{0%,100%{opacity:1;} 50%{opacity:0.45;}}
 .back-link{font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-bright); text-decoration:none;}
-.logout-btn{font-family:'Cinzel', serif; font-size:9px; letter-spacing:1px; text-transform:uppercase; background:none; border:1px solid var(--gold); color:var(--gold-bright); padding:5px 9px; cursor:pointer;}
+.logout-btn{
+  position:absolute; top:50%; right:24px; transform:translateY(-50%);
+  font-family:'Cinzel', serif; font-size:9px; letter-spacing:1px; text-transform:uppercase;
+  background:none; border:1px solid var(--gold); color:var(--gold-bright); padding:5px 9px; cursor:pointer;
+}
 @media (max-width:480px){
   .header-actions{gap:10px;}
   .online-indicator{padding:6px 9px; font-size:9.5px;}
@@ -64,7 +68,8 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
   box-shadow:0 0 10px rgba(214,181,104,0.55);
 }
 .header-profile-pic img{width:100%; height:100%; object-fit:cover; display:block;}
-.header-profile-name{font-family:'Cinzel', serif; font-weight:600; font-size:11px; letter-spacing:0.5px; color:var(--gold-bright); max-width:92px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.header-profile-name{font-family:'Cinzel', serif; font-weight:600; font-size:11px; letter-spacing:0.5px; color:var(--gold-bright); max-width:110px; white-space:normal; word-break:break-word;}
+.header-profile-name .verified-badge{margin-left:3px;}
 .scroll-top-btn{
   width:26px; height:26px; border-radius:50%; border:1px solid var(--gold); background:rgba(244,239,224,0.06);
   color:var(--gold-bright); font-size:13px; line-height:1; cursor:pointer; padding:0;
@@ -74,7 +79,7 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 @media (max-width:480px){
   .header-profile{top:54px; right:16px; gap:5px;}
   .header-profile-pic{width:44px; height:44px; font-size:15px;}
-  .header-profile-name{font-size:9.5px; max-width:74px;}
+  .header-profile-name{font-size:9.5px; max-width:88px;}
   .scroll-top-btn{width:24px; height:24px; font-size:12px;}
 }
 
@@ -320,8 +325,8 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <div class="header-actions">
         <span class="online-indicator"><span class="online-dot"></span><span id="online-count">1</span> Online</span>
         <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
-        <button class="logout-btn" id="logout-btn">Log Out</button>
       </div>
+      <button class="logout-btn" id="logout-btn">Log Out</button>
     </div>
     <div class="wrap">
       <p class="chat-title-glow">Global Chat</p>
@@ -331,7 +336,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     </div>
     <div class="header-profile">
       <div class="header-profile-pic" id="header-profile-pic">A</div>
-      <p class="header-profile-name" id="header-profile-name">Student</p>
+      <p class="header-profile-name"><span id="header-profile-name-text">Student</span><span class="verified-badge" id="header-verified-badge" style="display:none;" title="Verified — paid student">&#10003;</span></p>
       <button type="button" class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top of Global Chat">&uarr;</button>
     </div>
   </header>
@@ -1369,13 +1374,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // renders OTHER users' avatars on individual posts).
   function renderHeaderProfile() {
     const pic = document.getElementById('header-profile-pic');
-    const name = document.getElementById('header-profile-name');
-    if (!pic || !name) return;
+    const nameText = document.getElementById('header-profile-name-text');
+    const badge = document.getElementById('header-verified-badge');
+    if (!pic || !nameText) return;
     pic.innerHTML = currentUserAvatarUrl
       ? '<img src="' + escapeHtml(currentUserAvatarUrl) + '" alt="">'
       : escapeHtml((currentUserName || 'Student').charAt(0).toUpperCase());
-    name.textContent = currentUserName || 'Student';
-    name.title = currentUserName || 'Student';
+    nameText.textContent = currentUserName || 'Student';
+    // Verified sticker for anyone who has actually paid for a course,
+    // OR any admin -- admins get it here even without a personal
+    // purchase (unlike the per-post badge, which keeps Verified tied
+    // strictly to payment; see authorBadgeHtml above for that logic).
+    if (badge) badge.style.display = (currentIsVerified || currentIsAdmin) ? 'inline-flex' : 'none';
   }
 
   document.getElementById('scroll-top-btn').addEventListener('click', function() {
@@ -1430,7 +1440,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       currentUserAvatarUrl = profile.avatar_url || null;
       currentIsBanned = !!profile.chat_banned;
     }
-    renderHeaderProfile();
 
     // Verified = has actually paid for at least one course, OR an admin
     // manually granted verified status (e.g. a family/staff/comp
@@ -1444,6 +1453,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       .eq('granted_by', 'payment')
       .limit(1);
     currentIsVerified = !!(accessRows && accessRows.length) || !!(profile && profile.admin_verified_override);
+    renderHeaderProfile();
 
     document.getElementById('loading').style.display = 'none';
 
