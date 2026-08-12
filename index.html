@@ -165,18 +165,22 @@ nav{
   .nav-login-mobile{display:list-item;}
 }
 
-/* ---------- HERO ---------- */
+/* ---------- HERO ----------
+   Deliberately compact -- the LED ticker right below it (see
+   .led-ticker) is meant to be the first eye-catching thing a visitor
+   sees, so the hero itself was trimmed down rather than left at full
+   height competing with it. */
 .hero{
   background:linear-gradient(180deg, var(--navy-deep), var(--navy-mid) 85%);
   color:var(--ivory);
-  padding:88px 0 0;
+  padding:48px 0 0;
   position:relative;
   overflow:hidden;
 }
 .hero .wrap{
   display:grid;
   grid-template-columns:1.05fr 0.95fr;
-  gap:48px;
+  gap:36px;
   align-items:center;
   position:relative;
   z-index:2;
@@ -184,27 +188,27 @@ nav{
 .eyebrow{
   font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:3.5px;
   text-transform:uppercase; color:var(--gold-bright);
-  margin-bottom:22px; display:flex; align-items:center; gap:12px;
+  margin-bottom:14px; display:flex; align-items:center; gap:12px;
 }
 .eyebrow::before{content:"";width:30px;height:1px;background:var(--gold);}
 .hero h1{
   font-family:'Cormorant Garamond', serif;
   font-weight:600;
-  font-size:clamp(38px, 5.2vw, 60px);
-  line-height:1.08;
+  font-size:clamp(30px, 4.4vw, 46px);
+  line-height:1.1;
   letter-spacing:0.2px;
-  margin-bottom:22px;
+  margin-bottom:14px;
 }
 .hero h1 em{
   font-style:italic; color:var(--gold-bright); font-weight:500;
 }
 .hero p.lede{
-  font-size:19px; line-height:1.65;
+  font-size:16px; line-height:1.6;
   color:rgba(244,239,224,0.82);
   max-width:46ch;
-  margin-bottom:34px;
+  margin-bottom:20px;
 }
-.hero-ctas{display:flex; gap:16px; margin-bottom:56px; flex-wrap:wrap;}
+.hero-ctas{display:flex; gap:16px; margin-bottom:28px; flex-wrap:wrap;}
 .btn-primary{
   font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px;
   text-transform:uppercase; text-decoration:none;
@@ -223,9 +227,9 @@ nav{
 
 .trust-line{
   display:flex; gap:34px; flex-wrap:wrap;
-  padding-bottom:44px;
+  padding-bottom:24px;
   border-top:1px solid var(--hair);
-  padding-top:24px;
+  padding-top:16px;
   font-size:14px; color:rgba(244,239,224,0.6);
 }
 .trust-line span{font-family:'Cinzel',serif; font-size:10px; letter-spacing:1.5px; color:var(--gold-bright); display:block; margin-bottom:4px;}
@@ -257,6 +261,57 @@ nav{
   .hero .wrap{grid-template-columns:1fr; padding-top:8px;}
   .chart-panel{order:2;}
 }
+
+/* ---------- LED TICKER ----------
+   A classic scrolling public-notification-board look: a glowing amber
+   marquee strip (the actual "moving point" display), bracketed by rows
+   of small colored dot-lights top and bottom, matching the LED-sign
+   language already used on the dashboard's payout ticker. Below the
+   strip sits a legend of cards -- one per item that scrolled past --
+   each with its own plain-language explanation, since text flying by
+   in a marquee is easy to miss and shouldn't be the only place a
+   visitor can find out what it meant. */
+.led-ticker{background:var(--navy-deep); border-top:1px solid var(--hair); border-bottom:1px solid var(--hair);}
+.led-cert-spotlight{
+  display:flex; align-items:center; gap:22px; flex-wrap:wrap;
+  padding:28px 0; border-bottom:1px solid var(--hair);
+}
+.led-cert-spotlight img{width:100px; border:1px solid var(--gold); flex-shrink:0;}
+.led-cert-spotlight h4{font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-bright); margin-bottom:6px;}
+.led-cert-spotlight p{font-size:14px; line-height:1.6; color:rgba(244,239,224,0.75); max-width:56ch;}
+.led-dots{display:flex; justify-content:center; gap:16px; padding:7px 12px; overflow:hidden;}
+.led-dots span{width:5px; height:5px; border-radius:50%; flex-shrink:0; opacity:0.85;}
+.led-dots span:nth-child(6n+1){background:#3ecf6e;}
+.led-dots span:nth-child(6n+2){background:#d6b568;}
+.led-dots span:nth-child(6n+3){background:#e0524a;}
+.led-dots span:nth-child(6n+4){background:#4a9fe0;}
+.led-dots span:nth-child(6n+5){background:#c86ad6;}
+.led-dots span:nth-child(6n){background:#d6b568;}
+
+.led-marquee{background:#04070d; overflow:hidden; white-space:nowrap; padding:15px 0;}
+.led-marquee-track{display:inline-block; white-space:nowrap; will-change:transform; animation:led-scroll 38s linear infinite;}
+.led-marquee-track span{
+  display:inline-block; padding:0 28px;
+  font-family:'Cinzel', serif; font-size:14px; letter-spacing:1px;
+  color:#ffcf4d; text-shadow:0 0 5px rgba(255,207,77,0.65), 0 0 1px rgba(255,207,77,0.9);
+}
+@keyframes led-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+@media (prefers-reduced-motion: reduce){
+  .led-marquee-track{animation:none;}
+  .led-marquee{overflow-x:auto;}
+}
+
+.led-legend{
+  display:flex; flex-wrap:wrap; gap:1px;
+  background:var(--hair);
+}
+.led-card{flex:1 1 200px; background:var(--navy-deep); padding:22px 20px; display:flex; flex-direction:column; gap:6px;}
+.led-card .icon{font-size:22px; line-height:1;}
+.led-card h4{font-family:'Cinzel', serif; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-bright); margin-top:4px;}
+.led-card p{font-size:13.5px; line-height:1.55; color:rgba(244,239,224,0.72);}
 
 /* ---------- SECTION SHARED ---------- */
 section{padding:96px 0;}
@@ -542,6 +597,74 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
         <span>How Trading Works</span>
         <span>Risk &amp; Diversifying</span>
         <span>Confident Investor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="led-ticker" aria-label="Highlights">
+  <div class="wrap">
+    <div class="led-cert-spotlight">
+      <img src="assets/images/sample-certificate.jpg" alt="Sample Global Market School certificate">
+      <div>
+        <h4>Verified Certificates</h4>
+        <p>Every completed course comes with a real, verifiable certificate you can add to LinkedIn or share anywhere. Shown here is a sample — not an actual student's record.</p>
+      </div>
+    </div>
+  </div>
+  <div class="led-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="led-marquee">
+    <div class="led-marquee-track">
+      <span>&#127891; Every completed course includes a verified, downloadable certificate</span>
+      <span>&#128176; Earn up to $500+ in referral commissions &mdash; 10% per paid enrollment</span>
+      <span>&#128172; Join Global Chat &mdash; our live student community</span>
+      <span>&#11088; &ldquo;World's Best Financial Education isn't a slogan here &mdash; it's the standard every lesson is written against.&rdquo; &mdash; Akodi Victor, CEO &amp; Founder</span>
+      <span>&#128218; Five structured programs &mdash; Beginner to Trade Group</span>
+      <span>&#127942; Discipline builds success &mdash; real institutional rigor, not shortcuts</span>
+      <span>&#128640; Your seat in the next class is one step away &mdash; Enroll Now</span>
+      <!-- Repeated once more back-to-back so the -50% scroll loop is seamless. -->
+      <span>&#127891; Every completed course includes a verified, downloadable certificate</span>
+      <span>&#128176; Earn up to $500+ in referral commissions &mdash; 10% per paid enrollment</span>
+      <span>&#128172; Join Global Chat &mdash; our live student community</span>
+      <span>&#11088; &ldquo;World's Best Financial Education isn't a slogan here &mdash; it's the standard every lesson is written against.&rdquo; &mdash; Akodi Victor, CEO &amp; Founder</span>
+      <span>&#128218; Five structured programs &mdash; Beginner to Trade Group</span>
+      <span>&#127942; Discipline builds success &mdash; real institutional rigor, not shortcuts</span>
+      <span>&#128640; Your seat in the next class is one step away &mdash; Enroll Now</span>
+    </div>
+  </div>
+  <div class="led-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+  <div class="wrap">
+    <div class="led-legend">
+      <div class="led-card">
+        <p class="icon">&#128176;</p>
+        <h4>Referral Program</h4>
+        <p>Earn up to $500+ in commissions by referring friends — 10% of every paid enrollment you bring in. An example of the earning potential, not a guaranteed amount.</p>
+      </div>
+      <div class="led-card">
+        <p class="icon">&#128172;</p>
+        <h4>Global Chat Community</h4>
+        <p>A live space for students to post, ask questions, and learn from each other — moderated by our team.</p>
+      </div>
+      <div class="led-card">
+        <p class="icon">&#11088;</p>
+        <h4>From Our Founder</h4>
+        <p>"World's Best Financial Education isn't a slogan here — it's the standard every lesson is written against." — Akodi Victor, CEO &amp; Founder.</p>
+      </div>
+      <div class="led-card">
+        <p class="icon">&#128218;</p>
+        <h4>Five Structured Programs</h4>
+        <p>A complete path from zero background to serious trader — Beginner, Intermediate, Advanced, Elite, and Trade Group.</p>
+      </div>
+      <div class="led-card">
+        <p class="icon">&#127942;</p>
+        <h4>Discipline Builds Success</h4>
+        <p>Real institutional rigor, not motivational shortcuts — the same standard every lesson on this site is written against.</p>
+      </div>
+      <div class="led-card">
+        <p class="icon">&#128640;</p>
+        <h4>Enroll Today</h4>
+        <p>Your seat in the next class is one step away — pick your course level and register in a few minutes.</p>
       </div>
     </div>
   </div>
