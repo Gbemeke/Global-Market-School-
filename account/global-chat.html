@@ -36,6 +36,22 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
   .logout-btn{padding:8px 11px; font-size:10px;}
 }
 
+.chat-title-glow{
+  font-family:'Cormorant Garamond', serif; font-weight:700; font-size:clamp(22px,5vw,28px);
+  padding:2px 0 16px; letter-spacing:0.5px;
+  background:linear-gradient(100deg, var(--gold) 30%, #fff8e0 47%, #fff8e0 53%, var(--gold) 70%);
+  background-size:220% auto;
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:var(--gold);
+  animation:chat-title-shine 3.2s linear infinite;
+}
+@keyframes chat-title-shine{
+  0%{background-position:160% center;}
+  100%{background-position:-60% center;}
+}
+@media (prefers-reduced-motion:reduce){
+  .chat-title-glow{animation:none; background-position:50% center;}
+}
+
 .guidelines-bar{padding:14px 0; display:flex; align-items:center;}
 .guidelines-link{display:inline-block; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--gold); text-decoration:none; border-bottom:1px solid var(--gold);}
 .guidelines-link:hover{color:var(--navy-deep); border-color:var(--navy-deep);}
@@ -284,6 +300,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         <a href="dashboard.html" class="back-link">&larr; Dashboard</a>
         <button class="logout-btn" id="logout-btn">Log Out</button>
       </div>
+    </div>
+    <div class="wrap">
+      <p class="chat-title-glow">Global Chat</p>
     </div>
   </header>
 
