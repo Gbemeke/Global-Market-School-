@@ -128,26 +128,81 @@ export default async function handler(req, res) {
         othersRows.forEach(function (p) { othersById[p.id] = p; });
       }
 
+      // One batched read-state query for every conversation, instead of
+      // one per conversation -- last_read_at per (conversation, caller).
+      let readsByConv = {};
+      const convIds = conversations.map(function (c) { return c.id; });
+      if (convIds.length) {
+        const readsRes = await fetch(
+          `${supabaseUrl}/rest/v1/private_message_reads?conversation_id=in.(${convIds.join(",")})&user_id=eq.${callerId}&select=conversation_id,last_read_at`,
+          { headers: serviceHeaders }
+        );
+        const readsRows = (await readsRes.json()) || [];
+        readsRows.forEach(function (r) { readsByConv[r.conversation_id] = r.last_read_at; });
+      }
+
       const result = [];
       for (const c of conversations) {
         const otherId = c.participant_a === callerId ? c.participant_b : c.participant_a;
         const other = othersById[otherId] || {};
         const lastMsgRes = await fetch(
-          `${supabaseUrl}/rest/v1/private_messages?conversation_id=eq.${c.id}&select=created_at&order=created_at.desc&limit=1`,
+          `${supabaseUrl}/rest/v1/private_messages?conversation_id=eq.${c.id}&select=sender_id,created_at&order=created_at.desc&limit=1`,
           { headers: serviceHeaders }
         );
         const lastMsgRows = (await lastMsgRes.json()) || [];
+        const lastMsg = lastMsgRows[0] || null;
+        const lastReadAt = readsByConv[c.id];
+        // Unread means: the newest message wasn't sent by the caller
+        // themself, and it's newer than the caller's last read marker
+        // for this conversation (or they've never read it at all).
+        const unread = !!lastMsg && lastMsg.sender_id !== callerId &&
+          (!lastReadAt || new Date(lastMsg.created_at) > new Date(lastReadAt));
         result.push({
           conversation_id: c.id,
           other_user_id: otherId,
           other_name: other.is_admin ? "Global Market School" : (other.full_name || "Student"),
           other_avatar_url: other.is_admin ? null : (other.avatar_url || null),
-          last_message_at: (lastMsgRows[0] && lastMsgRows[0].created_at) || c.created_at
+          last_message_at: (lastMsg && lastMsg.created_at) || c.created_at,
+          unread: unread
         });
       }
       result.sort(function (a, b) { return new Date(b.last_message_at) - new Date(a.last_message_at); });
 
       return res.status(200).json({ conversations: result });
+    }
+
+    // ---- mark_read: caller has seen a conversation up to now ----
+    if (action === "mark_read") {
+      const { conversation_id } = req.body || {};
+      if (!conversation_id) {
+        return res.status(400).json({ error: "Missing conversation_id" });
+      }
+
+      const convRes = await fetch(
+        `${supabaseUrl}/rest/v1/private_conversations?id=eq.${conversation_id}`,
+        { headers: serviceHeaders }
+      );
+      const convRows = await convRes.json();
+      const conversation = convRows && convRows[0];
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      const isParticipant = conversation.participant_a === callerId || conversation.participant_b === callerId;
+      if (!isParticipant) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+
+      await fetch(`${supabaseUrl}/rest/v1/private_message_reads?on_conflict=conversation_id,user_id`, {
+        method: "POST",
+        headers: { ...serviceHeaders, Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({
+          conversation_id: conversation_id,
+          user_id: callerId,
+          last_read_at: new Date().toISOString()
+        })
+      });
+
+      return res.status(200).json({ marked_read: true });
     }
 
     // ---- send: encrypt + insert a message, finding-or-creating the conversation ----

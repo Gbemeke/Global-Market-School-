@@ -40,6 +40,9 @@ main{padding:20px 0 60px;}
   display:flex; align-items:center; gap:14px; cursor:pointer;
 }
 .conv-card:hover{border-color:var(--gold);}
+.conv-card.unread{border-color:var(--gold);}
+.conv-card.unread .conv-info h3{font-weight:700;}
+.unread-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--bad); margin-left:6px; vertical-align:middle;}
 .conv-avatar{
   width:44px; height:44px; border-radius:50%; flex-shrink:0; overflow:hidden;
   background:var(--navy-deep); color:var(--gold-bright); display:flex; align-items:center; justify-content:center;
@@ -219,11 +222,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   function conversationCardHtml(c) {
     return (
-      '<div class="conv-card" data-user="' + c.other_user_id + '" data-name="' + escapeHtml(c.other_name) + '" data-avatar="' + escapeHtml(c.other_avatar_url || '') + '" data-conv="' + c.conversation_id + '">' +
+      '<div class="conv-card' + (c.unread ? ' unread' : '') + '" data-user="' + c.other_user_id + '" data-name="' + escapeHtml(c.other_name) + '" data-avatar="' + escapeHtml(c.other_avatar_url || '') + '" data-conv="' + c.conversation_id + '">' +
         '<div class="conv-avatar">' + avatarHtml(c.other_name, c.other_avatar_url) + '</div>' +
-        '<div class="conv-info"><h3>' + escapeHtml(c.other_name) + '</h3><p>' + timeAgo(c.last_message_at) + '</p></div>' +
+        '<div class="conv-info"><h3>' + escapeHtml(c.other_name) + (c.unread ? ' <span class="unread-dot"></span>' : '') + '</h3><p>' + timeAgo(c.last_message_at) + '</p></div>' +
       '</div>'
     );
+  }
+
+  async function markRead(conversationId) {
+    if (!conversationId) return;
+    callApi('mark_read', { conversation_id: conversationId });
   }
 
   async function loadConversations() {
@@ -263,6 +271,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
     if (currentConversationId) {
       loadThreadMessages();
+      markRead(currentConversationId);
       if (threadPollTimer) clearInterval(threadPollTimer);
       threadPollTimer = setInterval(loadThreadMessages, 5000);
     } else {
@@ -292,6 +301,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const prevCount = Number(box.dataset.count || 0);
     if (messages.length === prevCount) return;
     box.dataset.count = messages.length;
+    // New messages just rendered while the thread is open -- the
+    // student is actively looking at them, so mark this conversation
+    // read again (covers a message arriving mid-poll, not just on open).
+    markRead(currentConversationId);
 
     if (!messages.length) {
       box.innerHTML = '<p class="thread-empty">Send a message to start the conversation.</p>';
