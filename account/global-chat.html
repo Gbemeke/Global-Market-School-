@@ -927,6 +927,27 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       Array.from(document.querySelectorAll('.replies.open')).map(function(el) { return el.id; })
     );
 
+    // A comment/reply box can have unsent text sitting in it when this
+    // runs -- it fires on a 20-second timer plus after every reaction/
+    // comment/share/delete from ANYONE, not just this user, so a draft
+    // being typed must survive being caught mid-keystroke by someone
+    // else's like landing elsewhere on the page. Snapshot each open
+    // textarea's value (and which one currently has focus/cursor) so
+    // it can be restored after the rebuild below, instead of the box
+    // silently coming back empty.
+    const replyBoxDrafts = {};
+    let focusedBoxId = null;
+    let focusedSelectionStart = 0;
+    document.querySelectorAll('.reply-box.open textarea').forEach(function(ta) {
+      const box = ta.closest('.reply-box');
+      if (!box) return;
+      if (ta.value) replyBoxDrafts[box.id] = ta.value;
+      if (document.activeElement === ta) {
+        focusedBoxId = box.id;
+        focusedSelectionStart = ta.selectionStart;
+      }
+    });
+
     // This runs on every reaction/comment/share, on a delete, and on a
     // 20-second timer while the tab just sits open -- any of which can
     // fire while the reaction picker or context menu is open. They're
@@ -955,6 +976,22 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       const el = document.getElementById(id);
       if (el) el.classList.add('open');
     });
+
+    Object.keys(replyBoxDrafts).forEach(function(boxId) {
+      const box = document.getElementById(boxId);
+      const ta = box && box.querySelector('textarea');
+      if (!ta) return;
+      ta.value = replyBoxDrafts[boxId];
+      ta.dispatchEvent(new Event('input')); // re-enables the submit button
+    });
+    if (focusedBoxId) {
+      const box = document.getElementById(focusedBoxId);
+      const ta = box && box.querySelector('textarea');
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(focusedSelectionStart, focusedSelectionStart);
+      }
+    }
 
     wireFeedEvents();
   }
@@ -1017,6 +1054,11 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
         if (!error) {
           textarea.value = '';
+          // Close the compose box itself once it's actually sent -- the
+          // thread stays open (untouched here) so the new comment is
+          // right there to see, just without the input still sitting
+          // open underneath it.
+          box.classList.remove('open');
           await loadFeed();
         }
       });
