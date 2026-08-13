@@ -502,6 +502,20 @@ section{padding:96px 0;}
 .founder-name span{color:var(--ink-soft); font-family:'EB Garamond',serif; letter-spacing:0; text-transform:none; font-size:14.5px;}
 @media (max-width:640px){.founder-card{grid-template-columns:1fr; text-align:center;} .founder-photo{margin:0 auto;}}
 
+/* ---------- GET THE APP ---------- */
+.get-app{background:var(--paper); padding:80px 0;}
+.get-app-inner{display:flex; align-items:center; gap:32px; flex-wrap:wrap;}
+.get-app-icon{border-radius:20px; box-shadow:0 8px 24px rgba(11,27,51,0.18); flex-shrink:0; display:block;}
+.get-app-text h2{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:clamp(26px,3.5vw,34px); color:var(--navy-deep); margin-bottom:10px;}
+.get-app-text p{color:var(--ink-soft); font-size:15.5px; max-width:52ch; margin-bottom:18px;}
+.get-app-ctas{display:flex; flex-direction:column; align-items:flex-start; gap:12px;}
+.get-app-manual{font-size:13px; color:var(--ink-soft); max-width:52ch; line-height:1.5;}
+#pwa-install-btn{cursor:pointer;}
+@media (max-width:640px){
+  .get-app-inner{flex-direction:column; text-align:center;}
+  .get-app-ctas{align-items:center;}
+}
+
 /* ---------- FINAL CTA ---------- */
 .cta-final{
   background:var(--navy-deep); color:var(--ivory);
@@ -870,6 +884,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
   </div>
 </section>
 
+<section class="get-app" id="get-app">
+  <div class="wrap get-app-inner">
+    <img src="assets/icons/icon-192.png" alt="" class="get-app-icon" width="72" height="72" loading="lazy">
+    <div class="get-app-text">
+      <h2>Take Global Market School with you</h2>
+      <p>Install the app on your phone or computer — one tap from your home screen, no App Store account or download needed.</p>
+      <div class="get-app-ctas">
+        <button type="button" class="btn-primary" id="pwa-install-btn" style="display:none;">Install App</button>
+        <p class="get-app-manual">On iPhone/iPad: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.<br>On Android/Chrome: tap the browser menu, then <strong>Install app</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="cta-final">
   <div class="wrap">
     <h2>Your seat in the next class is one step away.</h2>
@@ -907,6 +935,42 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
       navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
     });
   }
+
+  // "Install App" CTA in the Get the App section. beforeinstallprompt
+  // only fires on browsers that support the native install flow
+  // (Chrome/Edge/Android) -- iOS Safari never fires it, hence the
+  // always-visible manual instructions alongside this button.
+  (function () {
+    const installBtn = document.getElementById('pwa-install-btn');
+    const section = document.getElementById('get-app');
+    if (!installBtn || !section) return;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) {
+      section.style.display = 'none'; // already installed -- nothing to offer
+      return;
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'inline-block';
+    });
+
+    installBtn.addEventListener('click', async function () {
+      if (!deferredPrompt) return;
+      installBtn.disabled = true;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', function () {
+      installBtn.style.display = 'none';
+    });
+  })();
 
   (function () {
     const toggle = document.getElementById('nav-toggle');
