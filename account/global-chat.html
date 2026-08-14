@@ -1782,9 +1782,13 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // page's own beforeinstallprompt is what actually triggers it, since
   // a click on the home page can only ever install whichever manifest
   // index.html itself links to (the main app's). The home page's
-  // "Or install just Global Chat" block just links here; this button
-  // is where the real install happens, same as it's always worked for
-  // the main app's own button.
+  // "Install App" button for Global Chat hands off here with
+  // ?install=1 -- if this page is ready to install the instant it
+  // loads (the common case, once already logged in), it happens
+  // automatically with no second tap; either way, this page's own
+  // "Install App" button is right there in the nav bar regardless, so
+  // there's always a plain, obvious way in, no separate messaging
+  // needed for the times the automatic hand-off isn't ready yet.
   // Registered immediately, not deferred to the page's 'load' event --
   // 'load' waits for every image in the feed too, and on a slow
   // connection that can take long enough that a visitor taps "Install
@@ -1812,13 +1816,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const launchedFromChatAppIcon = new URLSearchParams(window.location.search).get('source') === 'pwa';
     if (isStandalone && launchedFromChatAppIcon) { installBtn.style.display = 'none'; return; } // already installed
 
+    const autoInstall = new URLSearchParams(window.location.search).get('install') === '1';
+
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredPrompt = e;
+      if (autoInstall && !document.hidden) triggerInstall();
     });
 
-    installBtn.addEventListener('click', async function () {
+    async function triggerInstall() {
       if (deferredPrompt) {
         installBtn.disabled = true;
         deferredPrompt.prompt();
@@ -1835,7 +1842,18 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       } else {
         showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
       }
-    });
+    }
+
+    installBtn.addEventListener('click', triggerInstall);
+
+    // Arrived from the home page's own "Install App" button for Global
+    // Chat -- if the native prompt is already available this instant,
+    // fire it immediately with no extra tap. Deliberately NOT a
+    // separate banner/modal/toast layer if it isn't ready yet -- the
+    // nav bar's own Install App button is sitting right there either
+    // way, same one this hand-off itself is trying to trigger, so
+    // there's nothing more to explain.
+    if (autoInstall && deferredPrompt) triggerInstall();
 
     window.addEventListener('appinstalled', function () {
       installBtn.style.display = 'none';

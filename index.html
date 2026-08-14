@@ -919,15 +919,19 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
     <img src="assets/icons/icon-gchat-192.png" alt="" class="get-app-icon" width="72" height="72" loading="lazy">
     <div class="get-app-text">
       <h2>Or install just Global Chat</h2>
-      <p>Want a separate app just for the community feed, private messages, and chat meetings? Log in to Global Chat and tap Install App there — it installs as its own icon, apart from the main GMS app.</p>
+      <p>Want a separate app just for the community feed, private messages, and chat meetings? Install it as its own icon, apart from the main GMS app. (Log in first if you haven't already.)</p>
       <div class="get-app-ctas">
         <!-- A real install prompt has to be triggered from the page whose
              own manifest is doing the installing -- index.html only ever
              links to the main GMS app's manifest, never Global Chat's, so
              a button right here could only ever install the wrong app.
-             This just links there; the real Install App button lives on
-             Global Chat's own page. -->
-        <a href="account/global-chat.html" class="get-app-chat-btn">Open Global Chat &rarr;</a>
+             This hands off to Global Chat's own page with ?install=1,
+             which fires the real prompt immediately if it's ready --
+             one tap here, usually nothing more to do. If not signed in
+             yet, this leads to a login prompt first; either way, Global
+             Chat's own Install App button is right there afterward too. -->
+        <a href="account/global-chat.html?install=1" class="btn-primary" style="text-decoration:none; display:inline-block;">Install App</a>
+        <p class="get-app-manual">On iPhone/iPad: open Global Chat, then tap <strong>Share</strong> &rarr; <strong>Add to Home Screen</strong>.<br>On Android/Chrome: tap the browser menu, then <strong>Install app</strong>.</p>
       </div>
     </div>
   </div>
