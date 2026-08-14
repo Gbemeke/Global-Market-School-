@@ -6,8 +6,9 @@
 <title>Global Chat — Global Market School</title>
 
 <!-- Installable app -- a distinct app from the main GMS site install,
-     on its own manifest scoped to /account/ so this page's own
-     beforeinstallprompt/install button installs just Global Chat. -->
+     on its own manifest scoped to /account/. The home page's Install
+     App button (for "Or install just Global Chat") hands off here
+     with ?install=1 to fire this manifest's own install prompt. -->
 <link rel="manifest" href="/account/global-chat.webmanifest">
 <meta name="theme-color" content="#0b1b33">
 <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon-gchat.png">
@@ -466,9 +467,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="meetings.html" class="chat-nav-btn">
         <span class="nav-icon">&#128101;</span> Meetings
       </a>
-      <button type="button" class="chat-nav-btn" id="chat-install-btn">
-        <span class="nav-icon">&#11015;&#65039;</span> Install App
-      </button>
     </div>
     <div class="wrap">
       <p class="chat-title-glow">Global Chat</p>
@@ -1817,119 +1815,97 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     window.location.href = 'private-chat.html?' + params.toString();
   });
 
-  // ---- Install Global Chat as its own app ----
+  // ---- Install Global Chat as its own app -- hand-off only, no button ----
   //
-  // Deliberately a SEPARATE installable app from the main GMS site
-  // (see account/global-chat.webmanifest, scope "/account/") -- this
-  // page's own beforeinstallprompt is what can actually trigger it;
-  // the main site's "Get the App" section can only link here, not
-  // fire this install itself, since that belongs to index.html's own
-  // (different) manifest.
+  // This page used to have its own always-visible "Install App" button
+  // in the nav bar, on top of the one on the home page. It was the
+  // source of every install-related bug reported: detecting whether
+  // this window was standalone because Global Chat itself was
+  // installed vs. because it was merely opened from inside the main
+  // GMS app's own standalone window, a fallback message that only
+  // sometimes matched what was actually true, an easy thing to tap by
+  // mistake with a confusing result. Removed entirely -- "Install App"
+  // now only ever lives on the home page, and this page's only job is
+  // to fire the real install prompt automatically the moment Chrome
+  // decides it's ready, when arriving from that one hand-off link
+  // (index.html's Install App -> account/global-chat.html?install=1).
   // Registered immediately, not deferred to the page's 'load' event --
   // 'load' waits for every image in the feed too, and on a slow
-  // connection that can take long enough that a visitor taps "Install
-  // App" before Chrome has even finished deciding the page qualifies,
-  // landing them on the manual-instructions fallback instead of the
-  // native prompt for no real reason.
+  // connection that can take long enough that this auto-install never
+  // gets the chance to fire before someone gives up waiting.
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
   }
 
   (function () {
-    const installBtn = document.getElementById('chat-install-btn');
-    if (!installBtn) return;
+    const autoInstall = new URLSearchParams(initialSearch).get('install') === '1';
+    if (!autoInstall) return; // nothing to do without the home page's hand-off
+
+    // Strip the marker from the address bar right away so a later
+    // reload/back-navigation to this same page doesn't re-trigger it.
+    history.replaceState(null, '', window.location.pathname);
 
     // Standalone display-mode alone is NOT proof Global Chat itself is
-    // installed -- the main GMS app's manifest scope ("/") covers this
-    // page too, so simply navigating here from inside THAT installed
-    // app also reports standalone, even though nobody ever installed
-    // Global Chat as its own separate icon. The one reliable signal
+    // already installed -- the main GMS app's manifest scope ("/")
+    // covers this page too, so simply navigating here from inside THAT
+    // installed app also reports standalone. The one reliable signal
     // that this page was launched from Global Chat's own home-screen
     // icon is its manifest's start_url, "/account/global-chat.html
-    // ?source=pwa" -- a real launch from that icon always carries the
-    // query string; arriving via an ordinary link (from the dashboard,
-    // from inside the main app, from index.html's "Open Global Chat")
-    // never does. Remembered in sessionStorage (scoped to this one
-    // standalone window, never shared with an ordinary browser tab) so
-    // it still holds after navigating elsewhere in the app and back --
-    // e.g. to Messages/Meetings/Dashboard and back to Global Chat --
-    // none of which carry the marker themselves.
+    // ?source=pwa" -- remembered in sessionStorage (scoped to this one
+    // standalone window) so it still holds if this hand-off somehow
+    // fires again later in the same session.
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    const launchedFromChatAppIcon = new URLSearchParams(window.location.search).get('source') === 'pwa';
+    const launchedFromChatAppIcon = new URLSearchParams(initialSearch).get('source') === 'pwa';
     if (launchedFromChatAppIcon) {
       try { sessionStorage.setItem('gc_installed_session', '1'); } catch (e) { /* private browsing, etc. */ }
     }
-    let chatAppConfirmedThisSession = launchedFromChatAppIcon;
-    if (!chatAppConfirmedThisSession) {
-      try { chatAppConfirmedThisSession = sessionStorage.getItem('gc_installed_session') === '1'; } catch (e) { /* ignore */ }
+    let alreadyInstalledThisSession = launchedFromChatAppIcon;
+    if (!alreadyInstalledThisSession) {
+      try { alreadyInstalledThisSession = sessionStorage.getItem('gc_installed_session') === '1'; } catch (e) { /* ignore */ }
     }
-    if (isStandalone && chatAppConfirmedThisSession) { installBtn.style.display = 'none'; return; } // already installed
+    if (isStandalone && alreadyInstalledThisSession) return; // already installed, nothing to do
 
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredPrompt = e;
-      // index.html's own "Install App" button can't trigger this
-      // page's install directly (a click there can only ever install
-      // whichever manifest index.html itself links to, which is the
-      // main GMS app's) -- so it instead hands off here with
-      // ?install=1, and this fires the real prompt itself the instant
-      // it becomes available, with no second tap required.
-      if (autoInstall && !document.hidden) triggerInstall();
+      if (!document.hidden) triggerInstall();
     });
 
     async function triggerInstall() {
       if (!deferredPrompt) {
         if (isStandalone) {
-          // Reached this page from inside the already-installed main GMS
-          // app -- that window has no browser menu to install from at
-          // all (it's not a normal browser tab), so the usual "tap the
-          // menu" instructions would be pointing at something that isn't
-          // there. The only way to get Global Chat as its own separate
-          // icon is opening this page in an ordinary browser tab instead.
-          showToast('Open this page in your regular browser (not inside this app) to install Global Chat as its own separate icon.');
+          // Reached here from inside the already-installed main GMS
+          // app's own standalone window -- that window has no browser
+          // menu to install from (it's not a normal browser tab), so
+          // the only way to get Global Chat as its own separate icon
+          // is opening globalmarketschool.com in an ordinary browser
+          // tab instead.
+          showToast('Open globalmarketschool.com in your regular browser (not inside this app) to install Global Chat.');
         } else {
           showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
         }
         return;
       }
-      installBtn.disabled = true;
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
-      installBtn.disabled = false;
     }
 
-    // Always visible (unlike the home page's version) -- this button
-    // is someone's only way to discover Global Chat is installable at
-    // all on browsers that never fire beforeinstallprompt (iOS
-    // Safari), so it falls back to manual instructions instead of
-    // just staying hidden and silent for them.
-    installBtn.addEventListener('click', triggerInstall);
-
     window.addEventListener('appinstalled', function () {
-      installBtn.style.display = 'none';
+      showToast('Global Chat installed!');
     });
 
-    // Arrived from index.html's "Install App" link for Global Chat --
-    // install immediately once ready instead of making someone find
-    // and tap this page's own button too. Strip the marker from the
-    // address bar right away so a later reload/back-navigation to this
-    // same page doesn't re-trigger it.
-    const autoInstall = new URLSearchParams(initialSearch).get('install') === '1';
-    if (autoInstall) {
-      history.replaceState(null, '', window.location.pathname);
-      if (deferredPrompt) {
-        triggerInstall();
-      } else if (!isStandalone) {
-        // Not ready the instant this ran, and not already-installed --
-        // give Chrome a few seconds to finish its installability check
-        // (the beforeinstallprompt listener above will fire triggerInstall
-        // itself the moment it resolves) before falling back to the
-        // manual-instructions toast, so a fast connection isn't punished
-        // by an unnecessary fallback message.
-        setTimeout(function () { if (!deferredPrompt) triggerInstall(); }, 4000);
-      }
+    if (deferredPrompt) {
+      triggerInstall();
+    } else {
+      // Not ready the instant this ran -- give Chrome a few seconds to
+      // finish its installability check (the beforeinstallprompt
+      // listener above will fire triggerInstall itself the moment it
+      // resolves) before falling back to the manual-instructions toast,
+      // so a fast connection isn't punished by an unnecessary fallback
+      // message.
+      setTimeout(function () { if (!deferredPrompt) triggerInstall(); }, 4000);
     }
   })();
 
