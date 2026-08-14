@@ -106,6 +106,17 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 
 section{padding:24px 0;}
 
+.guest-notice{background:#fff; border:1px solid var(--hair); padding:32px 24px; text-align:center; margin-top:24px;}
+.guest-notice-title{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep); margin-bottom:10px;}
+.guest-notice-text{font-size:14px; color:var(--ink-soft); max-width:50ch; margin:0 auto 20px; line-height:1.6;}
+.guest-notice-ctas{display:flex; justify-content:center; gap:12px; flex-wrap:wrap;}
+.guest-notice-ctas .post-btn{padding:12px 28px; display:inline-block;}
+.guest-register-link{
+  font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
+  color:var(--navy-deep); text-decoration:none; border:1px solid var(--gold); padding:12px 26px; display:inline-block;
+}
+.guest-register-link:hover{background:var(--gold); color:var(--navy-deep);}
+
 .ban-banner{background:#fbf0ee; border:1px solid rgba(138,59,46,0.3); border-left:3px solid var(--bad); color:var(--bad); font-size:13.5px; padding:14px 16px; margin-bottom:16px;}
 .composer{background:#fff; border:1px solid var(--hair); padding:18px;}
 .composer textarea{
@@ -466,9 +477,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="../legal/community-guidelines.html" target="_blank" rel="noopener" class="guidelines-link">Read our Community Guidelines &rarr;</a>
     </div>
     <div class="header-profile">
-      <a href="dashboard.html?openProfile=photo" class="header-profile-pic-link" title="Change your photo — links to your Dashboard">
+      <a href="dashboard.html?openProfile=photo" class="header-profile-pic-link" id="header-profile-pic-link" title="Change your photo — links to your Dashboard">
         <div class="header-profile-pic" id="header-profile-pic">A</div>
-        <span class="header-profile-edit-badge" aria-hidden="true">&#128247;</span>
+        <span class="header-profile-edit-badge" id="header-profile-edit-badge" aria-hidden="true">&#128247;</span>
       </a>
       <p class="header-profile-name"><span id="header-profile-name-text">Student</span><span class="verified-badge" id="header-verified-badge" style="display:none;" title="Verified — paid student">&#10003;</span></p>
       <button type="button" class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top of Global Chat">&uarr;</button>
@@ -477,35 +488,50 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   <div class="wrap">
 
-    <section>
-      <div class="ban-banner" id="ban-banner" style="display:none;">
-        You've been restricted from posting, commenting, reacting, and reposting in Global Chat by an admin. You can still read posts. Contact support if you think this is a mistake.
+    <!-- Shown instead of the composer/feed for a signed-out visitor --
+         Global Chat's page shell (nav bar, Install App button) loads
+         for anyone so the app can be installed before ever creating an
+         account; only the actual feed content requires logging in. -->
+    <div class="guest-notice" id="guest-notice" style="display:none;">
+      <p class="guest-notice-title">Log in to join the conversation</p>
+      <p class="guest-notice-text">Global Chat is exclusive to Global Market School students. Log in or register to read posts, comment, and connect with the community — installing the app doesn't require an account, only using it does.</p>
+      <div class="guest-notice-ctas">
+        <a href="login.html" id="guest-login-link" class="post-btn" style="text-decoration:none;">Log In</a>
+        <a href="register.html" id="guest-register-link" class="guest-register-link">Register</a>
       </div>
-      <div class="composer">
-        <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
+    </div>
 
-        <div class="media-preview" id="composer-media-preview" style="display:none;"></div>
-
-        <div class="composer-toolbar">
-          <button type="button" class="media-btn" id="attach-image-btn">&#128200; Chart / Photo</button>
-          <button type="button" class="media-btn" id="attach-video-btn">&#127909; Video</button>
-          <input type="file" id="composer-image-input" accept="image/*" style="display:none;">
-          <input type="file" id="composer-video-input" accept="video/*" style="display:none;">
+    <div id="chat-content-wrap">
+      <section>
+        <div class="ban-banner" id="ban-banner" style="display:none;">
+          You've been restricted from posting, commenting, reacting, and reposting in Global Chat by an admin. You can still read posts. Contact support if you think this is a mistake.
         </div>
+        <div class="composer">
+          <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
 
-        <div class="composer-actions">
-          <span class="upload-progress" id="upload-progress" style="display:none;">Uploading…</span>
-          <button class="post-btn" id="new-post-btn">Post</button>
+          <div class="media-preview" id="composer-media-preview" style="display:none;"></div>
+
+          <div class="composer-toolbar">
+            <button type="button" class="media-btn" id="attach-image-btn">&#128200; Chart / Photo</button>
+            <button type="button" class="media-btn" id="attach-video-btn">&#127909; Video</button>
+            <input type="file" id="composer-image-input" accept="image/*" style="display:none;">
+            <input type="file" id="composer-video-input" accept="video/*" style="display:none;">
+          </div>
+
+          <div class="composer-actions">
+            <span class="upload-progress" id="upload-progress" style="display:none;">Uploading…</span>
+            <button class="post-btn" id="new-post-btn">Post</button>
+          </div>
+          <p class="msg" id="composer-msg" style="display:none;"></p>
         </div>
-        <p class="msg" id="composer-msg" style="display:none;"></p>
-      </div>
-    </section>
+      </section>
 
-    <section>
-      <div class="feed" id="feed"></div>
-      <p class="empty-note" id="empty-note" style="display:none;">No posts yet — be the first to share something.</p>
-      <button type="button" class="load-older-btn" id="load-older-btn" style="display:none;">Load Older Posts</button>
-    </section>
+      <section>
+        <div class="feed" id="feed"></div>
+        <p class="empty-note" id="empty-note" style="display:none;">No posts yet — be the first to share something.</p>
+        <button type="button" class="load-older-btn" id="load-older-btn" style="display:none;">Load Older Posts</button>
+      </section>
+    </div>
   </div>
 
   <footer>&copy; 2026 Global Market School Ltd.</footer>
@@ -551,6 +577,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'https://djkctbtxnpdkstvznjlf.supabase.co',
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
+
+  // Captured once, before anything below can mutate the address bar
+  // (the install IIFE strips ?install=1 from it once it's handled) --
+  // used to carry that same intent through the login detour below, so
+  // a signed-out visitor who tapped "Install App" on the home page
+  // still gets auto-installed after logging in, instead of landing
+  // back here with no memory of why they came.
+  const initialSearch = window.location.search;
 
   const PRIVATE_CHAT_API = 'https://global-market-school.vercel.app/api/private-chat';
 
@@ -1647,6 +1681,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   });
 
   document.getElementById('logout-btn').addEventListener('click', async function() {
+    // Guests (currentUserId never got set -- see enterGuestMode()) have
+    // nothing to sign out of; this button reads "Log In" for them, so
+    // route there instead of calling signOut() on a session that
+    // doesn't exist.
+    if (!currentUserId) {
+      window.location.href = 'login.html?next=' + encodeURIComponent('global-chat.html' + initialSearch);
+      return;
+    }
     await supabaseClient.auth.signOut();
     window.location.href = '../index.html';
   });
@@ -1874,7 +1916,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     // and tap this page's own button too. Strip the marker from the
     // address bar right away so a later reload/back-navigation to this
     // same page doesn't re-trigger it.
-    const autoInstall = new URLSearchParams(window.location.search).get('install') === '1';
+    const autoInstall = new URLSearchParams(initialSearch).get('install') === '1';
     if (autoInstall) {
       history.replaceState(null, '', window.location.pathname);
       if (deferredPrompt) {
@@ -1891,13 +1933,40 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
   })();
 
+  // A signed-out visitor gets the page shell -- header, nav bar, and
+  // (crucially) the Install App button, which needs to work without an
+  // account so Global Chat can be installed before ever logging in or
+  // registering -- with the actual feed swapped out for a plain login/
+  // register prompt instead. Nothing auth-gated (loadFeed, presence,
+  // markChatAsSeen, private-message polling) ever runs for a guest.
+  function enterGuestMode() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('chat-page').style.display = 'block';
+    document.getElementById('chat-content-wrap').style.display = 'none';
+    document.getElementById('guest-notice').style.display = 'block';
+
+    const returnTo = 'global-chat.html' + initialSearch;
+    const loginHref = 'login.html?next=' + encodeURIComponent(returnTo);
+    const registerHref = 'register.html?next=' + encodeURIComponent(returnTo);
+    document.getElementById('guest-login-link').href = loginHref;
+    document.getElementById('guest-register-link').href = registerHref;
+
+    // The avatar/name and "Log Out" in the header normally belong to a
+    // signed-in student -- neither makes sense for a guest, so both
+    // point at logging in instead.
+    document.getElementById('header-profile-pic').textContent = '?';
+    document.getElementById('header-profile-name-text').textContent = 'Guest';
+    document.getElementById('header-verified-badge').style.display = 'none';
+    document.getElementById('header-profile-pic-link').href = loginHref;
+    document.getElementById('header-profile-pic-link').title = 'Log in to Global Chat';
+    document.getElementById('header-profile-edit-badge').style.display = 'none';
+    document.getElementById('logout-btn').textContent = 'Log In';
+  }
+
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-      // Registering or logging in should drop the student straight back
-      // into Global Chat, not the dashboard -- same account either way
-      // (one registration serves both apps), just a different landing page.
-      window.location.href = 'login.html?next=global-chat.html';
+      enterGuestMode();
       return;
     }
 
