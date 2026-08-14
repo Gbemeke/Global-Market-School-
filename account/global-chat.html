@@ -1876,12 +1876,21 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       if (!deferredPrompt) {
         if (isStandalone) {
           // Reached here from inside the already-installed main GMS
-          // app's own standalone window -- that window has no browser
-          // menu to install from (it's not a normal browser tab), so
-          // the only way to get Global Chat as its own separate icon
-          // is opening globalmarketschool.com in an ordinary browser
-          // tab instead.
-          showToast('Open globalmarketschool.com in your regular browser (not inside this app) to install Global Chat.');
+          // app's own standalone window -- installing a second,
+          // different app from inside a window that's already the
+          // shell of a different one isn't possible at all, on any
+          // platform; that's a real limit, not something to code
+          // around. The only way to actually get Global Chat as its
+          // own icon is a fresh browser tab, so this hands that off
+          // with one tap instead of just describing it in text --
+          // window.open() from inside an installed app's window hands
+          // off to the system browser on Android.
+          const ok = await showModal({
+            title: 'Open in Browser to Install',
+            message: "Installing Global Chat as its own icon isn't possible from inside this app -- only from an ordinary browser tab. Tap below to open it there, where it installs automatically.",
+            confirmLabel: 'Open in Browser'
+          });
+          if (ok) window.open(window.location.origin + '/account/global-chat.html?install=1', '_blank');
         } else {
           showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
         }
