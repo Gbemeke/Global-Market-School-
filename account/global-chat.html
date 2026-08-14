@@ -1837,8 +1837,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         // app -- that window has no browser menu to install from at
         // all (it's not a normal browser tab), so the only way to get
         // Global Chat as its own separate icon is opening this page in
-        // an ordinary browser tab instead.
-        showToast('Open this page in your regular browser (not inside this app) to install Global Chat.');
+        // an ordinary browser tab instead. Done here directly, not
+        // just described in a toast -- this click is a real, direct
+        // user gesture, and window.open() from inside an installed
+        // app's own window hands off to the system browser on Android.
+        const opened = window.open(window.location.origin + '/account/global-chat.html', '_blank');
+        if (!opened) {
+          showToast('Open globalmarketschool.com in your regular browser (not inside this app) to install Global Chat.');
+        }
       } else {
         showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
       }
