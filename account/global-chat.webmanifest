@@ -1,6 +1,6 @@
 {
   "name": "Global Chat — Global Market School",
-  "short_name": "GMS Chat",
+  "short_name": "GLOBAL CHAT",
   "description": "The Global Market School community feed, private messages, and chat meetings — installed as its own app, separate from the main GMS app.",
   "start_url": "/account/global-chat.html?source=pwa",
   "scope": "/account/",
