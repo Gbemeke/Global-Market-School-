@@ -270,7 +270,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    if (!session) { window.location.href = 'login.html?next=meetings.html'; return; }
     currentUserId = session.user.id;
 
     const { data: profile } = await supabaseClient

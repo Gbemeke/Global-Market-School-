@@ -1083,8 +1083,26 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       shares = sharesRes.data || [];
     }
 
+    // A repost's shared_post_id can point at a post outside this
+    // window entirely -- someone reposting something from last week is
+    // still fully valid, it just means the original wasn't already
+    // pulled down above. Without this, renderNode() would show
+    // "Original post unavailable" for a perfectly real post just
+    // because it fell off the loaded page -- fetched here purely for
+    // the quoted-post preview (author/content/media), not merged into
+    // `posts` itself, so it doesn't pick up replies/likes/share counts
+    // it doesn't need for that.
+    const shareTargetIds = posts.map(function(p) { return p.shared_post_id; }).filter(Boolean);
+    const missingShareTargetIds = Array.from(new Set(shareTargetIds)).filter(function(id) { return allPostIds.indexOf(id) === -1; });
+    let extraSharedPosts = [];
+    if (missingShareTargetIds.length) {
+      const { data: extraRows } = await supabaseClient.from('global_chat_posts').select('*').in('id', missingShareTargetIds);
+      extraSharedPosts = extraRows || [];
+    }
+
     postsById = {};
     (posts || []).forEach(function(p) { postsById[p.id] = p; });
+    extraSharedPosts.forEach(function(p) { postsById[p.id] = p; });
 
     likesByPost = {};
     (likes || []).forEach(function(r) {

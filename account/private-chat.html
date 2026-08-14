@@ -177,7 +177,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   async function callApi(action, extra) {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return { error: 'Not signed in' }; }
+    if (!session) { window.location.href = 'login.html?next=private-chat.html'; return { error: 'Not signed in' }; }
     try {
       const res = await fetch(API_BASE, {
         method: 'POST',
@@ -196,7 +196,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    if (!session) { window.location.href = 'login.html?next=private-chat.html'; return; }
     currentUserId = session.user.id;
 
     document.getElementById('loading').style.display = 'none';
