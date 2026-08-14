@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global Chat — Global Market School</title>
+
+<!-- Installable app -- a distinct app from the main GMS site install,
+     on its own manifest scoped to /account/ so this page's own
+     beforeinstallprompt/install button installs just Global Chat. -->
+<link rel="manifest" href="/account/global-chat.webmanifest">
+<meta name="theme-color" content="#0b1b33">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GMS Chat">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
@@ -437,6 +448,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="meetings.html" class="chat-nav-btn">
         <span class="nav-icon">&#128101;</span> Meetings
       </a>
+      <button type="button" class="chat-nav-btn" id="chat-install-btn">
+        <span class="nav-icon">&#11015;&#65039;</span> Install App
+      </button>
     </div>
     <div class="wrap">
       <p class="chat-title-glow">Global Chat</p>
@@ -1732,6 +1746,55 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     if (this.dataset.avatar) params.set('avatar', this.dataset.avatar);
     window.location.href = 'private-chat.html?' + params.toString();
   });
+
+  // ---- Install Global Chat as its own app ----
+  //
+  // Deliberately a SEPARATE installable app from the main GMS site
+  // (see account/global-chat.webmanifest, scope "/account/") -- this
+  // page's own beforeinstallprompt is what can actually trigger it;
+  // the main site's "Get the App" section can only link here, not
+  // fire this install itself, since that belongs to index.html's own
+  // (different) manifest.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
+    });
+  }
+
+  (function () {
+    const installBtn = document.getElementById('chat-install-btn');
+    if (!installBtn) return;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) { installBtn.style.display = 'none'; return; } // already installed
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    // Always visible (unlike the home page's version) -- this button
+    // is someone's only way to discover Global Chat is installable at
+    // all on browsers that never fire beforeinstallprompt (iOS
+    // Safari), so it falls back to manual instructions instead of
+    // just staying hidden and silent for them.
+    installBtn.addEventListener('click', async function () {
+      if (deferredPrompt) {
+        installBtn.disabled = true;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.disabled = false;
+      } else {
+        showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
+      }
+    });
+
+    window.addEventListener('appinstalled', function () {
+      installBtn.style.display = 'none';
+    });
+  })();
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
