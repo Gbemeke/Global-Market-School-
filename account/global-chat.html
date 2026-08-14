@@ -107,6 +107,12 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 
 section{padding:24px 0;}
 
+.install-status-banner{
+  background:#fff; border:1px solid var(--gold); border-left:3px solid var(--gold);
+  color:var(--ink); font-size:13.5px; line-height:1.5; padding:13px 16px; margin-top:16px;
+}
+.install-status-banner.done{border-color:var(--good); border-left-color:var(--good);}
+
 .guest-notice{background:#fff; border:1px solid var(--hair); padding:32px 24px; text-align:center; margin-top:24px;}
 .guest-notice-title{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep); margin-bottom:10px;}
 .guest-notice-text{font-size:14px; color:var(--ink-soft); max-width:50ch; margin:0 auto 20px; line-height:1.6;}
@@ -485,6 +491,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   </header>
 
   <div class="wrap">
+
+    <!-- Status for the ?install=1 hand-off from the home page's Install
+         App button -- a persistent banner, not a toast, specifically
+         because a toast disappears on its own timer regardless of
+         whether the install actually finished, and on a slow
+         connection the whole install-readiness check can easily take
+         longer than that timer, making it look like nothing happened
+         at all when really it just hadn't resolved yet. This stays up
+         until there's something conclusive to say. -->
+    <div class="install-status-banner" id="install-status-banner" style="display:none;"></div>
 
     <!-- Shown instead of the composer/feed for a signed-out visitor --
          Global Chat's page shell (nav bar, Install App button) loads
@@ -1865,6 +1881,23 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     }
     if (isStandalone && alreadyInstalledThisSession) return; // already installed, nothing to do
 
+    // A persistent banner, not a toast -- a toast disappears on its own
+    // timer regardless of whether anything actually happened, and on a
+    // slow connection the browser's installability check can easily
+    // take longer than that timer, making it look like nothing
+    // happened when it really just hadn't resolved yet. This stays
+    // visible until there's something conclusive to say, and gets
+    // updated (not replaced by a second, separate message) if
+    // beforeinstallprompt ends up firing later than the fallback below.
+    function setInstallBanner(text, done) {
+      const banner = document.getElementById('install-status-banner');
+      if (!banner) return;
+      banner.textContent = text || '';
+      banner.style.display = text ? 'block' : 'none';
+      banner.classList.toggle('done', !!done);
+    }
+    setInstallBanner('Installing Global Chat… this can take a few seconds, longer on a slow connection.');
+
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
@@ -1885,6 +1918,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           // with one tap instead of just describing it in text --
           // window.open() from inside an installed app's window hands
           // off to the system browser on Android.
+          setInstallBanner(null);
           const ok = await showModal({
             title: 'Open in Browser to Install',
             message: "Installing Global Chat as its own icon isn't possible from inside this app -- only from an ordinary browser tab. Tap below to open it there, where it installs automatically.",
@@ -1892,17 +1926,25 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
           });
           if (ok) window.open(window.location.origin + '/account/global-chat.html?install=1', '_blank');
         } else {
-          showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
+          // Genuinely didn't get a native prompt in time -- still
+          // listening for beforeinstallprompt in the background in case
+          // it just needed longer, but give a real fallback in the
+          // meantime instead of leaving this banner saying "installing"
+          // forever with nothing to act on.
+          setInstallBanner("Couldn't start the install automatically. On iPhone/iPad: tap Share, then Add to Home Screen. On Android/Chrome: tap the ⋮ menu, then Install app.");
         }
         return;
       }
+      setInstallBanner('Installing Global Chat…');
       deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
+      const choice = await deferredPrompt.userChoice;
       deferredPrompt = null;
+      if (choice && choice.outcome === 'dismissed') setInstallBanner(null);
     }
 
     window.addEventListener('appinstalled', function () {
-      showToast('Global Chat installed!');
+      setInstallBanner('Global Chat installed! Check your home screen.', true);
+      setTimeout(function () { setInstallBanner(null); }, 6000);
     });
 
     if (deferredPrompt) {
@@ -1911,9 +1953,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       // Not ready the instant this ran -- give Chrome a few seconds to
       // finish its installability check (the beforeinstallprompt
       // listener above will fire triggerInstall itself the moment it
-      // resolves) before falling back to the manual-instructions toast,
-      // so a fast connection isn't punished by an unnecessary fallback
-      // message.
+      // resolves, updating the banner in place) before falling back to
+      // the manual-instructions banner, so a fast connection isn't
+      // punished by an unnecessary fallback message.
       setTimeout(function () { if (!deferredPrompt) triggerInstall(); }, 4000);
     }
   })();
