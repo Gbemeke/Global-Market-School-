@@ -1765,10 +1765,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   // the main site's "Get the App" section can only link here, not
   // fire this install itself, since that belongs to index.html's own
   // (different) manifest.
+  // Registered immediately, not deferred to the page's 'load' event --
+  // 'load' waits for every image in the feed too, and on a slow
+  // connection that can take long enough that a visitor taps "Install
+  // App" before Chrome has even finished deciding the page qualifies,
+  // landing them on the manual-instructions fallback instead of the
+  // native prompt for no real reason.
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
-    });
+    navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
   }
 
   (function () {
