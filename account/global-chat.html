@@ -1827,36 +1827,68 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredPrompt = e;
+      // index.html's own "Install App" button can't trigger this
+      // page's install directly (a click there can only ever install
+      // whichever manifest index.html itself links to, which is the
+      // main GMS app's) -- so it instead hands off here with
+      // ?install=1, and this fires the real prompt itself the instant
+      // it becomes available, with no second tap required.
+      if (autoInstall && !document.hidden) triggerInstall();
     });
+
+    async function triggerInstall() {
+      if (!deferredPrompt) {
+        if (isStandalone) {
+          // Reached this page from inside the already-installed main GMS
+          // app -- that window has no browser menu to install from at
+          // all (it's not a normal browser tab), so the usual "tap the
+          // menu" instructions would be pointing at something that isn't
+          // there. The only way to get Global Chat as its own separate
+          // icon is opening this page in an ordinary browser tab instead.
+          showToast('Open this page in your regular browser (not inside this app) to install Global Chat as its own separate icon.');
+        } else {
+          showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
+        }
+        return;
+      }
+      installBtn.disabled = true;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.disabled = false;
+    }
 
     // Always visible (unlike the home page's version) -- this button
     // is someone's only way to discover Global Chat is installable at
     // all on browsers that never fire beforeinstallprompt (iOS
     // Safari), so it falls back to manual instructions instead of
     // just staying hidden and silent for them.
-    installBtn.addEventListener('click', async function () {
-      if (deferredPrompt) {
-        installBtn.disabled = true;
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        installBtn.disabled = false;
-      } else if (isStandalone) {
-        // Reached this page from inside the already-installed main GMS
-        // app -- that window has no browser menu to install from at
-        // all (it's not a normal browser tab), so the usual "tap the
-        // menu" instructions would be pointing at something that isn't
-        // there. The only way to get Global Chat as its own separate
-        // icon is opening this page in an ordinary browser tab instead.
-        showToast('Open this page in your regular browser (not inside this app) to install Global Chat as its own separate icon.');
-      } else {
-        showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
-      }
-    });
+    installBtn.addEventListener('click', triggerInstall);
 
     window.addEventListener('appinstalled', function () {
       installBtn.style.display = 'none';
     });
+
+    // Arrived from index.html's "Install App" link for Global Chat --
+    // install immediately once ready instead of making someone find
+    // and tap this page's own button too. Strip the marker from the
+    // address bar right away so a later reload/back-navigation to this
+    // same page doesn't re-trigger it.
+    const autoInstall = new URLSearchParams(window.location.search).get('install') === '1';
+    if (autoInstall) {
+      history.replaceState(null, '', window.location.pathname);
+      if (deferredPrompt) {
+        triggerInstall();
+      } else if (!isStandalone) {
+        // Not ready the instant this ran, and not already-installed --
+        // give Chrome a few seconds to finish its installability check
+        // (the beforeinstallprompt listener above will fire triggerInstall
+        // itself the moment it resolves) before falling back to the
+        // manual-instructions toast, so a fast connection isn't punished
+        // by an unnecessary fallback message.
+        setTimeout(function () { if (!deferredPrompt) triggerInstall(); }, 4000);
+      }
+    }
   })();
 
   async function init() {
