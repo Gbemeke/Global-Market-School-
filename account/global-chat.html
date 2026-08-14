@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global Chat — Global Market School</title>
+
+<!-- Installable app -- a distinct app from the main GMS site install,
+     on its own manifest scoped to /account/ so this page's own
+     beforeinstallprompt/install button installs just Global Chat. -->
+<link rel="manifest" href="/account/global-chat.webmanifest">
+<meta name="theme-color" content="#0b1b33">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon-gchat.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GMS Chat">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
@@ -61,6 +72,7 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 .guidelines-link:hover{color:var(--ivory); border-color:var(--ivory);}
 
 .header-profile{position:absolute; top:126px; right:24px; display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center;}
+.header-profile-pic-link{position:relative; display:block; width:52px; height:52px; flex-shrink:0;}
 .header-profile-pic{
   width:52px; height:52px; border-radius:50%; border:2px solid var(--gold-bright); background:var(--navy-mid);
   color:var(--gold-bright); font-family:'Cinzel', serif; font-size:18px; font-weight:600;
@@ -68,6 +80,11 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
   box-shadow:0 0 10px rgba(214,181,104,0.55);
 }
 .header-profile-pic img{width:100%; height:100%; object-fit:cover; display:block;}
+.header-profile-edit-badge{
+  position:absolute; bottom:-2px; right:-2px; width:19px; height:19px; border-radius:50%;
+  background:var(--gold); border:1.5px solid var(--navy-deep); color:var(--navy-deep);
+  font-size:10px; display:flex; align-items:center; justify-content:center;
+}
 .header-profile-name{
   font-family:'Cinzel', serif; font-weight:600; font-size:11px; letter-spacing:0.5px; color:var(--gold-bright);
   white-space:nowrap; display:flex; align-items:center; justify-content:center;
@@ -81,6 +98,7 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 .scroll-top-btn:hover{background:var(--gold); color:var(--navy-deep);}
 @media (max-width:480px){
   .header-profile{top:162px; right:16px; gap:5px;}
+  .header-profile-pic-link{width:44px; height:44px;}
   .header-profile-pic{width:44px; height:44px; font-size:15px;}
   .header-profile-name{font-size:9.5px;}
   .scroll-top-btn{width:24px; height:24px; font-size:12px;}
@@ -437,6 +455,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="meetings.html" class="chat-nav-btn">
         <span class="nav-icon">&#128101;</span> Meetings
       </a>
+      <button type="button" class="chat-nav-btn" id="chat-install-btn">
+        <span class="nav-icon">&#11015;&#65039;</span> Install App
+      </button>
     </div>
     <div class="wrap">
       <p class="chat-title-glow">Global Chat</p>
@@ -445,7 +466,10 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="../legal/community-guidelines.html" target="_blank" rel="noopener" class="guidelines-link">Read our Community Guidelines &rarr;</a>
     </div>
     <div class="header-profile">
-      <div class="header-profile-pic" id="header-profile-pic">A</div>
+      <a href="dashboard.html?openProfile=photo" class="header-profile-pic-link" title="Change your photo — links to your Dashboard">
+        <div class="header-profile-pic" id="header-profile-pic">A</div>
+        <span class="header-profile-edit-badge" aria-hidden="true">&#128247;</span>
+      </a>
       <p class="header-profile-name"><span id="header-profile-name-text">Student</span><span class="verified-badge" id="header-verified-badge" style="display:none;" title="Verified — paid student">&#10003;</span></p>
       <button type="button" class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top of Global Chat">&uarr;</button>
     </div>
@@ -1733,10 +1757,62 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     window.location.href = 'private-chat.html?' + params.toString();
   });
 
+  // ---- Install Global Chat as its own app ----
+  //
+  // Deliberately a SEPARATE installable app from the main GMS site
+  // (see account/global-chat.webmanifest, scope "/account/") -- this
+  // page's own beforeinstallprompt is what can actually trigger it;
+  // the main site's "Get the App" section can only link here, not
+  // fire this install itself, since that belongs to index.html's own
+  // (different) manifest.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
+    });
+  }
+
+  (function () {
+    const installBtn = document.getElementById('chat-install-btn');
+    if (!installBtn) return;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) { installBtn.style.display = 'none'; return; } // already installed
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    // Always visible (unlike the home page's version) -- this button
+    // is someone's only way to discover Global Chat is installable at
+    // all on browsers that never fire beforeinstallprompt (iOS
+    // Safari), so it falls back to manual instructions instead of
+    // just staying hidden and silent for them.
+    installBtn.addEventListener('click', async function () {
+      if (deferredPrompt) {
+        installBtn.disabled = true;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.disabled = false;
+      } else {
+        showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
+      }
+    });
+
+    window.addEventListener('appinstalled', function () {
+      installBtn.style.display = 'none';
+    });
+  })();
+
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-      window.location.href = 'login.html';
+      // Registering or logging in should drop the student straight back
+      // into Global Chat, not the dashboard -- same account either way
+      // (one registration serves both apps), just a different landing page.
+      window.location.href = 'login.html?next=global-chat.html';
       return;
     }
 

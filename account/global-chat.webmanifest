@@ -1,0 +1,18 @@
+{
+  "name": "Global Chat — Global Market School",
+  "short_name": "GMS Chat",
+  "description": "The Global Market School community feed, private messages, and chat meetings — installed as its own app, separate from the main GMS app.",
+  "start_url": "/account/global-chat.html?source=pwa",
+  "scope": "/account/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#faf7ee",
+  "theme_color": "#0b1b33",
+  "lang": "en",
+  "icons": [
+    { "src": "/assets/icons/icon-gchat-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-gchat-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-gchat-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/icons/icon-gchat-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

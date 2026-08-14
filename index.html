@@ -511,6 +511,14 @@ section{padding:96px 0;}
 .get-app-ctas{display:flex; flex-direction:column; align-items:flex-start; gap:12px;}
 .get-app-manual{font-size:13px; color:var(--ink-soft); max-width:52ch; line-height:1.5;}
 #pwa-install-btn{cursor:pointer;}
+.get-app-divider{border-top:1px solid var(--hair); margin:40px 0;}
+.get-app-chat-btn{
+  font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px;
+  text-transform:uppercase; text-decoration:none;
+  color:var(--navy-deep); padding:15px 29px; border:1px solid var(--gold);
+  transition:background .15s, color .15s; display:inline-block;
+}
+.get-app-chat-btn:hover{background:var(--gold); color:var(--navy-deep);}
 @media (max-width:640px){
   .get-app-inner{flex-direction:column; text-align:center;}
   .get-app-ctas{align-items:center;}
@@ -893,6 +901,19 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
       <div class="get-app-ctas">
         <button type="button" class="btn-primary" id="pwa-install-btn" style="display:none;">Install App</button>
         <p class="get-app-manual">On iPhone/iPad: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.<br>On Android/Chrome: tap the browser menu, then <strong>Install app</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap"><div class="get-app-divider"></div></div>
+
+  <div class="wrap get-app-inner">
+    <img src="assets/icons/icon-gchat-192.png" alt="" class="get-app-icon" width="72" height="72" loading="lazy">
+    <div class="get-app-text">
+      <h2>Or install just Global Chat</h2>
+      <p>Want a separate app just for the community feed, private messages, and chat meetings? Open Global Chat and tap Install App there — it installs as its own icon, apart from the main GMS app.</p>
+      <div class="get-app-ctas">
+        <a href="account/global-chat.html" class="get-app-chat-btn">Open Global Chat &rarr;</a>
       </div>
     </div>
   </div>

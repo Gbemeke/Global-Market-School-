@@ -1424,6 +1424,15 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     closeJoinPanel();
   });
 
+  // Global Chat's "change your photo" link (its own profile only has an
+  // avatar, no upload UI of its own -- it reuses this one) sends visitors
+  // here with ?openProfile=photo, since the Profile panel is an off-canvas
+  // slide-out that a plain #avatar-upload-row fragment link can't reveal.
+  if (new URLSearchParams(window.location.search).get('openProfile') === 'photo') {
+    openProfilePanel();
+    document.getElementById('avatar-upload-row').scrollIntoView({ block: 'center' });
+  }
+
   // ---- Join Class WhatsApp Group ----
 
   const WHATSAPP_CONFIG = {

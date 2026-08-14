@@ -127,13 +127,13 @@ a{color:inherit;}
         <button type="submit" class="submit-btn" id="submit-btn">Register Now</button>
       </form>
 
-      <p class="switch-link">Already have an account? <a href="login.html">Log In Now</a></p>
+      <p class="switch-link">Already have an account? <a href="login.html" id="login-link">Log In Now</a></p>
     </div>
 
     <div class="success-panel" id="success-panel" style="display:none;">
       <h2>Check Your Email</h2>
       <p>We've sent a confirmation link to your email address. Tap it to activate your account, then log in to continue to enrollment.</p>
-      <a href="login.html" class="submit-btn" style="display:inline-block; text-decoration:none;">Go to Login</a>
+      <a href="login.html" id="go-to-login-link" class="submit-btn" style="display:inline-block; text-decoration:none;">Go to Login</a>
     </div>
 
   </div>
@@ -145,14 +145,42 @@ a{color:inherit;}
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
+  // Same ?next= convention as login.html -- lets a registration that
+  // started from Global Chat carry that destination through signup,
+  // email confirmation, and login, so the student lands back where they
+  // started instead of always on the dashboard. Same account, same
+  // access, either way -- only the landing page changes. Deliberately
+  // narrow ("../index.html" literal, or a bare filename[.html][?query]
+  // with no scheme, no leading slash, no "..") so it can never become
+  // an open redirect.
+  function getSafeNext() {
+    const raw = new URLSearchParams(window.location.search).get('next');
+    if (!raw) return null;
+    if (raw === '../index.html') return raw;
+    if (!/^[a-zA-Z0-9_-]+\.html(\?[a-zA-Z0-9=&_%.-]*)?$/.test(raw)) return null;
+    return raw;
+  }
+  const safeNext = getSafeNext();
+  const nextQuery = safeNext ? '?next=' + encodeURIComponent(safeNext) : '';
+
+  // The switch-link (someone who landed here by mistake and already has
+  // an account) keeps the plain default -- straight to their dashboard,
+  // no detour. Only the *post-signup* "Go to Login" button below defaults
+  // to the home page when nothing more specific was requested, since a
+  // brand-new registration through the main site should introduce the
+  // student to the site itself before the dashboard, the same path any
+  // other visitor takes.
+  document.getElementById('login-link').href = 'login.html' + nextQuery;
+  document.getElementById('go-to-login-link').href = 'login.html?next=' + encodeURIComponent(safeNext || '../index.html');
+
   // An already-enrolled student landing here (old link, back button,
   // whatever) should never be shown a signup form for an account they
-  // already have -- send them straight to their dashboard instead.
+  // already have -- send them straight to their destination instead.
   (async function redirectIfAlreadySignedIn() {
     try {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
-        window.location.href = 'dashboard.html';
+        window.location.href = safeNext || 'dashboard.html';
         return;
       }
     } catch (e) { /* fall through and show the form as normal */ }
