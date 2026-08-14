@@ -552,6 +552,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
+  // Captured once, before anything below can mutate the address bar
+  // (the install IIFE strips ?install=1 from it once it's handled) --
+  // used to carry that same intent through the login detour below, so
+  // a signed-out visitor who tapped "Install App" on the home page
+  // still gets auto-installed after logging in, instead of landing
+  // back here with no memory of why they came.
+  const initialSearch = window.location.search;
+
   const PRIVATE_CHAT_API = 'https://global-market-school.vercel.app/api/private-chat';
 
   const REACTIONS = [
@@ -1874,7 +1882,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     // and tap this page's own button too. Strip the marker from the
     // address bar right away so a later reload/back-navigation to this
     // same page doesn't re-trigger it.
-    const autoInstall = new URLSearchParams(window.location.search).get('install') === '1';
+    const autoInstall = new URLSearchParams(initialSearch).get('install') === '1';
     if (autoInstall) {
       history.replaceState(null, '', window.location.pathname);
       if (deferredPrompt) {
@@ -1897,7 +1905,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       // Registering or logging in should drop the student straight back
       // into Global Chat, not the dashboard -- same account either way
       // (one registration serves both apps), just a different landing page.
-      window.location.href = 'login.html?next=global-chat.html';
+      // Carries through any query string this page was first loaded
+      // with (e.g. ?install=1 from the home page's "Install App"
+      // hand-off), so that intent survives the login detour instead of
+      // silently vanishing -- otherwise a signed-out visitor tapping
+      // Install lands back here logged in, but with no memory of why
+      // they came, and has to find and tap Install again themselves.
+      const returnTo = 'global-chat.html' + initialSearch;
+      window.location.href = 'login.html?next=' + encodeURIComponent(returnTo);
       return;
     }
 
