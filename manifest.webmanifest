@@ -1,6 +1,6 @@
 {
   "name": "Global Market School",
-  "short_name": "GMS",
+  "short_name": "GMS APP",
   "description": "Learn stocks and forex trading with narrated lessons, assessments, and certificates from Global Market School.",
   "start_url": "/index.html?source=pwa",
   "scope": "/",
