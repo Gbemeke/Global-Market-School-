@@ -929,7 +929,7 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
              fires the real install prompt itself the moment it's ready
              (see the ?install=1 handling in global-chat.html) -- one tap
              here, no second tap needed there. -->
-        <a href="account/global-chat.html?install=1" class="btn-primary" style="text-decoration:none; display:inline-block;">Install App</a>
+        <a href="account/global-chat.html?install=1" id="gchat-install-link" class="btn-primary" style="text-decoration:none; display:inline-block;">Install App</a>
         <p class="get-app-manual">On iPhone/iPad: open Global Chat, then tap <strong>Share</strong> &rarr; <strong>Add to Home Screen</strong>.<br>On Android/Chrome: taps through automatically, or use the browser menu's <strong>Install app</strong>.</p>
       </div>
     </div>
@@ -1019,6 +1019,30 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
 
     window.addEventListener('appinstalled', function () {
       installBtn.style.display = 'none';
+    });
+  })();
+
+  // If this page itself is already running standalone, it can only be
+  // because the main GMS app is installed and this is its own window
+  // (Global Chat's manifest scope doesn't cover index.html at all, so
+  // there's no ambiguity here the way there is on Global Chat's own
+  // page). Tapping "Install App" for Global Chat from inside that
+  // window would otherwise land on Global Chat's page only to discover
+  // there, a few seconds later, that installing a second app from
+  // inside a different installed app's window isn't possible -- a real
+  // platform limit -- and have to ask the visitor to open a browser tab
+  // from there instead. Detecting it here and skipping straight to a
+  // new tab removes that whole extra hop: one tap, browser opens
+  // immediately, and Global Chat installs itself automatically there
+  // via the same ?install=1 hand-off.
+  (function () {
+    const link = document.getElementById('gchat-install-link');
+    if (!link) return;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!isStandalone) return;
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.open(link.href, '_blank');
     });
   })();
 
