@@ -112,6 +112,10 @@ section{padding:24px 0;}
   color:var(--ink); font-size:13.5px; line-height:1.5; padding:13px 16px; margin-top:16px;
 }
 .install-status-banner.done{border-color:var(--good); border-left-color:var(--good);}
+/* Belt-and-braces: an empty banner should never render as a stray
+   bordered box with nothing in it, regardless of what JS state led
+   there -- if it has no text, it simply isn't shown, full stop. */
+.install-status-banner:empty{display:none !important;}
 
 .guest-notice{background:#fff; border:1px solid var(--hair); padding:32px 24px; text-align:center; margin-top:24px;}
 .guest-notice-title{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep); margin-bottom:10px;}
@@ -1939,7 +1943,12 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
       deferredPrompt = null;
-      if (choice && choice.outcome === 'dismissed') setInstallBanner(null);
+      // Left with something to read either way -- never just clear back
+      // to a blank banner, which reads as nothing having happened at
+      // all rather than a completed (if declined) choice.
+      if (choice && choice.outcome === 'dismissed') {
+        setInstallBanner("Install cancelled. Tap Install App on the home page again anytime.");
+      }
     }
 
     window.addEventListener('appinstalled', function () {
