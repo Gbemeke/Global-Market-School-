@@ -102,16 +102,20 @@ a{color:inherit;}
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
-  // Reads a same-origin, account/-relative page to return to after login
-  // (e.g. "global-chat.html") from ?next= -- lets a login that started
-  // from Global Chat land the student back there instead of always going
-  // to the dashboard. It's the same account and same access either way;
-  // this only changes where the student ends up. Deliberately narrow --
-  // bare filename[.html][?query], no scheme, no leading slash, no ".." --
-  // so it can never become an open redirect to another site.
+  // Reads a page to return to after login from ?next= -- either a
+  // same-origin page under account/ (e.g. "global-chat.html", so a login
+  // that started from Global Chat lands the student back there) or the
+  // one explicit exception "../index.html" (the home page, used for a
+  // fresh signup through the main site). It's the same account and same
+  // access either way; this only changes where the student ends up.
+  // Deliberately narrow -- that one literal, or a bare filename[.html]
+  // [?query] with no scheme, no leading slash, no ".." -- so it can
+  // never become an open redirect to another site.
   function getSafeNext() {
     const raw = new URLSearchParams(window.location.search).get('next');
-    if (!raw || !/^[a-zA-Z0-9_-]+\.html(\?[a-zA-Z0-9=&_%.-]*)?$/.test(raw)) return null;
+    if (!raw) return null;
+    if (raw === '../index.html') return raw;
+    if (!/^[a-zA-Z0-9_-]+\.html(\?[a-zA-Z0-9=&_%.-]*)?$/.test(raw)) return null;
     return raw;
   }
   const safeNext = getSafeNext();
