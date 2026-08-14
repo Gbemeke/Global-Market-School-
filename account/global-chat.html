@@ -1797,8 +1797,31 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     const installBtn = document.getElementById('chat-install-btn');
     if (!installBtn) return;
 
+    // Standalone display-mode alone is NOT proof Global Chat itself is
+    // installed -- the main GMS app's manifest scope ("/") covers this
+    // page too, so simply navigating here from inside THAT installed
+    // app also reports standalone, even though nobody ever installed
+    // Global Chat as its own separate icon. The one reliable signal
+    // that this page was launched from Global Chat's own home-screen
+    // icon is its manifest's start_url, "/account/global-chat.html
+    // ?source=pwa" -- a real launch from that icon always carries the
+    // query string; arriving via an ordinary link (from the dashboard,
+    // from inside the main app, from index.html's "Open Global Chat")
+    // never does. Remembered in sessionStorage (scoped to this one
+    // standalone window, never shared with an ordinary browser tab) so
+    // it still holds after navigating elsewhere in the app and back --
+    // e.g. to Messages/Meetings/Dashboard and back to Global Chat --
+    // none of which carry the marker themselves.
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    if (isStandalone) { installBtn.style.display = 'none'; return; } // already installed
+    const launchedFromChatAppIcon = new URLSearchParams(window.location.search).get('source') === 'pwa';
+    if (launchedFromChatAppIcon) {
+      try { sessionStorage.setItem('gc_installed_session', '1'); } catch (e) { /* private browsing, etc. */ }
+    }
+    let chatAppConfirmedThisSession = launchedFromChatAppIcon;
+    if (!chatAppConfirmedThisSession) {
+      try { chatAppConfirmedThisSession = sessionStorage.getItem('gc_installed_session') === '1'; } catch (e) { /* ignore */ }
+    }
+    if (isStandalone && chatAppConfirmedThisSession) { installBtn.style.display = 'none'; return; } // already installed
 
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
@@ -1818,6 +1841,14 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
         await deferredPrompt.userChoice;
         deferredPrompt = null;
         installBtn.disabled = false;
+      } else if (isStandalone) {
+        // Reached this page from inside the already-installed main GMS
+        // app -- that window has no browser menu to install from at
+        // all (it's not a normal browser tab), so the usual "tap the
+        // menu" instructions would be pointing at something that isn't
+        // there. The only way to get Global Chat as its own separate
+        // icon is opening this page in an ordinary browser tab instead.
+        showToast('Open this page in your regular browser (not inside this app) to install Global Chat as its own separate icon.');
       } else {
         showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
       }
