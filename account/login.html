@@ -92,7 +92,7 @@ a{color:inherit;}
       <button type="submit" class="submit-btn" id="submit-btn">Log In</button>
     </form>
 
-    <p class="switch-link">New here? <a href="register.html">Register Now</a></p>
+    <p class="switch-link">New here? <a href="register.html" id="register-link">Register Now</a></p>
   </div>
 </div>
 
@@ -102,14 +102,35 @@ a{color:inherit;}
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
+  // Reads a same-origin, account/-relative page to return to after login
+  // (e.g. "global-chat.html") from ?next= -- lets a login that started
+  // from Global Chat land the student back there instead of always going
+  // to the dashboard. It's the same account and same access either way;
+  // this only changes where the student ends up. Deliberately narrow --
+  // bare filename[.html][?query], no scheme, no leading slash, no ".." --
+  // so it can never become an open redirect to another site.
+  function getSafeNext() {
+    const raw = new URLSearchParams(window.location.search).get('next');
+    if (!raw || !/^[a-zA-Z0-9_-]+\.html(\?[a-zA-Z0-9=&_%.-]*)?$/.test(raw)) return null;
+    return raw;
+  }
+  const safeNext = getSafeNext();
+
+  // Carry ?next= through to Register, so someone who followed a link to
+  // Global Chat, hit the login gate, then realizes they need an account
+  // first, still lands back in Global Chat after registering + logging in.
+  if (safeNext) {
+    document.getElementById('register-link').href = 'register.html?next=' + encodeURIComponent(safeNext);
+  }
+
   // An already-signed-in student landing here (old link, back button,
-  // whatever) should go straight to their dashboard, not be asked to
+  // whatever) should go straight to their destination, not be asked to
   // log in again.
   (async function redirectIfAlreadySignedIn() {
     try {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
-        window.location.href = 'dashboard.html';
+        window.location.href = safeNext || 'dashboard.html';
         return;
       }
     } catch (e) { /* fall through and show the form as normal */ }
@@ -148,9 +169,9 @@ a{color:inherit;}
     // Supabase requires a second step (AAL2) before granting full access.
     const { data: aal } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== aal.nextLevel) {
-      window.location.href = 'verify-mfa.html';
+      window.location.href = 'verify-mfa.html' + (safeNext ? '?next=' + encodeURIComponent(safeNext) : '');
     } else {
-      window.location.href = 'dashboard.html';
+      window.location.href = safeNext || 'dashboard.html';
     }
   });
 

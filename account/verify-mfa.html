@@ -93,10 +93,22 @@ a{color:inherit;}
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
 
+  // Same ?next= convention as login.html/register.html -- login.html
+  // passes this through when it sends a 2FA-enrolled student here, so
+  // that after verifying, they land back on whatever page they started
+  // from (e.g. Global Chat) instead of always the dashboard.
+  function getSafeNext() {
+    const raw = new URLSearchParams(window.location.search).get('next');
+    if (!raw || !/^[a-zA-Z0-9_-]+\.html(\?[a-zA-Z0-9=&_%.-]*)?$/.test(raw)) return null;
+    return raw;
+  }
+  const safeNext = getSafeNext();
+  const nextQuery = safeNext ? '?next=' + encodeURIComponent(safeNext) : '';
+
   (async function guard() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-      window.location.href = 'login.html';
+      window.location.href = 'login.html' + nextQuery;
     }
   })();
 
@@ -135,7 +147,7 @@ a{color:inherit;}
       return;
     }
 
-    window.location.href = 'dashboard.html';
+    window.location.href = safeNext || 'dashboard.html';
   });
 
   document.getElementById('recovery-toggle').addEventListener('click', function() {
@@ -161,7 +173,7 @@ a{color:inherit;}
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-      window.location.href = 'login.html';
+      window.location.href = 'login.html' + nextQuery;
       return;
     }
 
@@ -187,7 +199,7 @@ a{color:inherit;}
       msg.className = 'msg success';
       msg.textContent = 'Two-factor authentication has been turned off for your account. Redirecting...';
       await supabaseClient.auth.refreshSession();
-      setTimeout(function() { window.location.href = 'dashboard.html'; }, 1500);
+      setTimeout(function() { window.location.href = safeNext || 'dashboard.html'; }, 1500);
     } catch (err) {
       msg.className = 'msg error';
       msg.textContent = 'Could not reach the recovery service. Please try again.';
