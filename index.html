@@ -893,19 +893,27 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
 </section>
 
 <section class="get-app" id="get-app">
-  <div class="wrap get-app-inner">
-    <img src="assets/icons/icon-192.png" alt="" class="get-app-icon" width="72" height="72" loading="lazy">
-    <div class="get-app-text">
-      <h2>Take Global Market School with you</h2>
-      <p>Install the app on your phone or computer — one tap from your home screen, no App Store account or download needed.</p>
-      <div class="get-app-ctas">
-        <button type="button" class="btn-primary" id="pwa-install-btn" style="display:none;">Install App</button>
-        <p class="get-app-manual">On iPhone/iPad: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.<br>On Android/Chrome: tap the browser menu, then <strong>Install app</strong>.</p>
+  <!-- Hidden as a unit when the MAIN app is already installed (see the
+       isStandalone check below) -- but that says nothing about whether
+       Global Chat, a genuinely separate installable app, is installed
+       too, so its own block further down must never be inside this
+       container, or it would vanish along with this one for anyone
+       browsing from inside the already-installed main app. -->
+  <div id="gms-app-install-block">
+    <div class="wrap get-app-inner">
+      <img src="assets/icons/icon-192.png" alt="" class="get-app-icon" width="72" height="72" loading="lazy">
+      <div class="get-app-text">
+        <h2>Take Global Market School with you</h2>
+        <p>Install the app on your phone or computer — one tap from your home screen, no App Store account or download needed.</p>
+        <div class="get-app-ctas">
+          <button type="button" class="btn-primary" id="pwa-install-btn" style="display:none;">Install App</button>
+          <p class="get-app-manual">On iPhone/iPad: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.<br>On Android/Chrome: tap the browser menu, then <strong>Install app</strong>.</p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="wrap"><div class="get-app-divider"></div></div>
+    <div class="wrap"><div class="get-app-divider"></div></div>
+  </div>
 
   <div class="wrap get-app-inner">
     <img src="assets/icons/icon-gchat-192.png" alt="" class="get-app-icon" width="72" height="72" loading="lazy">
@@ -976,12 +984,20 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
   // always-visible manual instructions alongside this button.
   (function () {
     const installBtn = document.getElementById('pwa-install-btn');
-    const section = document.getElementById('get-app');
-    if (!installBtn || !section) return;
+    const block = document.getElementById('gms-app-install-block');
+    if (!installBtn || !block) return;
 
+    // Only this block (the main GMS app's own install pitch) hides when
+    // already standalone -- NOT the whole #get-app section, which also
+    // holds the completely separate "Or install just Global Chat"
+    // block further down. Global Chat has its own manifest and its own
+    // installed-or-not state; being inside the already-installed main
+    // app says nothing about whether Global Chat is installed too, and
+    // hiding the whole section here used to take that still-relevant
+    // block down with it for anyone browsing from inside the main app.
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     if (isStandalone) {
-      section.style.display = 'none'; // already installed -- nothing to offer
+      block.style.display = 'none'; // main app already installed -- nothing to offer here
       return;
     }
 
@@ -1121,14 +1137,24 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
 <script>
   // Floating "Enroll Now" — appears once the visitor has scrolled past
   // the hero (its own CTA already covers that first screen), and swaps
-  // to "Go to Dashboard" for anyone already signed in.
+  // to "Go to Dashboard" for anyone already signed in. Also hidden
+  // while the page's own "Your seat in the next class..." CTA section
+  // is on screen -- that section has an identical Enroll Now button of
+  // its own, and the fixed-position floating one used to sit right on
+  // top of it there, showing what looked like two overlapping buttons.
   (function () {
     const btn = document.getElementById('floating-enroll');
     const label = document.getElementById('floating-enroll-label');
+    const ctaSection = document.querySelector('.cta-final');
     if (!btn) return;
 
     function onScroll() {
-      btn.classList.toggle('show', window.scrollY > 480);
+      let ctaVisible = false;
+      if (ctaSection) {
+        const rect = ctaSection.getBoundingClientRect();
+        ctaVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      }
+      btn.classList.toggle('show', window.scrollY > 480 && !ctaVisible);
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
