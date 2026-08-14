@@ -6,9 +6,8 @@
 <title>Global Chat — Global Market School</title>
 
 <!-- Installable app -- a distinct app from the main GMS site install,
-     on its own manifest scoped to /account/. The home page's Install
-     App button (for "Or install just Global Chat") hands off here
-     with ?install=1 to fire this manifest's own install prompt. -->
+     on its own manifest scoped to /account/, so this page's own
+     Install App button installs Global Chat specifically. -->
 <link rel="manifest" href="/account/global-chat.webmanifest">
 <meta name="theme-color" content="#0b1b33">
 <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon-gchat.png">
@@ -106,27 +105,6 @@ header{background:var(--navy-deep); color:var(--ivory); position:sticky; top:0; 
 }
 
 section{padding:24px 0;}
-
-.install-status-banner{
-  background:#fff; border:1px solid var(--gold); border-left:3px solid var(--gold);
-  color:var(--ink); font-size:13.5px; line-height:1.5; padding:13px 16px; margin-top:16px;
-}
-.install-status-banner.done{border-color:var(--good); border-left-color:var(--good);}
-/* Belt-and-braces: an empty banner should never render as a stray
-   bordered box with nothing in it, regardless of what JS state led
-   there -- if it has no text, it simply isn't shown, full stop. */
-.install-status-banner:empty{display:none !important;}
-
-.guest-notice{background:#fff; border:1px solid var(--hair); padding:32px 24px; text-align:center; margin-top:24px;}
-.guest-notice-title{font-family:'Cormorant Garamond', serif; font-weight:600; font-size:22px; color:var(--navy-deep); margin-bottom:10px;}
-.guest-notice-text{font-size:14px; color:var(--ink-soft); max-width:50ch; margin:0 auto 20px; line-height:1.6;}
-.guest-notice-ctas{display:flex; justify-content:center; gap:12px; flex-wrap:wrap;}
-.guest-notice-ctas .post-btn{padding:12px 28px; display:inline-block;}
-.guest-register-link{
-  font-family:'Cinzel', serif; font-size:11.5px; letter-spacing:1px; text-transform:uppercase;
-  color:var(--navy-deep); text-decoration:none; border:1px solid var(--gold); padding:12px 26px; display:inline-block;
-}
-.guest-register-link:hover{background:var(--gold); color:var(--navy-deep);}
 
 .ban-banner{background:#fbf0ee; border:1px solid rgba(138,59,46,0.3); border-left:3px solid var(--bad); color:var(--bad); font-size:13.5px; padding:14px 16px; margin-bottom:16px;}
 .composer{background:#fff; border:1px solid var(--hair); padding:18px;}
@@ -477,6 +455,9 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
       <a href="meetings.html" class="chat-nav-btn">
         <span class="nav-icon">&#128101;</span> Meetings
       </a>
+      <button type="button" class="chat-nav-btn" id="chat-install-btn">
+        <span class="nav-icon">&#11015;&#65039;</span> Install App
+      </button>
     </div>
     <div class="wrap">
       <p class="chat-title-glow">Global Chat</p>
@@ -496,60 +477,35 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
 
   <div class="wrap">
 
-    <!-- Status for the ?install=1 hand-off from the home page's Install
-         App button -- a persistent banner, not a toast, specifically
-         because a toast disappears on its own timer regardless of
-         whether the install actually finished, and on a slow
-         connection the whole install-readiness check can easily take
-         longer than that timer, making it look like nothing happened
-         at all when really it just hadn't resolved yet. This stays up
-         until there's something conclusive to say. -->
-    <div class="install-status-banner" id="install-status-banner" style="display:none;"></div>
-
-    <!-- Shown instead of the composer/feed for a signed-out visitor --
-         Global Chat's page shell (nav bar, Install App button) loads
-         for anyone so the app can be installed before ever creating an
-         account; only the actual feed content requires logging in. -->
-    <div class="guest-notice" id="guest-notice" style="display:none;">
-      <p class="guest-notice-title">Log in to join the conversation</p>
-      <p class="guest-notice-text">Global Chat is exclusive to Global Market School students. Log in or register to read posts, comment, and connect with the community — installing the app doesn't require an account, only using it does.</p>
-      <div class="guest-notice-ctas">
-        <a href="login.html" id="guest-login-link" class="post-btn" style="text-decoration:none;">Log In</a>
-        <a href="register.html" id="guest-register-link" class="guest-register-link">Register</a>
+    <section>
+      <div class="ban-banner" id="ban-banner" style="display:none;">
+        You've been restricted from posting, commenting, reacting, and reposting in Global Chat by an admin. You can still read posts. Contact support if you think this is a mistake.
       </div>
-    </div>
+      <div class="composer">
+        <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
 
-    <div id="chat-content-wrap">
-      <section>
-        <div class="ban-banner" id="ban-banner" style="display:none;">
-          You've been restricted from posting, commenting, reacting, and reposting in Global Chat by an admin. You can still read posts. Contact support if you think this is a mistake.
+        <div class="media-preview" id="composer-media-preview" style="display:none;"></div>
+
+        <div class="composer-toolbar">
+          <button type="button" class="media-btn" id="attach-image-btn">&#128200; Chart / Photo</button>
+          <button type="button" class="media-btn" id="attach-video-btn">&#127909; Video</button>
+          <input type="file" id="composer-image-input" accept="image/*" style="display:none;">
+          <input type="file" id="composer-video-input" accept="video/*" style="display:none;">
         </div>
-        <div class="composer">
-          <textarea id="new-post-text" placeholder="Share something with the community..." maxlength="2000"></textarea>
 
-          <div class="media-preview" id="composer-media-preview" style="display:none;"></div>
-
-          <div class="composer-toolbar">
-            <button type="button" class="media-btn" id="attach-image-btn">&#128200; Chart / Photo</button>
-            <button type="button" class="media-btn" id="attach-video-btn">&#127909; Video</button>
-            <input type="file" id="composer-image-input" accept="image/*" style="display:none;">
-            <input type="file" id="composer-video-input" accept="video/*" style="display:none;">
-          </div>
-
-          <div class="composer-actions">
-            <span class="upload-progress" id="upload-progress" style="display:none;">Uploading…</span>
-            <button class="post-btn" id="new-post-btn">Post</button>
-          </div>
-          <p class="msg" id="composer-msg" style="display:none;"></p>
+        <div class="composer-actions">
+          <span class="upload-progress" id="upload-progress" style="display:none;">Uploading…</span>
+          <button class="post-btn" id="new-post-btn">Post</button>
         </div>
-      </section>
+        <p class="msg" id="composer-msg" style="display:none;"></p>
+      </div>
+    </section>
 
-      <section>
-        <div class="feed" id="feed"></div>
-        <p class="empty-note" id="empty-note" style="display:none;">No posts yet — be the first to share something.</p>
-        <button type="button" class="load-older-btn" id="load-older-btn" style="display:none;">Load Older Posts</button>
-      </section>
-    </div>
+    <section>
+      <div class="feed" id="feed"></div>
+      <p class="empty-note" id="empty-note" style="display:none;">No posts yet — be the first to share something.</p>
+      <button type="button" class="load-older-btn" id="load-older-btn" style="display:none;">Load Older Posts</button>
+    </section>
   </div>
 
   <footer>&copy; 2026 Global Market School Ltd.</footer>
@@ -595,14 +551,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     'https://djkctbtxnpdkstvznjlf.supabase.co',
     'sb_publishable_4J_RxGdtTL8Uip1cn6XCVg_kdOTcyK8'
   );
-
-  // Captured once, before anything below can mutate the address bar
-  // (the install IIFE strips ?install=1 from it once it's handled) --
-  // used to carry that same intent through the login detour below, so
-  // a signed-out visitor who tapped "Install App" on the home page
-  // still gets auto-installed after logging in, instead of landing
-  // back here with no memory of why they came.
-  const initialSearch = window.location.search;
 
   const PRIVATE_CHAT_API = 'https://global-market-school.vercel.app/api/private-chat';
 
@@ -1699,14 +1647,6 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
   });
 
   document.getElementById('logout-btn').addEventListener('click', async function() {
-    // Guests (currentUserId never got set -- see enterGuestMode()) have
-    // nothing to sign out of; this button reads "Log In" for them, so
-    // route there instead of calling signOut() on a session that
-    // doesn't exist.
-    if (!currentUserId) {
-      window.location.href = 'login.html?next=' + encodeURIComponent('global-chat.html' + initialSearch);
-      return;
-    }
     await supabaseClient.auth.signOut();
     window.location.href = '../index.html';
   });
@@ -1835,174 +1775,77 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.5); text-align:cente
     window.location.href = 'private-chat.html?' + params.toString();
   });
 
-  // ---- Install Global Chat as its own app -- hand-off only, no button ----
+  // ---- Install Global Chat as its own app ----
   //
-  // This page used to have its own always-visible "Install App" button
-  // in the nav bar, on top of the one on the home page. It was the
-  // source of every install-related bug reported: detecting whether
-  // this window was standalone because Global Chat itself was
-  // installed vs. because it was merely opened from inside the main
-  // GMS app's own standalone window, a fallback message that only
-  // sometimes matched what was actually true, an easy thing to tap by
-  // mistake with a confusing result. Removed entirely -- "Install App"
-  // now only ever lives on the home page, and this page's only job is
-  // to fire the real install prompt automatically the moment Chrome
-  // decides it's ready, when arriving from that one hand-off link
-  // (index.html's Install App -> account/global-chat.html?install=1).
+  // Deliberately a SEPARATE installable app from the main GMS site
+  // (see account/global-chat.webmanifest, scope "/account/") -- this
+  // page's own beforeinstallprompt is what actually triggers it, since
+  // a click on the home page can only ever install whichever manifest
+  // index.html itself links to (the main app's). The home page's
+  // "Or install just Global Chat" block just links here; this button
+  // is where the real install happens, same as it's always worked for
+  // the main app's own button.
   // Registered immediately, not deferred to the page's 'load' event --
   // 'load' waits for every image in the feed too, and on a slow
-  // connection that can take long enough that this auto-install never
-  // gets the chance to fire before someone gives up waiting.
+  // connection that can take long enough that a visitor taps "Install
+  // App" before Chrome has even finished deciding the page qualifies,
+  // landing them on the manual-instructions fallback instead of the
+  // native prompt for no real reason.
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function () { /* installability is a bonus, never a blocker */ });
   }
 
   (function () {
-    const autoInstall = new URLSearchParams(initialSearch).get('install') === '1';
-    if (!autoInstall) return; // nothing to do without the home page's hand-off
-
-    // Strip the marker from the address bar right away so a later
-    // reload/back-navigation to this same page doesn't re-trigger it.
-    history.replaceState(null, '', window.location.pathname);
+    const installBtn = document.getElementById('chat-install-btn');
+    if (!installBtn) return;
 
     // Standalone display-mode alone is NOT proof Global Chat itself is
-    // already installed -- the main GMS app's manifest scope ("/")
-    // covers this page too, so simply navigating here from inside THAT
-    // installed app also reports standalone. The one reliable signal
+    // installed -- the main GMS app's manifest scope ("/") covers this
+    // page too, so simply navigating here from inside THAT installed
+    // app also reports standalone, even though nobody ever installed
+    // Global Chat as its own separate icon. The one reliable signal
     // that this page was launched from Global Chat's own home-screen
     // icon is its manifest's start_url, "/account/global-chat.html
-    // ?source=pwa" -- remembered in sessionStorage (scoped to this one
-    // standalone window) so it still holds if this hand-off somehow
-    // fires again later in the same session.
+    // ?source=pwa" -- a real launch from that icon always carries the
+    // query string; arriving via an ordinary link never does.
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    const launchedFromChatAppIcon = new URLSearchParams(initialSearch).get('source') === 'pwa';
-    if (launchedFromChatAppIcon) {
-      try { sessionStorage.setItem('gc_installed_session', '1'); } catch (e) { /* private browsing, etc. */ }
-    }
-    let alreadyInstalledThisSession = launchedFromChatAppIcon;
-    if (!alreadyInstalledThisSession) {
-      try { alreadyInstalledThisSession = sessionStorage.getItem('gc_installed_session') === '1'; } catch (e) { /* ignore */ }
-    }
-    if (isStandalone && alreadyInstalledThisSession) return; // already installed, nothing to do
-
-    // A persistent banner, not a toast -- a toast disappears on its own
-    // timer regardless of whether anything actually happened, and on a
-    // slow connection the browser's installability check can easily
-    // take longer than that timer, making it look like nothing
-    // happened when it really just hadn't resolved yet. This stays
-    // visible until there's something conclusive to say, and gets
-    // updated (not replaced by a second, separate message) if
-    // beforeinstallprompt ends up firing later than the fallback below.
-    function setInstallBanner(text, done) {
-      const banner = document.getElementById('install-status-banner');
-      if (!banner) return;
-      banner.textContent = text || '';
-      banner.style.display = text ? 'block' : 'none';
-      banner.classList.toggle('done', !!done);
-    }
-    setInstallBanner('Installing Global Chat… this can take a few seconds, longer on a slow connection.');
+    const launchedFromChatAppIcon = new URLSearchParams(window.location.search).get('source') === 'pwa';
+    if (isStandalone && launchedFromChatAppIcon) { installBtn.style.display = 'none'; return; } // already installed
 
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredPrompt = e;
-      if (!document.hidden) triggerInstall();
     });
 
-    async function triggerInstall() {
-      if (!deferredPrompt) {
-        if (isStandalone) {
-          // Reached here from inside the already-installed main GMS
-          // app's own standalone window -- installing a second,
-          // different app from inside a window that's already the
-          // shell of a different one isn't possible at all, on any
-          // platform; that's a real limit, not something to code
-          // around. The only way to actually get Global Chat as its
-          // own icon is a fresh browser tab, so this hands that off
-          // with one tap instead of just describing it in text --
-          // window.open() from inside an installed app's window hands
-          // off to the system browser on Android.
-          setInstallBanner(null);
-          const ok = await showModal({
-            title: 'Open in Browser to Install',
-            message: "Installing Global Chat as its own icon isn't possible from inside this app -- only from an ordinary browser tab. Tap below to open it there, where it installs automatically.",
-            confirmLabel: 'Open in Browser'
-          });
-          if (ok) window.open(window.location.origin + '/account/global-chat.html?install=1', '_blank');
-        } else {
-          // Genuinely didn't get a native prompt in time -- still
-          // listening for beforeinstallprompt in the background in case
-          // it just needed longer, but give a real fallback in the
-          // meantime instead of leaving this banner saying "installing"
-          // forever with nothing to act on.
-          setInstallBanner("Couldn't start the install automatically. On iPhone/iPad: tap Share, then Add to Home Screen. On Android/Chrome: tap the ⋮ menu, then Install app.");
-        }
-        return;
+    installBtn.addEventListener('click', async function () {
+      if (deferredPrompt) {
+        installBtn.disabled = true;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.disabled = false;
+      } else if (isStandalone) {
+        // Reached this page from inside the already-installed main GMS
+        // app -- that window has no browser menu to install from at
+        // all (it's not a normal browser tab), so the only way to get
+        // Global Chat as its own separate icon is opening this page in
+        // an ordinary browser tab instead.
+        showToast('Open this page in your regular browser (not inside this app) to install Global Chat.');
+      } else {
+        showToast('On iPhone: tap Share, then Add to Home Screen. On Android/Chrome: tap the menu, then Install app.');
       }
-      setInstallBanner('Installing Global Chat…');
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      // Left with something to read either way -- never just clear back
-      // to a blank banner, which reads as nothing having happened at
-      // all rather than a completed (if declined) choice.
-      if (choice && choice.outcome === 'dismissed') {
-        setInstallBanner("Install cancelled. Tap Install App on the home page again anytime.");
-      }
-    }
+    });
 
     window.addEventListener('appinstalled', function () {
-      setInstallBanner('Global Chat installed! Check your home screen.', true);
-      setTimeout(function () { setInstallBanner(null); }, 6000);
+      installBtn.style.display = 'none';
     });
-
-    if (deferredPrompt) {
-      triggerInstall();
-    } else {
-      // Not ready the instant this ran -- give Chrome a few seconds to
-      // finish its installability check (the beforeinstallprompt
-      // listener above will fire triggerInstall itself the moment it
-      // resolves, updating the banner in place) before falling back to
-      // the manual-instructions banner, so a fast connection isn't
-      // punished by an unnecessary fallback message.
-      setTimeout(function () { if (!deferredPrompt) triggerInstall(); }, 4000);
-    }
   })();
-
-  // A signed-out visitor gets the page shell -- header, nav bar, and
-  // (crucially) the Install App button, which needs to work without an
-  // account so Global Chat can be installed before ever logging in or
-  // registering -- with the actual feed swapped out for a plain login/
-  // register prompt instead. Nothing auth-gated (loadFeed, presence,
-  // markChatAsSeen, private-message polling) ever runs for a guest.
-  function enterGuestMode() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('chat-page').style.display = 'block';
-    document.getElementById('chat-content-wrap').style.display = 'none';
-    document.getElementById('guest-notice').style.display = 'block';
-
-    const returnTo = 'global-chat.html' + initialSearch;
-    const loginHref = 'login.html?next=' + encodeURIComponent(returnTo);
-    const registerHref = 'register.html?next=' + encodeURIComponent(returnTo);
-    document.getElementById('guest-login-link').href = loginHref;
-    document.getElementById('guest-register-link').href = registerHref;
-
-    // The avatar/name and "Log Out" in the header normally belong to a
-    // signed-in student -- neither makes sense for a guest, so both
-    // point at logging in instead.
-    document.getElementById('header-profile-pic').textContent = '?';
-    document.getElementById('header-profile-name-text').textContent = 'Guest';
-    document.getElementById('header-verified-badge').style.display = 'none';
-    document.getElementById('header-profile-pic-link').href = loginHref;
-    document.getElementById('header-profile-pic-link').title = 'Log in to Global Chat';
-    document.getElementById('header-profile-edit-badge').style.display = 'none';
-    document.getElementById('logout-btn').textContent = 'Log In';
-  }
 
   async function init() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
-      enterGuestMode();
+      window.location.href = 'login.html?next=global-chat.html';
       return;
     }
 
