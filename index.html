@@ -44,6 +44,14 @@
   "logo": "https://www.globalmarketschool.com/assets/icons/icon-512.png",
   "description": "Learn to trade stocks and forex with narrated lessons, real assessments, verified certificates, and live mentorship from Beginner to Trade Group level.",
   "founder": { "@type": "Person", "name": "Victor Akodi" },
+  "email": "info@globalmarketschool.com",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "telephone": "+2348108764924",
+    "email": "info@globalmarketschool.com",
+    "availableLanguage": "English"
+  },
   "sameAs": [
     "https://facebook.com/victor.akodi",
     "https://x.com/globalmarketsch"
@@ -553,6 +561,27 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
 }
 .foot-legal a{font-size:12.5px; text-decoration:none; color:rgba(244,239,224,0.45);}
 .foot-legal a:hover{color:var(--gold-bright);}
+/* ---------- CONTACT BUTTONS ---------- */
+.contact-links{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:16px;}
+.contact-links a{
+  font-family:'Cinzel', serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  text-decoration:none; padding:10px 18px; border:1px solid var(--hair);
+  color:var(--ivory); transition:border-color .15s, color .15s, background .15s;
+}
+.contact-links a:hover{border-color:var(--gold-bright); color:var(--gold-bright);}
+.contact-links a.wa{background:#25D366; border-color:#25D366; color:#0b1b33;}
+.contact-links a.wa:hover{background:#1ebe5b; color:#0b1b33;}
+.contact-links a.call{background:var(--gold); border-color:var(--gold); color:var(--navy-deep);}
+.contact-links a.call:hover{background:var(--gold-bright); color:var(--navy-deep);}
+.contact-links a.fb{background:#1877F2; border-color:#1877F2; color:#fff;}
+.contact-links a.fb:hover{background:#1466d6; color:#fff;}
+.contact-links a.x{background:#000; border-color:#444; color:#fff;}
+.contact-links a.x:hover{background:#222; color:#fff;}
+.contact-links a.mail{background:var(--navy-deep); border-color:var(--gold); color:var(--ivory); text-transform:none; letter-spacing:0.5px; font-size:13px;}
+.contact-links a.mail:hover{border-color:var(--gold-bright); color:var(--gold-bright);}
+.contact-email{text-align:center; margin-bottom:18px; font-size:14px;}
+.contact-email a{color:var(--gold-bright); text-decoration:none; border-bottom:1px solid var(--hair);}
+.contact-email a:hover{border-color:var(--gold-bright);}
 .foot-bottom{
 
   margin-top:28px; padding-top:22px; border-top:1px solid rgba(244,239,224,0.1);
@@ -967,7 +996,16 @@ footer{background:var(--navy-mid); color:rgba(244,239,224,0.55); padding:44px 0;
       <a href="legal/risk-disclaimer.html">Risk Disclaimer</a>
     </div>
     <div class="foot-bottom">
-      &copy; 2026 Global Market School Ltd. — info@globalmarketschool.com — +234 810 876 4924
+      <div class="contact-links">
+        <a class="fb" href="https://facebook.com/victor.akodi" target="_blank" rel="noopener">Facebook</a>
+        <a class="x" href="https://x.com/globalmarketsch" target="_blank" rel="noopener">X (Twitter)</a>
+        <a class="wa" href="https://wa.me/2348108764924" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="call" href="tel:+2348108764924">Call Us</a>
+      </div>
+      <div class="contact-links">
+        <a class="mail" href="mailto:info@globalmarketschool.com">info@globalmarketschool.com</a>
+      </div>
+      &copy; 2026 Global Market School Ltd.
     </div>
   </div>
 </footer>
